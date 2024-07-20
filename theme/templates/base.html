@@ -63,6 +63,7 @@
                     {% if request.user.is_authenticated and request.path != "/" %}
                     <a href="{% url 'list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Drugs</a>
                     <a href="{% url 'record' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Issue</a>
+                    <a href="{% url 'restocked' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Restock</a>
                     <a href="{% url 'worth' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Worth</a>
                     {% endif %}
                     {% if request.user.is_authenticated %}
@@ -104,7 +105,7 @@
         {% if messages %}
         <div class="rounded-md bg-green-50 p-2 m-2 w-fit mx-auto" uk-alert>
             <a href class="uk-alert-close " uk-close></a>
-                    <div class="text-sm text-green-800" role="alert">
+                    <div class="text-sm text-green-600" role="alert">
                             {% for message in messages %}
                                 <p class=" text-center uppercase "> <i class="fas fa-check-circle fa-2x"></i> <br>{{ message }}</p>
                             {% endfor %}
@@ -115,12 +116,12 @@
         {% endblock %}
     </main>
 
-    <footer class="bg-green-500 text-white py-1 mt-1">
+    <footer class="bg-green-500 text-gray-700 py-2 mt-1">
         <div class="container mx-auto text-center">
-            <p class="text-sm">&copy; 2024 Pharmacy Inventory Management. Powered by <a class="text-lg uppercase hover:bg-white hover:text-green-600 p-1 rounded-sm" href="#">Green Edge Tech NG</a> All rights reserved.
+            <p class="text-xs">&copy; 2024 Pharmacy Inventory Management. Powered by <a class="text-xs uppercase rounded-md text-green-700 bg-white" href="#">Green Edge Technologies Nigeria</a> All rights reserved.
             </p>
             <p class="text-xs">
-                Phone: 0905 945 3546, 0806 662 6200, Email: info@greenedgeng.com
+                Phone: 0905 945 3546, 0806 662 6200, Email: info@greenedgeng.com, Website: wwww.greenedgeng.com
             </p>
         </div>
     </footer>

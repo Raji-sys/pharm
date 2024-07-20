@@ -65,7 +65,7 @@ class DrugAdmin(ImportMixin,admin.ModelAdmin):
 @admin.register(Record)
 class RecordAdmin(admin.ModelAdmin):
     exclude = ('issued_by', 'balance')
-    list_display = ['drug', 'unit_issued_to', 'issued_by_username', 'quantity', 'balance', 'date_issued','updated_at']
+    list_display = ['drug', 'unit_issued_to', 'issued_by_username', 'quantity', 'date_issued','updated_at']
     search_fields = ['drug', 'issued_to','drug__supplier','drug__supply_date']
     list_filter = ['unit_issued_to', 'drug','drug__supplier','drug__supply_date']
     list_per_page = 10

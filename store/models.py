@@ -71,7 +71,7 @@ class Drug(models.Model):
     pack_size = models.CharField('PACK SIZE',max_length=100, null=True, blank=True)
     cost_price = models.DecimalField('COST PRICE',max_digits=10, decimal_places=2, null=True, blank=True)
     total_purchased_quantity = models.PositiveIntegerField('TOTAL QTY PURCHASED',default=0)
-    expiration_date = models.DateField('DATE ADDED',null=True, blank=True)
+    expiration_date = models.DateField(null=True, blank=True)
     added_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='added_drugs')
     updated_at = models.DateField('DATE UPDATED',auto_now=True)
 
@@ -106,7 +106,6 @@ class Record(models.Model):
     srv = models.CharField('SRV',max_length=100, null=True, blank=True)
     invoice_no = models.PositiveIntegerField('INVOICE NUMBER',null=True, blank=True)
     quantity = models.PositiveIntegerField('QTY ISSUED',null=True, blank=True)
-    balance = models.PositiveIntegerField('CURRENT BALANCE',null=True, blank=True)
     date_issued = models.DateField()
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_records')
     remark = models.CharField('REMARKS',max_length=200, null=True, blank=True)
@@ -119,7 +118,6 @@ class Record(models.Model):
             if self.quantity > available_quantity:
                 if available_quantity > 0:
                     self.quantity = available_quantity
-                    # Maybe log this adjustment or add it to instance.remark
                 else:
                     raise ValidationError(_("No drugs available in the store."), code='invalid_quantity')
             
@@ -135,6 +133,7 @@ class Restock(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, null=True,)
     quantity = models.IntegerField()
     date = models.DateField()
+    restocked_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_restocking')
     updated = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):

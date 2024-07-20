@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="mx-1 py-2">
-    <h1 class="text-xl font-bold text-gray-900 text-center">Drug Issue Records</h1>
+    <h1 class="text-xl font-bold text-gray-900 text-center">Drug Restocking</h1>
     <div class="flex justify-end items-center m-2 space-x-2">
             <a href="{% url 'restock_drugs' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <i class="fas fa-plus mr-2"></i> Restock
@@ -21,19 +21,20 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-blue-300">
                     <tr>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Date</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Drug</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Generic</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Brand</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
-                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Drug</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Generic</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Brand</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-3 py-3 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Update Restock</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for r in po %}
-                    <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-50 transition duration-150 ease-in-out">
+                    <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-50 transition duration-150 ease-in-out text-center">
                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.date|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
@@ -42,6 +43,7 @@
                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.supplier|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 text-center"><a href="{% url 'update_restock' r.id %}"><i class="fa fa-solid fa-edit fa-xl text-blue-600"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

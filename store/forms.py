@@ -9,7 +9,7 @@ class DrugForm(forms.ModelForm):
         model = Drug
         fields = ['name','generic_name','brand_name','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','supply_date','expiration_date']  
         widgets = {
-            'date': DateInput(attrs={'type': 'date'})
+            'supply_date': DateInput(attrs={'type': 'date'})
         }
 
     def __init__(self, *args, **kwargs):
@@ -17,7 +17,6 @@ class DrugForm(forms.ModelForm):
         for field in self.fields.values():
             field.required=True    
             field.widget.attrs.update({'class':'text-center text-xs md:text-sm focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
-
 
 
 class RecordForm(forms.ModelForm):
@@ -45,9 +44,9 @@ class RecordForm(forms.ModelForm):
             if quantity > available_quantity:
                 if available_quantity > 0:
                     # Raise a non-field error to display a warning
-                    self.add_error(None, f"Warning: Only {available_quantity} units available. The issued quantity will be adjusted.")
+                    self.add_error(None, f"Warning: Only {available_quantity} units available. The issued quantity should be adjusted.")
                 else:
-                    raise ValidationError("Not enough drugs available in the store.")
+                    raise ValidationError("Not enough available in the store.")
             
         return cleaned_data    
     

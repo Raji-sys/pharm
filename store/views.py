@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from .forms import *
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from .models import *
 import datetime
 from django.http import HttpResponse
@@ -12,13 +12,12 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 from django.conf import settings
 import os
-from django.utils.decorators import method_decorator 
 from django.core.paginator import Paginator
-from .decorators import  superuser_required
 from django.http import JsonResponse
 from django.forms import modelformset_factory
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.views.generic import CreateView, ListView, DetailView, UpdateView
 
 
 class CustomLoginView(LoginView):
@@ -50,6 +49,16 @@ def create_drug(request):
     return render(request, 'store/create_item.html', {'form': form})
 
 
+class DrugUpdateView(UpdateView):
+    model=Drug
+    form_class=DrugForm
+    template_name='store/create_item.html'
+    success_url=reverse_lazy('list')
+    success_message = "Drug successfully."
+  
+    def form_valid(self, form):
+        form.instance.added_by = self.request.user
+        return super().form_valid(form)
 
 @login_required
 def create_record(request):
@@ -68,7 +77,7 @@ def create_record(request):
                         any_saved = True
                     except ValidationError as e:
                         formset.add_error(None, str(e))
-            
+          
             if any_saved:
                 messages.success(request, 'Drugs issued successfully. Some quantities may have been adjusted.')
                 return redirect('record')  # Make sure 'record' is the correct name for your URL
@@ -87,7 +96,7 @@ def restock(request):
         if formset.is_valid():
             instances = formset.save(commit=False)
             for instance in instances:
-                instance.issued_by = request.user
+                instance.restocked_by = request.user
                 instance.save()
             messages.success(request,'drugs restocked')
             return redirect('restocked')
@@ -96,9 +105,32 @@ def restock(request):
 
     return render(request, 'store/restock.html', {'formset': formset})
 
+
+class RestockUpdateView(UpdateView):
+    model=Restock
+    form_class=RestockForm
+    template_name='store/update_restock.html'
+    success_url=reverse_lazy('restocked')
+    success_message = "Drug restocked successfully."
+    
+    def form_valid(self, form):
+        form.instance.restocked_by = self.request.user
+        return super().form_valid(form)
+    
+from django.utils import timezone
+from datetime import timedelta
 @login_required
 def drugs_list(request):
     drugs = Drug.objects.all().order_by('-name')
+    today = timezone.now().date()
+    six_months_later = today + timedelta(days=180)
+    
+    for drug in drugs:
+        if drug.expiration_date:
+            drug.expires_soon = drug.expiration_date <= six_months_later
+        else:
+            drug.expires_soon = False
+          
     pgn=Paginator(drugs,10)
     pn=request.GET.get('page')
     po=pgn.get_page(pn)
@@ -118,6 +150,17 @@ def records(request):
     return render(request, 'store/record.html', context)
 
 
+class RecordUpdateView(UpdateView):
+    model=Record
+    form_class=RecordForm
+    template_name='store/update_record.html'
+    success_url=reverse_lazy('record')
+    success_message = "Record updated successfully."
+    
+    def form_valid(self, form):
+        form.instance.issued_by = self.request.user
+        return super().form_valid(form)
+    
 @login_required
 # @superuser_required
 def worth(request):
@@ -143,7 +186,6 @@ def get_drugs_by_category(request, category_id):
     drugs = Drug.objects.filter(category_id=category_id)
     drug_list = [{'id': drug.id, 'name': drug.name} for drug in drugs]
     return JsonResponse({'drugs': drug_list})
-
 
 
 @login_required
