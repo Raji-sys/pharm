@@ -67,11 +67,10 @@
                     {% endif %}
                     {% if request.user.is_authenticated %}
                     <form method="POST" action="{% url 'logout' %}" >
-                        {%csrf_token%}
+                        {% csrf_token %}
                         <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 transition duration-300 shadow-md hover:shadow-lg rounded-lg text-xs">
                             <i class="fa-solid fa-sign-out-alt mr-2"></i>Logout
                         </button>
-
                     </form>
                     {% endif %}
                 </div>
@@ -113,7 +112,7 @@
         {% endblock %}
     </main>
 
-    <footer class="bg-green-700 text-white py-1 mt-1">
+    <footer class="bg-green-500 text-white py-1 mt-1">
         <div class="container mx-auto text-center">
             <p class="text-sm">&copy; 2024 Pharmacy Inventory Management. Powered by <a class="text-lg uppercase hover:bg-white hover:text-green-600 p-1 rounded-sm" href="#">Green Edge Tech NG</a> All rights reserved.
             </p>
