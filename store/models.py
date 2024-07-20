@@ -65,7 +65,7 @@ class Drug(models.Model):
     brand_name = models.CharField('BRAND NAME',max_length=100, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_category')
     supplier = models.CharField('SUPPLIER',max_length=100, null=True, blank=True)
-    dosage=(('TABLET','TABLET'),('CAPSULE','CAPSULE'),('SYRUP','SYRUP'),('POWDER','POWDER'),('GRANULE','GRANULE'),('PELLET','PELLET'),('SOLUTION','SOLUTION'),('INFUSION','INFUSION'),('SUSPENSIONS','SUSPENSION'),
+    dosage=(('TABLET','TABLET'),('CAPSULE','CAPSULE'),('SYRUP','SYRUP'),('INJECTION','INJECTION'),('INFUSION','INFUSION'),('SUSPENSIONS','SUSPENSION'),('SOLUTION','SOLUTION'),('POWDER','POWDER'),('GRANULE','GRANULE'),('PELLET','PELLET'),
             ('EMULSION','EMULSION'),('TINCTURE','TINCTURE'),('OINTMENT','OINMENT'),('CREAM','CREAM'),('GEL','GEL'),('SUPPOSITORY','SUPPOSITORY'),('INHALER','INHALER'),('IMPLANT','IMPLANT'),('LOZENGE','LOZENGEN'),('SPRAY','SPRAY'),('TRANSDERMAL PATCH','TRANSDERMAL PATCH'))
     dosage_form = models.CharField(choices=dosage,max_length=100, null=True, blank=True)
     pack_size = models.CharField('PACK SIZE',max_length=100, null=True, blank=True)
