@@ -112,18 +112,26 @@ class Record(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def save(self, *args, **kwargs):
-        if self.drug:
-            available_quantity = self.drug.current_balance
-            
-            if self.quantity > available_quantity:
-                if available_quantity > 0:
-                    self.quantity = available_quantity
-                else:
-                    raise ValidationError(_("No drugs available in the store."), code='invalid_quantity')
-            
-            super().save(*args, **kwargs)
-        else:
+        if not self.drug:
             raise ValidationError(_("A drug must be specified."), code='invalid_drug')
+
+        if self.pk:  # This is an update
+            original_record = Record.objects.get(pk=self.pk)
+            original_quantity = original_record.quantity
+            quantity_difference = self.quantity - original_quantity
+            available_quantity = self.drug.current_balance + original_quantity
+        else:  # This is a new record
+            quantity_difference = self.quantity
+            available_quantity = self.drug.current_balance
+
+        if quantity_difference > available_quantity:
+            if available_quantity > 0:
+                self.quantity = original_quantity + available_quantity
+            else:
+                raise ValidationError(_("No drugs available in the store."), code='invalid_quantity')
+
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name_plural = 'drugs issued record'
 

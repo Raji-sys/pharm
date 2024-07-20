@@ -17,7 +17,9 @@ from django.http import JsonResponse
 from django.forms import modelformset_factory
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.views.generic import CreateView, ListView, DetailView, UpdateView
+from django.views.generic import UpdateView
+from django.utils import timezone
+from datetime import timedelta
 
 
 class CustomLoginView(LoginView):
@@ -33,7 +35,6 @@ class CustomLoginView(LoginView):
 def index(request):
     return render(request, 'store/index.html')
 
-
 @login_required
 def create_drug(request):
     if request.method == 'POST':
@@ -48,6 +49,25 @@ def create_drug(request):
         form = DrugForm()
     return render(request, 'store/create_item.html', {'form': form})
 
+@login_required
+def drugs_list(request):
+    drugs = Drug.objects.all().order_by('-name')
+    today = timezone.now().date()
+    six_months_later = today + timedelta(days=180)
+    
+    for drug in drugs:
+        if drug.expiration_date:
+            drug.expires_soon = drug.expiration_date <= six_months_later
+        else:
+            drug.expires_soon = False
+          
+    pgn=Paginator(drugs,10)
+    pn=request.GET.get('page')
+    po=pgn.get_page(pn)
+
+    context = {'drugs': drugs,'po':po}
+    return render(request, 'store/items_list.html', context)
+
 
 class DrugUpdateView(UpdateView):
     model=Drug
@@ -59,6 +79,18 @@ class DrugUpdateView(UpdateView):
     def form_valid(self, form):
         form.instance.added_by = self.request.user
         return super().form_valid(form)
+
+@login_required
+def drug_report(request):
+    drugfilter=DrugFilter(request.GET, queryset=Drug.objects.all().order_by('-name'))    
+    pgtn=drugfilter.qs
+    pgn=Paginator(pgtn,10)
+    pn=request.GET.get('page')
+    po=pgn.get_page(pn)
+
+    context = {'drugfilter': drugfilter,'po':po}
+    return render(request, 'store/item_report.html', context)
+
 
 @login_required
 def create_record(request):
@@ -82,10 +114,70 @@ def create_record(request):
                 messages.success(request, 'Drugs issued successfully. Some quantities may have been adjusted.')
                 return redirect('record')  # Make sure 'record' is the correct name for your URL
     else:
-        formset = RecordFormSet(queryset=Record.objects.none())
-    
+        formset = RecordFormSet(queryset=Record.objects.none())    
     return render(request, 'store/create_record.html', {'formset': formset})
 
+
+@login_required
+def records(request):
+    records = Record.objects.all().order_by('-updated_at')
+    pgn=Paginator(records,10)
+    pn=request.GET.get('page')
+    po=pgn.get_page(pn)
+
+    context = {'records': records, 'po':po}
+    return render(request, 'store/record.html', context)
+
+
+class RecordUpdateView(UpdateView):
+    model = Record
+    form_class = RecordForm
+    template_name = 'store/update_record.html'
+    success_url = reverse_lazy('record')
+
+    def form_valid(self, form):
+        try:
+            form.instance.issued_by = self.request.user
+            response = super().form_valid(form)
+            messages.success(self.request, "Record updated successfully.")
+            return response
+        except ValidationError as e:
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "There was an error updating the record. Please check the form.")
+        return super().form_invalid(form)
+
+def get_drugs_by_category(request, category_id):
+    drugs = Drug.objects.filter(category_id=category_id)
+    drug_list = [{'id': drug.id, 'name': drug.name} for drug in drugs]
+    return JsonResponse({'drugs': drug_list})
+
+
+@login_required
+def record_report(request):
+    recordfilter = RecordFilter(request.GET, queryset=Record.objects.all().order_by('-updated_at'))
+    filtered_queryset = recordfilter.qs
+    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    if filtered_queryset.exists():
+        first_drug=filtered_queryset.first().drug.cost_price
+    else:
+        first_drug=0
+    total_price=total_quantity*first_drug
+    total_appearance=filtered_queryset.count()
+    pgn=Paginator(filtered_queryset,10)
+    pn=request.GET.get('page')
+    po=pgn.get_page(pn)
+
+    context = {
+        'recordfilter': recordfilter,
+        'total_appearance': total_appearance,
+        'total_price':total_price,
+        'total_quantity':total_quantity,
+        'po':po
+    }
+    return render(request, 'store/record_report.html', context)
 
 @login_required
 def restock(request):
@@ -117,60 +209,6 @@ class RestockUpdateView(UpdateView):
         form.instance.restocked_by = self.request.user
         return super().form_valid(form)
     
-from django.utils import timezone
-from datetime import timedelta
-@login_required
-def drugs_list(request):
-    drugs = Drug.objects.all().order_by('-name')
-    today = timezone.now().date()
-    six_months_later = today + timedelta(days=180)
-    
-    for drug in drugs:
-        if drug.expiration_date:
-            drug.expires_soon = drug.expiration_date <= six_months_later
-        else:
-            drug.expires_soon = False
-          
-    pgn=Paginator(drugs,10)
-    pn=request.GET.get('page')
-    po=pgn.get_page(pn)
-
-    context = {'drugs': drugs,'po':po}
-    return render(request, 'store/items_list.html', context)
-
-
-@login_required
-def records(request):
-    records = Record.objects.all().order_by('-updated_at')
-    pgn=Paginator(records,10)
-    pn=request.GET.get('page')
-    po=pgn.get_page(pn)
-
-    context = {'records': records, 'po':po}
-    return render(request, 'store/record.html', context)
-
-
-class RecordUpdateView(UpdateView):
-    model=Record
-    form_class=RecordForm
-    template_name='store/update_record.html'
-    success_url=reverse_lazy('record')
-    success_message = "Record updated successfully."
-    
-    def form_valid(self, form):
-        form.instance.issued_by = self.request.user
-        return super().form_valid(form)
-    
-@login_required
-# @superuser_required
-def worth(request):
-    total_store_value = Drug.total_store_value()
-    ndate = datetime.datetime.now()
-    today = ndate.strftime('%d-%B-%Y: %I:%M %p')
-    context = {'total_store_value': total_store_value,'today':today}
-    return render(request, 'store/worth.html', context)
-
-
 @login_required
 def restocked_list(request):
     restock = Restock.objects.all().order_by('-updated')
@@ -180,50 +218,7 @@ def restocked_list(request):
 
     context = {'restock': restock, 'po':po}
     return render(request, 'store/restocked_list.html', context)
-
-
-def get_drugs_by_category(request, category_id):
-    drugs = Drug.objects.filter(category_id=category_id)
-    drug_list = [{'id': drug.id, 'name': drug.name} for drug in drugs]
-    return JsonResponse({'drugs': drug_list})
-
-
-@login_required
-def drug_report(request):
-    drugfilter=DrugFilter(request.GET, queryset=Drug.objects.all().order_by('-name'))    
-    pgtn=drugfilter.qs
-    pgn=Paginator(pgtn,10)
-    pn=request.GET.get('page')
-    po=pgn.get_page(pn)
-
-    context = {'drugfilter': drugfilter,'po':po}
-    return render(request, 'store/item_report.html', context)
-
-
-@login_required
-def record_report(request):
-    recordfilter = RecordFilter(request.GET, queryset=Record.objects.all().order_by('-updated_at'))
-    filtered_queryset = recordfilter.qs
-    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists():
-        first_drug=filtered_queryset.first().drug.cost_price
-    else:
-        first_drug=0
-    total_price=total_quantity*first_drug
-    total_appearance=filtered_queryset.count()
-    pgn=Paginator(filtered_queryset,10)
-    pn=request.GET.get('page')
-    po=pgn.get_page(pn)
-
-    context = {
-        'recordfilter': recordfilter,
-        'total_appearance': total_appearance,
-        'total_price':total_price,
-        'total_quantity':total_quantity,
-        'po':po
-    }
-    return render(request, 'store/record_report.html', context)
-
+    
 
 @login_required
 def restock_report(request):
@@ -311,4 +306,13 @@ def record_pdf(request):
         buffer.close()
         response.write(pdf)
         return response
-    return HttpResponse('Error generating PDF', status=500)
+    return HttpResponse('Error generating PDF', status=500)@login_required
+
+
+@login_required
+def worth(request):
+    total_store_value = Drug.total_store_value()
+    ndate = datetime.datetime.now()
+    today = ndate.strftime('%d-%B-%Y: %I:%M %p')
+    context = {'total_store_value': total_store_value,'today':today}
+    return render(request, 'store/worth.html', context)
