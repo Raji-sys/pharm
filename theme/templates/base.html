@@ -85,9 +85,12 @@
                 <a href="{% url 'worth' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Worth</a>
                 {% endif %}
                 {% if request.user.is_authenticated %}
-                <a href="{% url 'logout' %}" class="block py-2 text-white hover:text-red-200 transition duration-300">
-                    <i class="fa-solid fa-sign-out-alt mr-2 text-xs"></i>Logout
-                </a>
+                <form method="POST" action="{% url 'logout' %}" >
+                    {% csrf_token %}
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 transition duration-300 shadow-md hover:shadow-lg rounded-lg text-xs">
+                        <i class="fa-solid fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </form>
                 {% else %}
                 <a href="{% url 'signin' %}" class="block py-2 text-xs text-white hover:text-green-200 transition duration-300">
                     <i class="fa-solid fa-sign-in-alt mr-2"></i>Sign In
