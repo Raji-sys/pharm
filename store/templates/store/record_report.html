@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}ISSUANCE RECORD REPORT{% endblock %}
+
+{% block content %}
+<h1 class="text-xl font-bold text-gray-900 text-center">Issuance Record Report Filters</h1>
+<div class="max-w-7xl mx-auto px-4 ">
+    <div class="flex justify-end items-center m-2 space-x-2">
+        {% if request.GET.urlencode %}
+            <a href="{% url 'record_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                <i class="fa-solid fa-file-pdf mr-2"></i> Generate PDF
+            </a>
+            <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                <i class="fa-solid fa-rotate mr-2"></i> Reset
+            </a>
+            {% endif %}
+        </div>
+
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
+        <div class="px-4 py-5 sm:p-6">
+            <form method="get" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-4">
+                {% for field in recordfilter.form %}
+                   <div>
+                       <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                       {% if field.field.widget.input_type == 'select' %}
+                       <select name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                       class="mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                   {% for choice in field.field.choices %}
+                       <option value="{{ choice.0 }}" {% if choice.0 == field.value %}selected{% endif %}>
+                           {{ choice.1 }}
+                       </option>
+                   {% endfor %}
+               </select>
+                       {% else %}
+                           <input type="{{ field.field.widget.input_type }}" 
+                                  name="{{ field.name }}" 
+                                  id="{{ field.id_for_label }}" 
+                                  value="{{ field.value|default:'' }}"
+                                  class="mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                           >
+                       {% endif %}
+                       {% if field.errors %}
+                           <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+                       {% endif %}
+                   </div>
+                {% endfor %}
+                </div>
+                <div class="flex justify-end">
+                   <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                       <i class="fa-solid fa-search mr-2"></i> Search
+                   </button>
+                </div>
+               </form>
+        </div>
+    </div>
+
+    {% if request.GET.urlencode %}
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="overflow-x-auto max-h-[70vh]">
+            <div class="bg-white">
+                <p class="px-3 py-4 whitespace-nowrap text-lg font-semibold text-green-700 text-center uppercase">
+                    Issued: {{ total_appearance }} times - Quantity: {{ total_quantity }} - Worth: &#x20A6;{{ total_price }}
+                </p>
+            </div>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-amber-500">
+                    <tr class="text-xs">
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Date & Time Issued</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Issued By</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Drug info</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Brand & <br> Supplier</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Balance</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Remark</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for r in recordfilter.qs %}
+                    <tr class="{% cycle 'bg-white' 'bg-amber-50' %} hover:bg-amber-100 transition duration-150 ease-in-out text-xs">
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.updated_at|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.issued_by|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug|default_if_none:'N/A' }}<br><small>{{ r.drug.generic_name|default_if_none:'N/A' }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A' }} <br><small>{{ r.drug.supplier|default_if_none:'N/A' }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{%if r.balance <= 0 %} <span class="text-rose-700 font-semibold">O/S</span>{%else%}{{ r.balance|default_if_none:'O/S' }}{%endif%}</td>
+                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.remark|default_if_none:'N/A' }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="12" class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No records found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4 flex items-center justify-between">
+        <div>
+            <p class="text-sm text-gray-700">
+                Showing page <span class="font-medium">{{ po.number }}</span> of <span class="font-medium">{{ po.paginator.num_pages }}</span>
+            </p>
+        </div>
+        <div class="flex-1 flex justify-end">
+            {% if po.has_previous %}
+            <a href="?page=1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-3">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ po.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-3">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% endif %}
+            
+            {% if po.has_next %}
+            <a href="?page={{ po.next_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ po.paginator.num_pages }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 ml-3">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Logged Out{% endblock %}
+
+{% block content %}
+<div class="py-10 flex items-center justify-center rounded-md">
+  <div class="bg-white p-8 rounded-xl shadow-2xl transform transition-all hover:scale-105 duration-300">
+    <div class="text-center">
+      <i class="fas fa-check-circle text-5xl text-green-500"></i>
+      <h2 class="mt-4 text-2xl font-bold text-gray-900">Logged Out Successfully</h2>
+      <p class="mt-2 text-sm text-gray-600">Thank you for using our service.</p>
+    </div>
+    <div class="mt-8">
+      <a href="{% url 'signin' %}" class="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors duration-200">
+        <i class="fas fa-sign-in-alt mr-2"></i> Log In Again
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

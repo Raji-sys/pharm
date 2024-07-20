@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOHD PHARMACY REPORT</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin: 0;
+        box-sizing: border-box;
+        min-height: 100vh;
+    }
+    .logo-container {
+        text-align: center;
+        margin-bottom: 2px;
+        margin-top: 0%;
+    }
+
+    .logo-image {
+        width: 150px;
+        display: inline-block;
+        margin-top: 0%;
+
+    }
+
+h1 {
+            color: #039a10;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+
+        .queryset-data {
+            margin: 10px 0;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .result {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            background-color: #e6f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .summary b {
+            color: #0aa104;
+            margin-right: 15px;
+            font-size: medium;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 3px;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #057f1e;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #e6f3ff;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+        .small-column {
+            width: 30px;
+        }
+        .t{
+            font-style: italic;
+            font-size: 8px;
+        }
+        .rose{
+         color: red;   
+        }
+
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
+    </div>
+    <h1> NOHD PHARMACY INVENTORY REPORT</h1>
+    <div class="result">
+      {{ result|upper }}
+    </div>
+    <hr>
+     <div class="queryset-data">
+        <b>Filtered by:</b> {% for key in keys %}{{ key|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </div>
+    <div class="summary">
+        <b>ISSUED: {{ total_appearance }}</b>
+        <b>QUANTITY: {{ total_quantity }}</b>
+        <b>WORTH: N{{ total_price }}</b>
+    </div>
+
+  <table>
+        <thead>
+            <tr>
+                <th class="small-column">#</th>
+                <th class="">DATE ISSUED</th>
+                <th class="">DRUG INFO</th>
+                <th class="">BRAND & SUPPLIER</th>
+                <th class="">UNIT ISSUED TO</th>
+                <th class="">QUANITITY ISSUED</th>
+                <th class=" ">BALANCE</th>
+                <th class="">REMARK</th>
+            </tr>
+              {% for r in f %}        
+        <tr class=>
+            <td class="small-column text-center">
+                {{forloop.counter}}
+            </td>    
+            <td class="text-center">
+                {{r.date_issued|date:'d-M-Y'|default_if_none:''|upper}}<br>
+                <small> 
+                    issued by: {{r.issued_by|default_if_none:''|upper}}
+                </small>
+            </td>    
+            <td>
+                {{r.drug|default_if_none:''|upper}} <br>
+               <span class="t">{{r.drug.generic_name|default_if_none:''|upper}}</span> 
+            </td>
+            <td>
+                {{r.drug.brand_name|default_if_none:''|upper}} <br>
+                {{r.drug.supplier|default_if_none:''|upper}}
+            </td>
+            <td>
+            {{r.unit_issued_to|default_if_none:''|upper}}
+            </td>
+            <td>
+            {{r.quantity|default_if_none:''|upper}}
+            </td>
+            <td>
+                {%if r.balance <= 0 %} 
+                <span class="rose">O/S</span>
+                {%else%}{{ r.balance|default_if_none:'O/S' }}{%endif%}
+            </td>
+            <td>
+            {{r.remark|default_if_none:''|upper}}
+            </td>
+          </tr>
+          {%endfor%}
+        </tbody>
+</table>
+
+</body>
+</html>

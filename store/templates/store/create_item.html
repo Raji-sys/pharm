@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Add New Drug{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-cyan-700 to-cyan-900 px-6 py-4">
+            <h1 class="text-lg font-bold text-white uppercase tracking-wider text-center">
+                Add a New Drug to the Store
+            </h1>
+        </div>
+        
+        {% if form.non_field_errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline">{{ form.non_field_errors.0 }}</span>
+        </div>
+        {% endif %}
+
+        <form action="" method="POST" enctype="multipart/form-data" class="px-6 py-8 bg-cyan-50 text-xs">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 uppercase mb-1">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-8 flex justify-center">
+                <button type="submit" class="text-xs inline-flex items-center px-6 py-3 border border-transparent  font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 uppercase transition duration-150 ease-in-out">
+                    Add Drug
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select {
+        @apply mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}ACCESS DENIED{% endblock %}
+{% load static %}
+{% block content %}
+  <div class="flex justify-center bg-white rounded-2xl">
+    <div class="mt-32 shadow-2xl mx-auto bg-white p-10 rounded-xl text-center">
+        <i class="fa-solid fa-lock fa-10x text-red-600"></i>
+    <p class=" text-red-600 font-bold text-2xl uppercase text-center">
+      ACCESS DENIED! 
+    </p>
+    <p class="text-md font-semibold mt-6 border-t-2 border-zinc-700">
+       <span class="text-cyan-800 font-bold text-xl">
+           {{request.user}},
+       </span> 
+        YOU DO NOT HAVE PERMISSION TO VIEW THIS PAGE
+    </p>
+  </div>
+  </div>
+{% endblock %}

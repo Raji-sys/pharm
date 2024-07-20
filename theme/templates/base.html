@@ -1,0 +1,128 @@
+{% load static %}
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% tailwind_css %}
+    <title>{% block title %}Pharmacy Inventory Management{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'fontawesomefree/css/fontawesome.css' %}" type='text/css'>
+    <link rel="stylesheet" href="{% static 'fontawesomefree/css/solid.css' %}" type='text/css'>
+    <link rel="stylesheet" href="{% static 'fontawesomefree/css/brands.css' %}" type="text/css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <script src="{% static 'uikit/js/uikit.min.js' %}"></script>
+<script src="{% static 'uikit/js/uikit-icons.js' %}"></script>
+
+    <script src="{% static 'js/_hyperscript.js' %}"></script>
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+</head>
+    <style>
+      a{
+          text-decoration: none;
+      }
+      a:hover{
+          text-decoration: none;
+      }	
+  /* For WebKit browsers (Chrome, Safari) */
+  ::-webkit-scrollbar {
+      width: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+      background: #4a90e2;
+      border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+  }
+  
+  /* For Firefox */
+  * {
+      scrollbar-width: auto;
+      scrollbar-color: #4a90e2 #f1f1f1;
+  }
+  
+    </style>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-gradient-to-r from-green-600 via-green-500 to-green-600 shadow-lg">
+        <nav class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    {% if request.user.is_authenticated %}
+                    <a href="/" class="text-white hover:text-green-200 font-semibold transition duration-300 text-sm">
+                        <i class="fa fa-solid fa-home-alt fa-2x"></i>
+                    </a>
+                    <span class="text-white text-xs">
+                        welcome, <strong class="uppercase">{{ request.user.first_name|default:request.user.username }}</strong>
+                    </span>
+               {%if request.user.is_superuser%} <a href="{% url 'admin:index' %}" class="text-white hover:text-green-200 transition duration-300 text-xs border-b-2">Control Panel</a>{%endif%}
+                {%endif%}
+                </div>
+                <div class="hidden md:flex items-center space-x-4 uppercase text-sm">
+                    {% if request.user.is_authenticated and request.path != "/" %}
+                    <a href="{% url 'list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Drugs</a>
+                    <a href="{% url 'record' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Issue</a>
+                    <a href="{% url 'worth' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Worth</a>
+                    {% endif %}
+                    {% if request.user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 transition duration-300 shadow-md hover:shadow-lg rounded-lg text-xs">
+                        <i class="fa-solid fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                    {% endif %}
+                </div>
+                <button class="md:hidden text-white focus:outline-none" id="mobile-menu-button">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="md:hidden hidden uppercase text-sm" id="mobile-menu">
+                {% if request.user.is_authenticated and request.path != "/" %}
+                <a href="{% url 'list' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Drugs</a>
+                <a href="{% url 'record' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Issue</a>
+                <a href="{% url 'worth' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Worth</a>
+                {% endif %}
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="block py-2 text-white hover:text-red-200 transition duration-300">
+                    <i class="fa-solid fa-sign-out-alt mr-2 text-xs"></i>Logout
+                </a>
+                {% else %}
+                <a href="{% url 'signin' %}" class="block py-2 text-xs text-white hover:text-green-200 transition duration-300">
+                    <i class="fa-solid fa-sign-in-alt mr-2"></i>Sign In
+                </a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-2 py-4">
+        {% if messages %}
+        <div class="rounded-md bg-green-50 p-2 m-2 w-fit mx-auto" uk-alert>
+            <a href class="uk-alert-close " uk-close></a>
+                    <div class="text-sm text-green-800" role="alert">
+                            {% for message in messages %}
+                                <p class=" text-center uppercase "> <i class="fas fa-check-circle fa-2x"></i> <br>{{ message }}</p>
+                            {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-green-700 text-white py-1 mt-1">
+        <div class="container mx-auto text-center">
+            <p class="text-sm">&copy; 2024 Pharmacy Inventory Management. Powered by <a class="text-lg uppercase hover:bg-white hover:text-green-600 p-1 rounded-sm" href="#">Green Edge Tech NG</a> All rights reserved.
+            </p>
+            <p class="text-xs">
+                Phone: 0905 945 3546, 0806 662 6200, Email: info@greenedgeng.com
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
