@@ -6,7 +6,7 @@ from django import forms
 
 class DrugFilter(django_filters.FilterSet):
     category = django_filters.ChoiceFilter(label="CLASS", field_name='category__name', lookup_expr='iexact', choices=Category.DRUG_CLASSES,widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
-    name = django_filters.CharFilter(label="DRUG",field_name='name', lookup_expr='iexact')    
+    name = django_filters.CharFilter(label="DRUG",field_name='name', lookup_expr='icontains')    
     dosage_form = django_filters.ChoiceFilter(label="DOSAGE FORM",field_name='dosage_form',choices=Drug.dosage, lookup_expr='iexact',widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
     generic_name = django_filters.CharFilter(label="GENERIC NAME",field_name='generic_name', lookup_expr='iexact')
     brand_name = django_filters.CharFilter(label="BRAND NAME",field_name='brand_name', lookup_expr='iexact')
@@ -27,7 +27,7 @@ class RecordFilter(django_filters.FilterSet):
     brand_name = django_filters.CharFilter(label="BRAND",field_name='drug__brand_name', lookup_expr='iexact')
     category = django_filters.ChoiceFilter(label="CLASS", field_name='drug__category__name', lookup_expr='iexact', choices=Category.DRUG_CLASSES,
                                            widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
-    drug = django_filters.CharFilter(label="DRUG",field_name='drug__name', lookup_expr='iexact')
+    drug = django_filters.CharFilter(label="DRUG",field_name='drug__name', lookup_expr='icontains')
     supplier = django_filters.CharFilter(label="SUPPLIER",field_name='drug__supplier', lookup_expr='iexact')
     unit_issued_to = django_filters.ModelChoiceFilter(
         label="UNIT ISSUED TO",
