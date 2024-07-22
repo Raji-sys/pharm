@@ -37,19 +37,19 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for r in po %}
-                    <tr class="{% cycle 'bg-white' 'bg-amber-50' %} hover:bg-amber-50 transition duration-150 ease-in-out text-center">
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.updated_at|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{r.date_issued}}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.issued_by|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ r.drug|default_if_none:'N/A' }}<br><small>{{ r.drug.generic_name|default_if_none:'N/A' }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A' }} <br><small>{{ r.drug.supplier|default_if_none:'N/A' }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500">{{ r.remark|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap text-sm text-gray-500 text-center"><a href="{% url 'update_record' r.id %}"><i class="fa fa-solid fa-edit fa-xl text-amber-600"></i></a></td>
+                    <tr class="{% cycle 'bg-white' 'bg-amber-50' %} hover:bg-amber-50 transition duration-150 ease-in-out text-center text-xs">
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.updated_at|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{r.date_issued}}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.issued_by|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ r.drug|default_if_none:'N/A' }}<br><small>{{ r.drug.generic_name|default_if_none:'N/A' }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A' }} <br><small>{{ r.drug.supplier|default_if_none:'N/A' }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.remark|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500 text-center"><a href="{% url 'update_record' r.id %}"><i class="fa fa-solid fa-edit fa-xl text-amber-600"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

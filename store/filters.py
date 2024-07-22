@@ -4,6 +4,17 @@ from .models import Drug, Category, Record, Restock, Unit
 from django import forms
 
 
+class DrugSearchFilter(django_filters.FilterSet):
+    category = django_filters.ChoiceFilter(label="CLASS", field_name='category__name', lookup_expr='iexact', choices=Category.DRUG_CLASSES,widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
+    name = django_filters.CharFilter(label="DRUG",field_name='name', lookup_expr='icontains')    
+    generic_name = django_filters.CharFilter(label="GENERIC NAME",field_name='generic_name', lookup_expr='iexact')
+    brand_name = django_filters.CharFilter(label="BRAND NAME",field_name='brand_name', lookup_expr='iexact')
+   
+    class Meta:
+        model = Drug
+        fields = ['category','name','generic_name','brand_name',]
+
+
 class DrugFilter(django_filters.FilterSet):
     category = django_filters.ChoiceFilter(label="CLASS", field_name='category__name', lookup_expr='iexact', choices=Category.DRUG_CLASSES,widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
     name = django_filters.CharFilter(label="DRUG",field_name='name', lookup_expr='icontains')    
@@ -51,4 +62,4 @@ class RestockFilter(django_filters.FilterSet):
 
     class Meta:
         model = Restock
-        exclude= ['updated','date','quantity']
+        exclude= ['updated','date','quantity','restocked_by']

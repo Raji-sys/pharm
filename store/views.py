@@ -1,4 +1,4 @@
-from .filters import DrugFilter, RecordFilter, RestockFilter
+from .filters import DrugFilter, RecordFilter, RestockFilter, DrugSearchFilter
 from django.shortcuts import render, redirect
 from .forms import *
 from django.contrib.auth.views import LoginView
@@ -61,11 +61,14 @@ def drugs_list(request):
         else:
             drug.expires_soon = False
           
-    pgn=Paginator(drugs,10)
+    drugsearchfilter=DrugSearchFilter(request.GET, queryset=Drug.objects.all().order_by('-name'))    
+    pgtn=drugsearchfilter.qs
+    pgn=Paginator(pgtn,10)
+
     pn=request.GET.get('page')
     po=pgn.get_page(pn)
 
-    context = {'drugs': drugs,'po':po}
+    context = {'drugsearchfilter': drugsearchfilter,'po':po}
     return render(request, 'store/items_list.html', context)
 
 
@@ -160,22 +163,26 @@ def record_report(request):
     recordfilter = RecordFilter(request.GET, queryset=Record.objects.all().order_by('-updated_at'))
     filtered_queryset = recordfilter.qs
     total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    
     if filtered_queryset.exists():
-        first_drug=filtered_queryset.first().drug.cost_price
+        first_drug = filtered_queryset.first().drug.cost_price
+        if first_drug is None:
+            first_drug = 0
     else:
-        first_drug=0
-    total_price=total_quantity*first_drug
-    total_appearance=filtered_queryset.count()
-    pgn=Paginator(filtered_queryset,10)
-    pn=request.GET.get('page')
-    po=pgn.get_page(pn)
-
+        first_drug = 0
+    
+    total_price = total_quantity * first_drug
+    total_appearance = filtered_queryset.count()
+    pgn = Paginator(filtered_queryset, 10)
+    pn = request.GET.get('page')
+    po = pgn.get_page(pn)
+    
     context = {
         'recordfilter': recordfilter,
         'total_appearance': total_appearance,
-        'total_price':total_price,
-        'total_quantity':total_quantity,
-        'po':po
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+        'po': po
     }
     return render(request, 'store/record_report.html', context)
 

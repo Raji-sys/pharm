@@ -2,32 +2,32 @@
 {% block title %}Drugs Issuance Record{% endblock %}
 {% block content %}
 <div class="py-4 px-4 sm:px-6 lg:px-6">
-  <div class="max-w-6xl mx-auto">
+  <div class="max-w-7xl mx-auto">
     <div class="bg-amber-100 shadow-xl rounded-lg overflow-hidden">
       <div class="bg-amber-600 px-4 py-4">
-        <h2 class="text-lg font-bold text-white text-center uppercase">Issue Drugs to Units</h2>
+        <h2 class="text-sm font-bold text-white text-center uppercase">Issue Drugs to Units</h2>
       </div>
       {% if formset.non_form_errors %}
-  <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+  <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative uppercase" role="alert">
     {% for error in formset.non_form_errors %}
-      <p class="text-sm">{{ error }}</p>
+      <p class="text-xs">{{ error }}</p>
     {% endfor %}
   </div>
   {% endif %}
 
-      <form id="recordForm" action="" method="POST" enctype="multipart/form-data" class="p-6 text-xs">
+      <form id="recordForm" action="" method="POST" enctype="multipart/form-data" class="p-3 text-xs">
         {% csrf_token %}
         {{ formset.management_form }}
         {% for form in formset %}
           <div class="mb-4 last:mb-0">
             {% if form.non_field_errors %}
-              <div class="text-red-600 text-sm uppercase bg-white p-2 rounded-xl w-fit text-center mb-1">
+              <div class="text-red-600 text-xs uppercase bg-white p-2 rounded-xl w-fit text-center mb-1">
                 {{ form.non_field_errors.0 }}
               </div>
             {% endif %}
-            <div class="grid grid-cols-1 gap-1 md:grid-cols-5">
+            <div class="grid grid-cols-1 gap-20 md:grid-cols-5">
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Class</label>
+                <label class="block text-xs font-medium text-gray-700">Class</label>
                 <div class="mt-1">
                   {{ form.category }}
                 </div>
@@ -35,8 +35,8 @@
                   <p class="text-red-600 text-xs mt-1">{{ form.category.errors.0 }}</p>
                 {% endif %}
               </div>
-              <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Drug</label>
+              <div class="space-y-1 mr-4">
+                <label class="block text-xs font-medium text-gray-700">Drug</label>
                 <div class="mt-1">
                   {{ form.drug }}
                 </div>
@@ -45,7 +45,7 @@
                 {% endif %}
               </div>
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">To</label>
+                <label class="block text-xs font-medium text-gray-700">To</label>
                 <div class="mt-1">
                   {{ form.unit_issued_to }}
                 </div>
@@ -54,7 +54,7 @@
                 {% endif %}
               </div>
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                <label class="block text-xs font-medium text-gray-700">Quantity</label>
                 <div class="mt-1">
                   {{ form.quantity }}
                 </div>
@@ -63,7 +63,7 @@
                 {% endif %}
               </div>
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Date</label>
+                <label class="block text-xs font-medium text-gray-700">Date</label>
                 <div class="mt-1">
                   {{ form.date_issued }}
                 </div>

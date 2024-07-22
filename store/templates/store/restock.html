@@ -2,12 +2,12 @@
 {% block title %}Drugs Restocking{% endblock %}
 {% block content %}
 <div class="py-4 px-4 sm:px-6 lg:px-6">
-  <div class="max-w-4xl mx-auto">
+  <div class="max-w-5xl mx-auto">
     <div class="bg-blue-100 shadow-xl rounded-lg overflow-hidden">
       <div class="bg-blue-600 px-4 py-4">
-        <h2 class="text-lg font-bold text-white text-center uppercase">Restock Drugs</h2>
+        <h2 class="text-sm font-bold text-white text-center uppercase">Restock Drugs</h2>
       </div>
-      <form id="recordForm" action="" method="POST" enctype="multipart/form-data" class="p-6 text-xs">
+      <form id="recordForm" action="" method="POST" enctype="multipart/form-data" class="p-3 text-xs">
         {% csrf_token %}
         {{ formset.management_form }}
         {% for form in formset %}
@@ -17,9 +17,9 @@
                 {{ form.non_field_errors.0 }}
               </div>
             {% endif %}
-            <div class="grid grid-cols-1 gap-1 md:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Class</label>
+                <label class="block text-xs font-medium text-gray-700">Class</label>
                 <div class="mt-1">
                   {{ form.category }}
                 </div>
@@ -28,7 +28,7 @@
                 {% endif %}
               </div>
               <div class="space-y-1">
-                <label class="text-sm font-medium text-gray-700">Drug</label>
+                <label class="text-xs font-medium text-gray-700">Drug</label>
                 <div class="mt-1">
                   {{ form.drug }}
                 </div>
@@ -37,7 +37,7 @@
                 {% endif %}
               </div>
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                <label class="block text-xs font-medium text-gray-700">Quantity</label>
                 <div class="mt-1">
                   {{ form.quantity }}
                 </div>
@@ -46,7 +46,7 @@
                 {% endif %}
               </div>
               <div class="space-y-1">
-                <label class="block text-sm font-medium text-gray-700">Date</label>
+                <label class="block text-xs font-medium text-gray-700">Date</label>
                 <div class="mt-1">
                   {{ form.date }}
                 </div>

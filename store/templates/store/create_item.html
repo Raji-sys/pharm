@@ -4,7 +4,7 @@
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
         <div class="bg-gradient-to-r from-cyan-700 to-cyan-900 px-6 py-4">
-            <h1 class="text-lg font-bold text-white uppercase tracking-wider text-center">
+            <h1 class="text-sm font-bold text-white uppercase tracking-wider text-center">
                 Add a New Drug to the Store
             </h1>
         </div>
@@ -21,7 +21,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {% for field in form %}
                 <div class="form-group">
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 uppercase mb-1">
+                    <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700 uppercase mb-1">
                         {{ field.label }}
                     </label>
                     {{ field }}
