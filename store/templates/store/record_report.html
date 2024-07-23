@@ -75,7 +75,6 @@
                         <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
                         <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
                         <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Balance</th>
                         <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Remark</th>
                     </tr>
                 </thead>
@@ -91,7 +90,6 @@
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{%if r.balance <= 0 %} <span class="text-rose-700 font-semibold">O/S</span>{%else%}{{ r.balance|default_if_none:'O/S' }}{%endif%}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.remark|default_if_none:'N/A' }}</td>
                     </tr>
                     {% empty %}
