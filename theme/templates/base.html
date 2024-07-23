@@ -83,6 +83,7 @@
                 {% if request.user.is_authenticated and request.path != "/" %}
                 <a href="{% url 'list' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Drugs</a>
                 <a href="{% url 'record' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Issue</a>
+                <a href="{% url 'restocked' %}" class="text-white hover:text-green-200 transition duration-300">Restock</a>
                 <a href="{% url 'worth' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Worth</a>
                 {% endif %}
                 {% if request.user.is_authenticated %}
