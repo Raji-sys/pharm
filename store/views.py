@@ -77,10 +77,10 @@ class DrugUpdateView(UpdateView):
     form_class=DrugForm
     template_name='store/create_item.html'
     success_url=reverse_lazy('list')
-    success_message = "Drug successfully."
   
     def form_valid(self, form):
         form.instance.added_by = self.request.user
+        messages.success(self.request, "Drug updated successfully.")
         return super().form_valid(form)
 
 @login_required
