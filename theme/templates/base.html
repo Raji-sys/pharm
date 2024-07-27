@@ -59,7 +59,7 @@
                {%if request.user.is_superuser%} <a href="{% url 'admin:index' %}" class="text-white hover:text-green-200 transition duration-300 text-xs border-b-2">Control Panel</a>{%endif%}
                 {%endif%}
                 </div>
-                <div class="hidden md:flex items-center space-x-4 uppercase text-sm">
+                <div class="hidden md:flex items-center space-x-4 uppercase text-xs">
                     {% if request.user.is_authenticated and request.path != "/" %}
                     <a href="{% url 'list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Drugs</a>
                     <a href="{% url 'record' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Issue</a>
@@ -69,7 +69,7 @@
                     {% if request.user.is_authenticated %}
                     <form method="POST" action="{% url 'logout' %}" >
                         {% csrf_token %}
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 transition duration-300 shadow-md hover:shadow-lg rounded-lg text-xs">
+                        <button type="submit" class="bg-red-600 hover:bg-white hover:text-red-600 hover:border hover:border-rose-600 uppercase text-white px-4 py-2 shadow-md hover:shadow-lg rounded-lg text-xs">
                             <i class="fa-solid fa-sign-out-alt mr-2"></i>Logout
                         </button>
                     </form>
@@ -79,7 +79,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
-            <div class="md:hidden hidden uppercase text-sm" id="mobile-menu">
+            <div class="md:hidden hidden uppercase text-xs" id="mobile-menu">
                 {% if request.user.is_authenticated and request.path != "/" %}
                 <a href="{% url 'list' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Drugs</a>
                 <a href="{% url 'record' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Issue</a>

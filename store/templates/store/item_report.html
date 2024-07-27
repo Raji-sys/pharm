@@ -5,7 +5,7 @@
 {% block title %}Drugs Inventory{% endblock %}
 
 {% block content %}
-<h1 class="text-lg text-center font-bold text-gray-900 m-2">Drug Inventory Report Filters</h1>
+<h1 class="text-lg text-center font-bold text-cyan-800 m-2 uppercase">Drug Inventory Report Filters</h1>
 <div class="max-w-7xl mx-auto px-4">
     <div class="flex justify-end items-center m-2 space-x-2">
     {% if request.GET.urlencode %}
@@ -80,13 +80,13 @@
                     {% for i in po %}
                     <tr class="{% cycle 'bg-white hover:bg-cyan-50' 'bg-cyan-50 hover:bg-cyan-100' %} text-xs text-center">
                         <td class="px-6 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.updated_at|date:'d-m-Y'|default_if_none:'N/A' }}<br> <small> added by: {{ i.added_by }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.category|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.name|default_if_none:'N/A' }}<br><small >{{ i.generic_name|default_if_none:'N/A' }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.brand_name|default_if_none:'N/A' }}<br> <small>{{ i.supplier|default_if_none:'N/A' }} </small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.dosage_form|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.pack_size|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.cost_price|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.updated_at|date:'d-m-Y'|default_if_none:'N/A' }}<br> <small> added by: {{ i.added_by|upper }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.category|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.name|default_if_none:'N/A'|upper }}<br><small >{{ i.generic_name|default_if_none:'N/A'|upper }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.brand_name|default_if_none:'N/A'|upper }}<br> <small>{{ i.supplier|default_if_none:'N/A'|upper }} </small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.dosage_form|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.pack_size|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.cost_price|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_purchased_quantity|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{%if i.current_balance <= 0 %} <span class="text-rose-700 font-semibold">O/S</span>{%else%}{{ i.current_balance|default_if_none:'O/S' }}{%endif%}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_value|default_if_none:'N/A' }}</td>

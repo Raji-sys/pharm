@@ -23,6 +23,7 @@ urlpatterns=[
     path('retocked-list/', views.restocked_list, name='restocked'),
     path('update-restocked-drug/<int:pk>/',RestockUpdateView.as_view(),name='update_restock'),
     path('restock-report/', views.restock_report, name='restock_report'),
+    path('restock-pdf/', views.restock_pdf, name='restock_pdf'),
     
     path('worth/', views.worth, name='worth'),
     path('get_drugs_by_category/<int:category_id>/', views.get_drugs_by_category, name='get_drugs_by_category'),

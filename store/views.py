@@ -232,7 +232,7 @@ def restock_report(request):
     restockfilter = RestockFilter(request.GET, queryset=Restock.objects.all().order_by('-updated'))
     filtered_queryset = restockfilter.qs
     total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists():
+    if filtered_queryset.exists() and filtered_queryset.first().drug.cost_price:
         first_drug=filtered_queryset.first().drug.cost_price
     else:
         first_drug=0
@@ -253,9 +253,6 @@ def restock_report(request):
 
 
 def fetch_resources(uri, rel):
-    """
-    Handles fetching static and media resources when generating the PDF.
-    """
     if uri.startswith(settings.STATIC_URL):
         path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ""))
     else:
@@ -314,7 +311,36 @@ def record_pdf(request):
         buffer.close()
         response.write(pdf)
         return response
-    return HttpResponse('Error generating PDF', status=500)@login_required
+    return HttpResponse('Error generating PDF', status=500)
+
+
+@login_required
+def restock_pdf(request):
+    ndate = datetime.datetime.now()
+    filename = ndate.strftime('on_%d/%m/%Y_at_%I.%M%p.pdf')
+    f = RestockFilter(request.GET, queryset=Restock.objects.all()).qs
+    
+    total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    if f.exists() and f.first().drug.cost_price:
+        first_drug=f.first().drug.cost_price
+    else:
+        first_drug=0
+        
+    total_price=total_quantity*first_drug
+    total_appearance=f.count()
+    keys = [key for key, value in request.GET.items() if value]
+    result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
+    context = {'f': f, 'pagesize': 'A4', 'orientation': 'Potrait','result':result,'keys':keys,'total_appearance': total_appearance,'total_price':total_price,'total_quantity':total_quantity,}
+    response = HttpResponse(content_type='application/pdf', headers={'Content-Disposition': f'filename="gen_by_{request.user}_{filename}"'})
+    buffer = BytesIO()
+    pisa_status = pisa.CreatePDF(get_template('store/restock_pdf.html').render(context), dest=buffer, encoding='utf-8', link_callback=fetch_resources)
+
+    if not pisa_status.err:
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
+    return HttpResponse('Error generating PDF', status=500)
 
 
 @login_required

@@ -13,7 +13,7 @@
         {% for form in formset %}
           <div class="mb-4 last:mb-0">
             {% if form.non_field_errors %}
-              <div class="text-red-600 text-sm mb-4">
+              <div class="text-red-600 text-xs mb-4">
                 {{ form.non_field_errors.0 }}
               </div>
             {% endif %}

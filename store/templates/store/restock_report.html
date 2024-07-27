@@ -3,11 +3,11 @@
 {% block title %}Restocking Record{% endblock %}
 
 {% block content %}
-<h1 class="text-lg font-bold text-gray-900 text-center">Restocking Report</h1>
+<h1 class="text-lg font-bold text-blue-800 text-center uppercase">Restocking Report</h1>
 <div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}
-            <a href="{% url 'record_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <a href="{% url 'restock_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <i class="fa-solid fa-file-pdf mr-2"></i> Generate PDF
             </a>
             <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -23,14 +23,29 @@
                     {% for field in restockfilter.form %}
                     <div>
                         <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
-                        <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{{ field.value|default:'' }}"
-                               class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        {% if field.field.widget.input_type == 'select' %}
+                        <select name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                        class="mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm text-xs border-gray-300 rounded-md">
+                    {% for choice in field.field.choices %}
+                        <option value="{{ choice.0 }}" {% if choice.0 == field.value %}selected{% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                    {% endfor %}
+                </select>
+                        {% else %}
+                            <input type="{{ field.field.widget.input_type }}" 
+                                   name="{{ field.name }}" 
+                                   id="{{ field.id_for_label }}" 
+                                   value="{{ field.value|default:'' }}"
+                                   class="mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm text-xs border-gray-300 rounded-md"
+                            >
+                        {% endif %}
                         {% if field.errors %}
-                        <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+                            <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
                         {% endif %}
                     </div>
-                    {% endfor %}
-                </div>
+                 {% endfor %}
+                 </div>
                 <div class="flex justify-end">
                     <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <i class="fa-solid fa-search mr-2"></i> Search
@@ -43,26 +58,34 @@
     {% if request.GET.urlencode %}
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="overflow-x-auto max-h-[70vh]">
+            <div class="bg-white">
+                <p class="p-2 whitespace-nowrap text-xs text-blue-700 text-center uppercase">
+                    Restocked: {{ total_appearance }} times - Quantity: {{ total_quantity }} - Worth: &#x20A6;{{ total_price }}
+                </p>
+            </div>
             <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-blue-500">
-                    <tr class="text-xs">
+                <thead class="bg-blue-400">
+                    <tr class="text-xs text-gray-900">
                         <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
                         <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Date</th>
                         <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
-                        <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Drug info</th>
-                        <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Brand & <br> Supplier</th>
+                        <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Drug</th>
+                        <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Generic Name</th>
+                        <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Brand</th>
+                        <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
                         <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    {% for r in recordfilter.qs %}
+                    {% for r in restockfilter.qs %}
                     <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-100 transition duration-150 ease-in-out text-xs">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.updated|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ r.drug|default_if_none:'N/A' }}<br><small>{{ r.drug.generic_name|default_if_none:'N/A' }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A' }} <br><small>{{ r.drug.supplier|default_if_none:'N/A' }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ r.drug|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A'|upper }} </td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.supplier|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
                     </tr>
                     {% empty %}
@@ -71,13 +94,7 @@
                     </tr>
                     {% endfor %}
                 </tbody>
-                <tfoot>
-                    <tr class="bg-blue-100">
-                        <td colspan="12" class="px-3 py-4 whitespace-nowrap text-lg font-medium text-green-700 text-right uppercase">
-                            Issued: {{ total_appearance }} times - Quantity: {{ total_quantity }} - Worth: &#x20A6;{{ total_price }}
-                        </td>
-                    </tr>
-                </tfoot>
+
             </table>
         </div>
     </div>

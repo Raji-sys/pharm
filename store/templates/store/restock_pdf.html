@@ -9,7 +9,7 @@
         @page{
     margin: 0.8cm;
     padding: 0.1cm;
-    border: 1px solid #d97706;  
+    border: 1px solid #1f2fdf;
 }
     body {
         font-family: Arial, sans-serif;
@@ -55,7 +55,7 @@ h1 {
         }
 
         .summary b {
-            color: #d97706;
+            color: #1f2fdf;
             margin-right: 15px;
             font-size: medium;
         }
@@ -79,7 +79,7 @@ h1 {
 
         th {
           padding: 2px;
-            background-color:#d97706;
+            background-color: #1f2fdf;
             color: white;
             text-transform: uppercase;
             font-weight: bold;
@@ -103,9 +103,6 @@ h1 {
         .small-column {
             width: 30px;
         }
-        .sn {
-            width: 40px;
-        }
         .t{
             font-style: italic;
             font-size: 8px;
@@ -120,7 +117,7 @@ h1 {
     <div class="logo-container">
         <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
     </div>
-    <h1> NOHD PHARMACY DRUG ISSUANCE REPORT</h1>
+    <h1> NOHD PHARMACY DRUG RESTOCK REPORT</h1>
     <div class="result">
       {{ result|upper }}
     </div>
@@ -140,9 +137,7 @@ h1 {
                 <th class="">DRUG INFO</th>
                 <th class="">BRAND</th>
                 <th class="">SUPPLIER</th>
-                <th class="">UNIT ISSUED TO</th>
-                <th class="sn">QTY ISSUED</th>
-                <th class="">REMARK</th>
+                <th class="">QUANITITY ISSUED</th>
             </tr>
               {% for r in f %}        
         <tr class=>
@@ -166,13 +161,7 @@ h1 {
                    {{r.drug.supplier|default_if_none:''|upper}}
             </td>
             <td>
-            {{r.unit_issued_to|default_if_none:''|upper}}
-            </td>
-            <td class="sn">
             {{r.quantity|default_if_none:''|upper}}
-            </td>
-            <td>
-            {{r.remark|default_if_none:''|upper}}
             </td>
           </tr>
           {%endfor%}

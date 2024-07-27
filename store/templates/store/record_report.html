@@ -3,7 +3,7 @@
 {% block title %}ISSUANCE RECORD REPORT{% endblock %}
 
 {% block content %}
-<h1 class="text-lg font-bold text-gray-900 text-center">Issuance Record Report Filters</h1>
+<h1 class="text-lg font-bold text-amber-600 text-center uppercase">Issuance Record Report Filters</h1>
 <div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}
@@ -25,7 +25,7 @@
                        <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
                        {% if field.field.widget.input_type == 'select' %}
                        <select name="{{ field.name }}" id="{{ field.id_for_label }}" 
-                       class="mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                       class="mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm text-xs border-gray-300 rounded-md">
                    {% for choice in field.field.choices %}
                        <option value="{{ choice.0 }}" {% if choice.0 == field.value %}selected{% endif %}>
                            {{ choice.1 }}
@@ -59,23 +59,24 @@
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="overflow-x-auto max-h-[70vh]">
             <div class="bg-white">
-                <p class="px-3 py-4 whitespace-nowrap text-lg font-semibold text-green-700 text-center uppercase">
+                <p class="p-2 whitespace-nowrap text-xs text-green-700 text-center uppercase">
                     Issued: {{ total_appearance }} times - Quantity: {{ total_quantity }} - Worth: &#x20A6;{{ total_price }}
                 </p>
             </div>
             <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-amber-500">
+                <thead class="bg-amber-400">
                     <tr class="text-xs">
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Date & Time Issued</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Issued By</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Drug info</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Brand & <br> Supplier</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Remark</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">System Date Issued</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Physical Time Issued</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Issued By</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Drug info</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Brand & <br> Supplier</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Remark</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -83,14 +84,15 @@
                     <tr class="{% cycle 'bg-white' 'bg-amber-50' %} hover:bg-amber-100 transition duration-150 ease-in-out text-xs text-center">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.updated_at|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.issued_by|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{r.date_issued}}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.issued_by|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug|default_if_none:'N/A' }}<br><small>{{ r.drug.generic_name|default_if_none:'N/A' }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A' }} <br><small>{{ r.drug.supplier|default_if_none:'N/A' }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug|default_if_none:'N/A'|upper }}<br><small>{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A'|upper }} <br><small>{{ r.drug.supplier|default_if_none:'N/A'|upper }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.remark|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.remark|default_if_none:'N/A'|upper }}</td>
                     </tr>
                     {% empty %}
                     <tr>
