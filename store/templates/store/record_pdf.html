@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NOHD PHARMACY REPORT</title>
     <style>
+        @page{
+    margin: 0.8cm;
+    padding: 0.1cm;
+    border: 1px solid green;
+}
     body {
         font-family: Arial, sans-serif;
         color: #333;
@@ -15,7 +20,6 @@
     }
     .logo-container {
         text-align: center;
-        margin-bottom: 2px;
         margin-top: 0%;
     }
 
@@ -29,12 +33,11 @@
 h1 {
             color: #039a10;
             text-align: center;
-            margin-bottom: 2px;
         }
 
 
         .queryset-data {
-            margin: 10px 0;
+            margin: 2px 0;
             text-align: center;
             font-size: 10px;
         }
@@ -42,14 +45,12 @@ h1 {
         .result {
             text-align: center;
             font-weight: bold;
-            margin-bottom: 20px;
         }
 
         .summary {
             background-color: #e6f3ff;
             padding: 10px;
             border-radius: 5px;
-            margin-bottom: 20px;
             text-align: center;
         }
 
@@ -65,14 +66,19 @@ h1 {
             margin-top: 10px;
         }
 
-        th, td {
+         td {
             border: 1px solid #ddd;
-            padding: 3px;
             text-align: center;
-            vertical-align: top;
+    padding: 5px; /* Adjust the padding as needed */
+    word-wrap: break-word; /* Allow text to wrap */
+    overflow: hidden; /* Add this line to prevent overflow */
+    text-overflow: ellipsis; /* Add this line to display ellipsis (...) for truncated text */
+    white-space: normal; /* Allow text wrap */
+
         }
 
         th {
+          padding: 2px;
             background-color: #057f1e;
             color: white;
             text-transform: uppercase;
@@ -111,15 +117,13 @@ h1 {
     <div class="logo-container">
         <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
     </div>
-    <h1> NOHD PHARMACY INVENTORY REPORT</h1>
+    <h1> NOHD PHARMACY DRUG ISSUANCE REPORT</h1>
     <div class="result">
       {{ result|upper }}
     </div>
     <hr>
-     <div class="queryset-data">
-        <b>Filtered by:</b> {% for key in keys %}{{ key|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}
-    </div>
     <div class="summary">
+        <b>FILTERED BY:</b> {% for key in keys %}{{ key|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}
         <b>ISSUED: {{ total_appearance }}</b>
         <b>QUANTITY: {{ total_quantity }}</b>
         <b>WORTH: N{{ total_price }}</b>

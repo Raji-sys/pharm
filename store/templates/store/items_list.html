@@ -90,7 +90,7 @@
                         <td class="p-3 whitespace-nowrap ">
                             {% if i.expiration_date %}
                                 <span class="{% if i.expires_soon %}text-red-500{% else %}text-gray-500{% endif %}">
-                                    {{ i.expiration_date|date:'d-M-Y' }}
+                                    {{ i.expiration_date|date:'M-Y' }}
                                     {% if i.expires_soon %}
                                         <br><small class="text-red-600 font-semibold"> (Expires soon!)</small>
                                     {% endif %}

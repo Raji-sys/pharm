@@ -90,7 +90,7 @@
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_purchased_quantity|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{%if i.current_balance <= 0 %} <span class="text-rose-700 font-semibold">O/S</span>{%else%}{{ i.current_balance|default_if_none:'O/S' }}{%endif%}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_value|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.expiration_date|date:'d-m-Y'|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.expiration_date|date:'M-Y'|default_if_none:'N/A' }}</td>
                     </tr>
                     {% empty %}
                     <tr>

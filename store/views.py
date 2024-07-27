@@ -267,7 +267,7 @@ def fetch_resources(uri, rel):
 def drug_pdf(request):
     ndate = datetime.datetime.now()
     filename = ndate.strftime('on_%d/%m/%Y_at_%I.%M%p.pdf')
-    drugfilter = DrugFilter(request.GET, queryset=Drug.objects.all())
+    drugfilter = DrugFilter(request.GET, queryset=Drug.objects.all().order_by('-updated_at'))
     f=drugfilter.qs
     keys = [key for key, value in request.GET.items() if value]
 
@@ -295,10 +295,11 @@ def record_pdf(request):
     f = RecordFilter(request.GET, queryset=Record.objects.all()).qs
     
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if f.exists():
+    if f.exists() and f.first().drug.cost_price:
         first_drug=f.first().drug.cost_price
     else:
         first_drug=0
+        
     total_price=total_quantity*first_drug
     total_appearance=f.count()
     keys = [key for key, value in request.GET.items() if value]
