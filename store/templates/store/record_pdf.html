@@ -138,7 +138,6 @@ h1 {
                 <th class="">BRAND & SUPPLIER</th>
                 <th class="">UNIT ISSUED TO</th>
                 <th class="">QUANITITY ISSUED</th>
-                <th class=" ">BALANCE</th>
                 <th class="">REMARK</th>
             </tr>
               {% for r in f %}        
@@ -165,11 +164,6 @@ h1 {
             </td>
             <td>
             {{r.quantity|default_if_none:''|upper}}
-            </td>
-            <td>
-                {%if r.balance <= 0 %} 
-                <span class="rose">O/S</span>
-                {%else%}{{ r.balance|default_if_none:'O/S' }}{%endif%}
             </td>
             <td>
             {{r.remark|default_if_none:''|upper}}
