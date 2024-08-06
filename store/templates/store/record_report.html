@@ -7,10 +7,10 @@
 <div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}
-            <a href="{% url 'record_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+            <a href="{% url 'record_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
                 <i class="fa-solid fa-file-pdf mr-2"></i> Generate PDF
             </a>
-            <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+            <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
                 <i class="fa-solid fa-rotate mr-2"></i> Reset
             </a>
             {% endif %}

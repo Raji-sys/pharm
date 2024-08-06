@@ -102,13 +102,13 @@
         </nav>
     </header>
 
-    <main class="flex-grow container mx-auto px-2 py-4">
+    <main class="flex-grow container mx-auto px-2">
         {% if messages %}
         <div class="rounded-md bg-green-50 p-2 m-2 w-fit mx-auto" uk-alert>
             <a href class="uk-alert-close " uk-close></a>
                     <div class="text-sm text-green-600" role="alert">
                             {% for message in messages %}
-                                <p class=" text-center uppercase "> <i class="fas fa-check-circle fa-2x"></i> <br>{{ message }}</p>
+                                <p class=" text-center uppercase text-blue-700"> <i class="fas fa-check-circle fa-2x text-blue-500"></i> <br>{{ message }}</p>
                             {% endfor %}
             </div>
         </div>
@@ -122,7 +122,7 @@
             <p class="text-xs">&copy; 2024 Pharmacy Inventory Management. Powered by <a class="text-xs uppercase rounded-md text-green-700 bg-white" href="#">Green Edge Technologies Nigeria</a> All rights reserved.
             </p>
             <p class="text-xs">
-                Phone: 0905 945 3546, 0806 662 6200, Email: info@greenedgeng.com, Website: wwww.greenedgeng.com
+                Phone: 0806 662 6200, 0802 671 3714, Email: info@greenedgeng.com, Website: wwww.greenedgeng.com
             </p>
         </div>
     </footer>

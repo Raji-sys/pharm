@@ -45,8 +45,8 @@ class RecordFilter(django_filters.FilterSet):
         queryset=Unit.objects.all(),
         field_name='unit_issued_to',
         to_field_name='id', lookup_expr='exact',widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
-    date_issued1 = django_filters.DateFilter(label="DATE ISSUED R1",field_name='date_issued',lookup_expr='lte',widget=forms.DateInput(attrs={'type':'date'}),input_formats=['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y'])    
-    date_issued2 = django_filters.DateFilter(label="DATE ISSUED R2",field_name='date_issued',lookup_expr='gte',widget=forms.DateInput(attrs={'type':'date'}),input_formats=['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y'])
+    date_issued1 = django_filters.DateFilter(label="DATE ISSUED R1",field_name='date_issued',lookup_expr='gte',widget=forms.DateInput(attrs={'type':'date'}),input_formats=['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y'])    
+    date_issued2 = django_filters.DateFilter(label="DATE ISSUED R2",field_name='date_issued',lookup_expr='lte',widget=forms.DateInput(attrs={'type':'date'}),input_formats=['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y'])
     issued_by = django_filters.CharFilter(label="ISSUED BY",field_name='issued_by__username', lookup_expr='iexact')
 
     class Meta:
