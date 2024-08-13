@@ -51,7 +51,7 @@ class RecordFilter(django_filters.FilterSet):
 
     class Meta:
         model = Record
-        exclude= ['date_issued','balance','siv','srv','invoice_no','updated_at','remark','quantity']
+        exclude= ['date_issued','drug','balance','siv','srv','invoice_no','updated_at','remark','quantity']
 
 
 class RestockFilter(django_filters.FilterSet):

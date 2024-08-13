@@ -120,10 +120,13 @@ th {
         .sn{
             width: 4%;
         }.cp{
-            width: 10%;
+            width: 8%;
         }
         .dn{
-            width: 20%
+            width: 17%
+        }
+        .df{
+            width: 12%
         }
         .summary {
             background-color: #e6f3ff;
@@ -166,7 +169,7 @@ body{
                 <th>DATE ADDED / UPDATED</th>
                 <th scope="col" class="dn p-3">DRUG INFO</th>
                 <th scope="col" class="dn p-3">TRADE NAME / SUPPLIER</th>
-                <th scope="col" class="dn p-3">DOSAGE FORM</th>
+                <th scope="col" class="df p-3">DOSAGE FORM</th>
                 <th scope="col" class="cp p-3">PACK SIZE</th>
                 <th scope="col" class="cp p-3">COST PRICE</th>
                 <th scope="col" class="cp p-3">BALANCE</th>
@@ -191,7 +194,7 @@ body{
                     {{i.supplier|default_if_none:''|upper}} 
                 </small>
             </td>
-            <td class="border-1 border-stone-700 p-3 text-center dn">
+            <td class="border-1 border-stone-700 p-3 text-center df">
                     {{i.dosage_form|default_if_none:''|upper}} 
                 </td>
                 <td class="border-1 border-stone-700 p-3 text-center cp">
