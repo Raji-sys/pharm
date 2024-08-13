@@ -65,9 +65,9 @@ class Category(models.Model):
 class Drug(models.Model):
     date_added = models.DateField(auto_now_add=True,null=True)
     supply_date = models.DateField(null=True)
-    name = models.CharField('DRUG NAME',max_length=100, unique=True)
+    strength = models.CharField('STRENGTH',max_length=100, null=True, blank=True)
     generic_name = models.CharField('GENERIC NAME',max_length=100, null=True, blank=True)
-    brand_name = models.CharField('BRAND NAME',max_length=100, null=True, blank=True)
+    trade_name = models.CharField('TRADE NAME',max_length=100, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_category')
     supplier = models.CharField('SUPPLIER',max_length=100, null=True, blank=True)
     dosage=(('TABLET','TABLET'),('CAPSULE','CAPSULE'),('SYRUP','SYRUP'),('INJECTION','INJECTION'),('INFUSION','INFUSION'),('SUSPENSION','SUSPENSION'),('SOLUTION','SOLUTION'),('CONSUMABLE','CONSUMABLE'),('POWDER','POWDER'),('GRANULE','GRANULE'),('PELLET','PELLET'),
@@ -81,7 +81,7 @@ class Drug(models.Model):
     updated_at = models.DateField('DATE UPDATED',auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.generic_name
 
     @property
     def total_value(self):

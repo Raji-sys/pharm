@@ -6,21 +6,21 @@ from django import forms
 
 class DrugSearchFilter(django_filters.FilterSet):
     category = django_filters.ChoiceFilter(label="CLASS", field_name='category__name', lookup_expr='iexact', choices=Category.DRUG_CLASSES,widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
-    name = django_filters.CharFilter(label="DRUG",field_name='name', lookup_expr='icontains')    
+    name = django_filters.CharFilter(label="DRUG",field_name='generic_name', lookup_expr='icontains')    
     generic_name = django_filters.CharFilter(label="GENERIC NAME",field_name='generic_name', lookup_expr='icontains')
-    brand_name = django_filters.CharFilter(label="BRAND NAME",field_name='brand_name', lookup_expr='icontains')
+    trade_name = django_filters.CharFilter(label="TRADE NAME",field_name='trade_name', lookup_expr='icontains')
    
     class Meta:
         model = Drug
-        fields = ['category','name','generic_name','brand_name',]
+        fields = ['category','name','generic_name','trade_name',]
 
 
 class DrugFilter(django_filters.FilterSet):
     category = django_filters.ChoiceFilter(label="CLASS", field_name='category__name', lookup_expr='iexact', choices=Category.DRUG_CLASSES,widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
-    name = django_filters.CharFilter(label="DRUG",field_name='name', lookup_expr='icontains')    
+    name = django_filters.CharFilter(label="DRUG",field_name='generic_name', lookup_expr='icontains')    
     dosage_form = django_filters.ChoiceFilter(label="DOSAGE FORM",field_name='dosage_form',choices=Drug.dosage, lookup_expr='iexact',widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
     generic_name = django_filters.CharFilter(label="GENERIC NAME",field_name='generic_name', lookup_expr='icontains')
-    brand_name = django_filters.CharFilter(label="BRAND NAME",field_name='brand_name', lookup_expr='icontains')
+    trade_name = django_filters.CharFilter(label="TRADE NAME",field_name='trade_name', lookup_expr='icontains')
     supplier = django_filters.CharFilter(label="SUPPLIER",field_name='supplier', lookup_expr='icontains')
     supply_date1 = django_filters.DateFilter(label="SUPPLY DATE R1",field_name='supply_date',lookup_expr='gte',widget=forms.DateInput(attrs={'type':'date'}),input_formats=['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y'])    
     supply_date2 = django_filters.DateFilter(label="SUPPLY DATE R2",field_name='supply_date',lookup_expr='lte',widget=forms.DateInput(attrs={'type':'date'}),input_formats=['%d-%m-%Y', '%Y-%m-%d', '%m/%d/%Y'])
@@ -35,10 +35,10 @@ class DrugFilter(django_filters.FilterSet):
 
 
 class RecordFilter(django_filters.FilterSet):
-    brand_name = django_filters.CharFilter(label="BRAND",field_name='drug__brand_name', lookup_expr='icontains')
+    generic_name = django_filters.CharFilter(label="GENERIC NAME",field_name='drug__generic_name', lookup_expr='icontains')
+    trade_name = django_filters.CharFilter(label="TRADE NAME",field_name='drug__trade_name', lookup_expr='icontains')
     category = django_filters.ChoiceFilter(label="CLASS", field_name='drug__category__name', lookup_expr='iexact', choices=Category.DRUG_CLASSES,
                                            widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'}))
-    drug = django_filters.CharFilter(label="DRUG",field_name='drug__name', lookup_expr='icontains')
     supplier = django_filters.CharFilter(label="SUPPLIER",field_name='drug__supplier', lookup_expr='icontains')
     unit_issued_to = django_filters.ModelChoiceFilter(
         label="UNIT ISSUED TO",

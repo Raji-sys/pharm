@@ -51,7 +51,7 @@ def create_drug(request):
 
 @login_required
 def drugs_list(request):
-    drugs = Drug.objects.all().order_by('-name')
+    drugs = Drug.objects.all().order_by('category')
     today = timezone.now().date()
     six_months_later = today + timedelta(days=180)
     
@@ -61,7 +61,7 @@ def drugs_list(request):
         else:
             drug.expires_soon = False
           
-    drugsearchfilter=DrugSearchFilter(request.GET, queryset=Drug.objects.all().order_by('-name'))    
+    drugsearchfilter=DrugSearchFilter(request.GET, queryset=Drug.objects.all().order_by('category'))    
     pgtn=drugsearchfilter.qs
     pgn=Paginator(pgtn,10)
 
@@ -85,7 +85,7 @@ class DrugUpdateView(UpdateView):
 
 @login_required
 def drug_report(request):
-    drugfilter=DrugFilter(request.GET, queryset=Drug.objects.all().order_by('-name'))    
+    drugfilter=DrugFilter(request.GET, queryset=Drug.objects.all().order_by('category'))    
     pgtn=drugfilter.qs
     pgn=Paginator(pgtn,10)
     pn=request.GET.get('page')
@@ -154,7 +154,7 @@ class RecordUpdateView(UpdateView):
 
 def get_drugs_by_category(request, category_id):
     drugs = Drug.objects.filter(category_id=category_id)
-    drug_list = [{'id': drug.id, 'name': drug.name} for drug in drugs]
+    drug_list = [{'id': drug.id, 'name': drug.generic_name} for drug in drugs]
     return JsonResponse({'drugs': drug_list})
 
 

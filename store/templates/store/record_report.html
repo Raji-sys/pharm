@@ -72,7 +72,7 @@
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Issued By</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Drug info</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Brand & <br> Supplier</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Trade Name & <br> Supplier</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
@@ -87,8 +87,8 @@
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{r.date_issued}}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.issued_by|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug|default_if_none:'N/A'|upper }}<br><small>{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.brand_name|default_if_none:'N/A'|upper }} <br><small>{{ r.drug.supplier|default_if_none:'N/A'|upper }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}<br>{{ r.drug.strength|default_if_none:''|upper }}></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.trade_name|default_if_none:'N/A'|upper }} <br><small>{{ r.drug.supplier|default_if_none:'N/A'|upper }}</small></td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>

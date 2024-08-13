@@ -63,16 +63,18 @@
                 <thead class="bg-cyan-800">
                     <tr>
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
-                        <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">SUpplyDate</th>
+                        <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">SUpply Date</th>
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Category</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-white uppercase tracking-wider">Drug info</th>
-                        <th scope="col" class="px-3  text-left text-xs font-medium text-white uppercase tracking-wider">Brand & Supplier</th>
+                        <th scope="col" class="px-3  text-left text-xs font-medium text-white uppercase tracking-wider">GENERIC NAME</th>
+                        <th scope="col" class="px-3  text-left text-xs font-medium text-white uppercase tracking-wider">STRENGTH</th>
+                        <th scope="col" class="px-3  text-left text-xs font-medium text-white uppercase tracking-wider">TRADE NAME</th>
+                        <th scope="col" class="px-3  text-left text-xs font-medium text-white uppercase tracking-wider">SUPPLIER</th>
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Dosage Form</th>
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Pack Size</th>
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Cost Price</th>
-                        <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Total Drugs</th>
+                        <!-- <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Total Drugs</th> -->
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Balance</th>
-                        <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Total Value</th>
+                        <!-- <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Total Value</th> -->
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Expiry Date</th>
                     </tr>
                 </thead>
@@ -82,14 +84,16 @@
                         <td class="px-6 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.updated_at|date:'d-m-Y'|default_if_none:'N/A' }}<br> <small> added by: {{ i.added_by|upper }}</small></td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.category|default_if_none:'N/A'|upper }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.name|default_if_none:'N/A'|upper }}<br><small >{{ i.generic_name|default_if_none:'N/A'|upper }}</small></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.brand_name|default_if_none:'N/A'|upper }}<br> <small>{{ i.supplier|default_if_none:'N/A'|upper }} </small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.generic_name|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.strength|default_if_none:''|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.trade_name|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.supplier|default_if_none:'N/A'|upper }} </td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.dosage_form|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.pack_size|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.cost_price|default_if_none:'N/A'|upper }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_purchased_quantity|default_if_none:'N/A' }}</td>
+                        <!-- <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_purchased_quantity|default_if_none:'N/A' }}</td> -->
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{%if i.current_balance <= 0 %} <span class="text-rose-700 font-semibold">O/S</span>{%else%}{{ i.current_balance|default_if_none:'O/S' }}{%endif%}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_value|default_if_none:'N/A' }}</td>
+                        <!-- <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_value|default_if_none:'N/A' }}</td> -->
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.expiration_date|date:'M-Y'|default_if_none:'N/A' }}</td>
                     </tr>
                     {% empty %}

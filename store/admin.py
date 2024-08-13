@@ -14,7 +14,7 @@ admin.site.site_title="NOHD PHARMACY INVENTORY"
 class DrugAdminForm(forms.ModelForm):
     class Meta:
         model = Drug
-        fields = ['name','generic_name','brand_name','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','expiration_date']  
+        fields = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','expiration_date']  
 
 
 @admin.register(Unit)
@@ -46,7 +46,7 @@ class DrugAdmin(ImportMixin,admin.ModelAdmin):
     form=DrugAdminForm
     # readonly_fields=('total_purchased_quantity',)
     exclude=('added_by','balance','total_value')
-    list_display = ['name','generic_name','brand_name','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
+    list_display = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
     list_filter = ['supply_date','category','supplier','added_by']
     search_fields = ['name']
     list_per_page=10

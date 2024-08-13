@@ -164,8 +164,9 @@ body{
             <tr class="bg-gradient-to-r from-cyan-700 via-cyan-500 to-cyan-700 text-white">
                 <th class="sn">#</th>
                 <th>DATE ADDED / UPDATED</th>
-                <th scope="col" class="dn p-3">NAME / DOSAGE FORM</th>
-                <th scope="col" class="dn p-3">BRAND NAME / SUPPLIER</th>
+                <th scope="col" class="dn p-3">DRUG INFO</th>
+                <th scope="col" class="dn p-3">TRADE NAME / SUPPLIER</th>
+                <th scope="col" class="dn p-3">DOSAGE FORM</th>
                 <th scope="col" class="cp p-3">PACK SIZE</th>
                 <th scope="col" class="cp p-3">COST PRICE</th>
                 <th scope="col" class="cp p-3">BALANCE</th>
@@ -181,16 +182,17 @@ body{
                 {{i.updated_at|default_if_none:''}}
                 </td>
                 <td class="border-1 border-stone-700 p-3 text-center dn">
-                {{i.name|default_if_none:''|upper}}<br>
-                <small>
-                    {{i.dosage_form|default_if_none:''|upper}} 
-                </small>
+                {{i.generic_name|default_if_none:''|upper}}<br>
+                {{i.strength|default_if_none:''|upper}}
                 </td>
-                <td class="border-1 border-stone-700 p-3 text-center dn">
-                {{i.brand_name|default_if_none:''|upper}}<br>
+            <td class="border-1 border-stone-700 p-3 text-center dn">
+                {{i.trade_name|default_if_none:''|upper}}<br>
                 <small>
                     {{i.supplier|default_if_none:''|upper}} 
                 </small>
+            </td>
+            <td class="border-1 border-stone-700 p-3 text-center dn">
+                    {{i.dosage_form|default_if_none:''|upper}} 
                 </td>
                 <td class="border-1 border-stone-700 p-3 text-center cp">
                 {{i.pack_size|default_if_none:''|upper}}
