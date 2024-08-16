@@ -1,30 +1,61 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load static %}
-
 {% block title %}Inventory Worth{% endblock %}
-
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
         <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4">
-            <h3 class="text-xl md:text-2xl font-bold text-white uppercase tracking-wider text-center">
+            <h3 class="text-xl font-bold text-white uppercase tracking-wider text-center">
                 Live Inventory Worth
             </h3>
-            <p class="text-emerald-100 text-sm md:text-base mt-1 text-center">
-                As of {{ today }}
+            <p class="text-emerald-100 text-sm mt-1 text-center">
+                As of <span class="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">{{ today }}</span>
             </p>
         </div>
-        <div class="px-6 py-12 md:py-20 bg-gradient-to-b from-white to-emerald-50">
-            <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold text-emerald-600 text-center">
-                &#x20A6;{{ total_store_value|floatformat:2|intcomma }}
-            </h1>
-            <p class="mt-4 text-center text-gray-600">
-                Total value of all items in inventory
-            </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3">
+            <div class="bg-gradient-to-b from-white to-blue-50 p-3 rounded-lg text-center">
+                <h2 class="text-xl font-bold text-blue-600">
+                    Main Store Value
+                </h2>
+                <p class="text-xl font-bold text-blue-600 mt-2">
+                    &#x20A6;{{ total_store_value|floatformat:2|intcomma }}
+                </p>
+            </div>
+            <div class="bg-gradient-to-b from-white to-purple-50 p-3 rounded-lg text-center">
+                <h2 class="text-xl font-bold text-purple-600">
+                    Combined Unit Stores Value
+                </h2>
+                <p class="text-xl font-bold text-purple-600 mt-2">
+                    &#x20A6;{{ combined_unit_value|floatformat:2|intcomma }}
+                </p>
+            </div>
+            <div class="bg-gradient-to-b from-white to-indigo-50 p-3 rounded-lg text-center">
+                <h2 class="text-xl font-bold text-indigo-600">
+                    Grand Total Value
+                </h2>
+                <p class="text-xl font-bold text-indigo-600 mt-2">
+                    &#x20A6;{{ grand_total_value|floatformat:2|intcomma }}
+                </p>
+            </div>
         </div>
-        <div class="bg-emerald-50 px-6 py-4">
-            <p class="text-sm text-emerald-700 text-center">
+        <div class="bg-gradient-to-b from-white to-cyan-50 p-3 rounded-lg">
+            <h2 class="text-xl font-bold text-cyan-600 text-center mb-4">
+                Individual Unit Values
+            </h2>
+            <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for unit_name, values in unit_worths.items %}
+                <li class="text-center bg-white p-4 rounded-lg shadow-sm">
+                    <h3 class="text-lg font-semibold text-cyan-700 mb-2">{{ unit_name }}</h3>
+                    <p class="text-sm text-cyan-600">bulk locker: &#x20A6;{{ values.store_value|floatformat:2|intcomma }}</p>
+                    <p class="text-sm text-cyan-600">dispensary locker: &#x20A6;{{ values.locker_value|floatformat:2|intcomma }}</p>
+                    <p class="text-lg font-bold text-cyan-600 mt-2">Total: &#x20A6;{{ values.total_value|floatformat:2|intcomma }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="bg-gray-50 p-3">
+            <p class="text-sm text-gray-700 text-center">
                 This value is updated in real-time based on current inventory levels and prices
             </p>
         </div>

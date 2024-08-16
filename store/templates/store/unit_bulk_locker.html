@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}{{ store.name }} - BULK LOCKER{% endblock %}
+{% block content %}
+    <div class="container mx-auto p-4">
+        <!-- Drugs Available in Store Table -->
+        <h2 class="text-2xl text-center text-gray-800 p-2 uppercase">{{ store.name }} bulk locker</h2>
+        <div class="flex justify-end items-center m-2 space-x-2">
+            <a href="{% url 'dispensary_record' store.id%}"
+   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+    <i class="fas fa-plus mr-2"></i> send to dispensary
+</a>
+    </div>
+        <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="overflow-x-auto max-h-[65vh]">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-orange-500">
+                        <tr class="text-sm text-center text-white uppercase">
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">#</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Drug</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Quantity</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Total Value</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for unit_store_drug in unit_store_drugs %}
+                        <tr class="{% cycle 'bg-white' 'bg-orange-50' %} text-xs text-center">
+                            <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.quantity|default_if_none:''|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ unit_store_drug.total_value|floatformat:2|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination and Back Button -->
+        <div class="mt-4 flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-600">
+                    Showing page <span class="font-medium">{{ po.number }}</span> of <span class="font-medium">{{ po.paginator.num_pages }}</span>
+                </p>
+            </div>
+            <div class="flex space-x-2">
+                {% if po.has_previous %}
+                <a href="?page=1" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ po.previous_page_number }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+                {% endif %}
+
+                {% if po.has_next %}
+                <a href="?page={{ po.next_page_number }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?page={{ po.paginator.num_pages }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="mt-4 text-sm text-gray-600">
+            <a href="{% url 'unit_dashboard' store.pk%}" class="text-orange-600 hover:text-orange-800">Go Back</a>
+        </p>
+    </div>
+{% endblock %}

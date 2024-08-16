@@ -17,6 +17,7 @@ class DrugAdminForm(forms.ModelForm):
         fields = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','expiration_date']  
 
 
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['id','name']
@@ -41,7 +42,7 @@ class DrugAdmin(ImportMixin,admin.ModelAdmin):
     exclude=('added_by','balance','total_value')
     list_display = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
     list_filter = ['supply_date','category','supplier','added_by']
-    search_fields = ['generic_name']
+    search_fields = ['name']
     list_per_page=10
 
     def total_value(self, obj):
@@ -55,12 +56,11 @@ class DrugAdmin(ImportMixin,admin.ModelAdmin):
         obj.save()
 
 
-@admin.register(Record)
-class RecordAdmin(admin.ModelAdmin):
-    exclude = ('issued_by', 'balance')
-    list_display = ['drug', 'unit_issued_to', 'issued_by_username', 'quantity', 'date_issued','updated_at']
-    search_fields = ['drug', 'issued_to','drug__supplier','drug__supply_date']
-    list_filter = ['unit_issued_to', 'drug','drug__supplier','drug__supply_date']
+@admin.register(Distribution)
+class DistributionAdmin(admin.ModelAdmin):
+    list_display = ['distribution_type', 'drug', 'from_unit', 'to_unit', 'issued_by_username', 'quantity', 'date_issued', 'updated_at']
+    search_fields = ['distribution_type', 'drug__name', 'from_unit__name', 'to_unit__name', 'drug__supplier', 'drug__supply_date']
+    list_filter = ['to_unit', 'drug', 'drug__supplier', 'drug__supply_date']
     list_per_page = 10
 
     def save_model(self, request, obj, form, change):
@@ -78,34 +78,16 @@ class RecordAdmin(admin.ModelAdmin):
 
     issued_by_username.short_description = "Issued By"
 
-@admin.register(Unit)
-class UnitAdmin(admin.ModelAdmin):
-    list_display = ('name', 'update', 'total_unit_value')
-    search_fields = ('name',)
-    list_filter = ('update',)
 
 @admin.register(UnitStore)
 class UnitStoreAdmin(admin.ModelAdmin):
-    list_display = ('unit', 'drug', 'quantity', 'total_value', 'updated_at')
-    search_fields = ('unit__name', 'drug__generic_name')
-    list_filter = ('unit', 'drug', 'updated_at')
-
-@admin.register(UnitIssueRecord)
-class UnitIssueRecordAdmin(admin.ModelAdmin):
-    list_display = ('unit', 'drug', 'quantity', 'date_issued', 'issued_to', 'issued_by', 'updated_at')
-    search_fields = ('unit__name', 'drug__generic_name', 'issued_to__name', 'issued_by__username')
-    list_filter = ('date_issued', 'issued_to', 'issued_by', 'unit')
+    list_display=['unit','drug','quantity']
+    list_filter=['unit','drug','quantity']
+    search_fields=['unit','drug','quantity']
 
 
-@admin.register(DispensaryLocker)
-class LockerAdmin(admin.ModelAdmin):
-    list_display = ('unit', 'name')
-    list_filter = ('unit', 'name')
-    search_fields = ('name',)
-
-
-@admin.register(LockerInventory)
-class LockerInventoryAdmin(admin.ModelAdmin):
-    list_display = ('locker', 'drug','quantity')
-    list_filter = ('locker', 'drug')
-    search_fields = ('locker',)
+@admin.register(Unit)
+class UnitAdmin(admin.ModelAdmin):
+    list_display=['name','unit_type','parent_unit','group']
+    list_filter=['name','unit_type','parent_unit','group']
+    search_fields=['name','unit_type','parent_unit','group']

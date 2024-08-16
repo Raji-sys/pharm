@@ -14,13 +14,14 @@ from django.conf import settings
 import os
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from django.forms import modelformset_factory
+from django.forms import modelformset_factory, BaseModelFormSet
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.views.generic import UpdateView
+from django.views.generic import UpdateView, ListView, DetailView, CreateView, TemplateView
 from django.utils import timezone
 from datetime import timedelta
-
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import render, get_object_or_404, redirect, HttpResponseRedirect
 
 class CustomLoginView(LoginView):
     template_name='login.html'
@@ -343,10 +344,212 @@ def restock_pdf(request):
     return HttpResponse('Error generating PDF', status=500)
 
 
+class InventoryWorthView(TemplateView):
+    template_name = 'store/worth.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['today'] = timezone.now()
+        context['total_store_value'] = Drug.total_store_value()
+        context['combined_unit_value'] = Unit.combined_unit_value()
+        context['grand_total_value'] = Unit.grand_total_value()
+        
+        unit_worths = {}
+        for unit in Unit.objects.all():
+            store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
+            locker_value = 0
+            if hasattr(unit, 'dispensary_locker'):
+                locker_value = unit.dispensary_locker.inventory.aggregate(
+                    total=Sum(F('drug__cost_price') * F('quantity'))
+                )['total'] or 0
+            unit_worths[unit.name] = {
+                'store_value': store_value,
+                'locker_value': locker_value,
+                'total_value': store_value + locker_value
+            }
+        
+        context['unit_worths'] = unit_worths
+        return context
+
+
+class StoreListView(ListView):
+    model = Unit
+    template_name = 'store/store_list.html'
+    context_object_name = 'stores'
+    paginate_by = 10  # Adjust as needed
+
+    def get_queryset(self):
+        return Unit.objects.all().order_by('name')
+    
+
+class UnitDashboardView(DetailView):
+    model = Unit
+    template_name = 'store/unit_dashboard.html'
+    context_object_name = 'store'
+
+
+class UnitBulkLockerDetailView(DetailView):
+    model = Unit
+    template_name = 'store/unit_bulk_locker.html'
+    context_object_name = 'store'
+    paginate_by=10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Fetch the drugs available in this store
+        context['unit_store_drugs'] = UnitStore.objects.filter(unit=self.object).order_by('drug__generic_name')
+        return context
+
+class UnitDispensaryLockerView(DetailView):
+    model = Unit
+    template_name = 'store/unit_dispensary_locker.html'
+    context_object_name = 'store'
+    paginate_by=10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Fetch the drugs available in this store
+        context['dispensary_drugs'] = LockerInventory.objects.filter(locker__unit=self.object).order_by('drug__generic_name')
+        return context
+
+class UnitTransferView(DetailView):
+    model = Unit
+    template_name = 'store/unit_transfer.html'
+    context_object_name = 'store'
+    paginate_by=10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Fetch unit issue records where this unit is the issuing unit
+        context['unit_issue_records'] = UnitIssueRecord.objects.filter(unit=self.object).order_by('-date_issued')
+        return context
+    
 @login_required
-def worth(request):
-    total_store_value = Drug.total_store_value()
-    ndate = datetime.datetime.now()
-    today = ndate.strftime('%d-%B-%Y: %I:%M %p')
-    context = {'total_store_value': total_store_value,'today':today}
-    return render(request, 'store/worth.html', context)
+def unitissuerecord(request, unit_id):
+    unit = get_object_or_404(Unit, id=unit_id)
+    
+    # Create a custom formset that passes the issuing_unit to each form
+    class CustomUnitIssueFormSet(BaseModelFormSet):
+        def __init__(self, *args, **kwargs):
+            self.issuing_unit = kwargs.pop('issuing_unit', None)
+            super().__init__(*args, **kwargs)
+
+        def _construct_form(self, i, **kwargs):
+            kwargs['issuing_unit'] = self.issuing_unit
+            return super()._construct_form(i, **kwargs)
+
+    UnitIssueFormSet = modelformset_factory(
+        UnitIssueRecord, 
+        form=UnitIssueRecordForm, 
+        formset=CustomUnitIssueFormSet,
+        extra=1
+    )
+    
+    if request.method == 'POST':
+        formset = UnitIssueFormSet(request.POST, issuing_unit=unit)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.issued_by = request.user
+                instance.unit = unit
+                instance.save()
+                
+                # Update locker inventory if issued to locker
+                if instance.issued_to_locker:
+                    locker_inventory, created = LockerInventory.objects.get_or_create(
+                        locker=instance.issued_to_locker,
+                        drug=instance.drug,
+                        defaults={'quantity': 0}
+                    )
+                    locker_inventory.quantity += instance.quantity
+                    locker_inventory.save()
+                
+            messages.success(request, 'Drugs restocked')
+            return redirect('unit_transfer', pk=unit_id)
+    else:
+        formset = UnitIssueFormSet(
+            queryset=UnitIssueRecord.objects.none(),
+            issuing_unit=unit,
+            initial=[{'unit': unit}] * 1
+        )
+    return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})
+    
+    
+@login_required
+def dispensaryissuerecord(request, unit_id):
+    unit = get_object_or_404(Unit, id=unit_id)
+    
+    # Create a custom formset that passes the issuing_unit to each form
+    class CustomUnitIssueFormSet(BaseModelFormSet):
+        def __init__(self, *args, **kwargs):
+            self.issuing_unit = kwargs.pop('issuing_unit', None)
+            super().__init__(*args, **kwargs)
+
+        def _construct_form(self, i, **kwargs):
+            kwargs['issuing_unit'] = self.issuing_unit
+            return super()._construct_form(i, **kwargs)
+
+    UnitIssueFormSet = modelformset_factory(
+        UnitIssueRecord, 
+        form=DispensaryIssueRecordForm, 
+        formset=CustomUnitIssueFormSet,
+        extra=1
+    )
+    
+    if request.method == 'POST':
+        formset = UnitIssueFormSet(request.POST, issuing_unit=unit)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+            for instance in instances:
+                instance.issued_by = request.user
+                instance.unit = unit
+                instance.save()
+                
+                # Update locker inventory if issued to locker
+                if instance.issued_to_locker:
+                    locker_inventory, created = LockerInventory.objects.get_or_create(
+                        locker=instance.issued_to_locker,
+                        drug=instance.drug,
+                        defaults={'quantity': 0}
+                    )
+                    locker_inventory.quantity += instance.quantity
+                    locker_inventory.save()
+                
+            messages.success(request, 'Drugs restocked')
+            return redirect('unit_bulk_locker', pk=unit_id)
+    else:
+        formset = UnitIssueFormSet(
+            queryset=UnitIssueRecord.objects.none(),
+            issuing_unit=unit,
+            initial=[{'unit': unit}] * 1
+        )
+
+    return render(request, 'store/create_dispensary_record.html', {'formset': formset, 'unit': unit})
+
+
+class DispensaryRecordUpdateView(LoginRequiredMixin, UpdateView):
+    model = UnitIssueRecord
+    form_class = DispensaryIssueRecordForm
+    template_name = 'store/create_dispensary_record.html'
+    success_url = reverse_lazy('unit-issue-record-list')
+
+
+class UnitIssueRecordUpdateView(LoginRequiredMixin, UpdateView):
+    model = UnitIssueRecord
+    form_class = UnitIssueRecordForm
+    template_name = 'store/unitissuerecord_form.html'
+    success_url = reverse_lazy('unit-issue-record-list')
+
+    def form_valid(self, form):
+        form.instance.issued_by = self.request.user
+        return super().form_valid(form)
+
+
+class UnitIssueRecordListView(ListView):
+    model = UnitIssueRecord
+    template_name = 'store/unitissuerecord_list.html'
+    context_object_name = 'unit_issue_records'
+    paginate_by = 10  # Optional: for pagination
+
+    def get_queryset(self):
+        return UnitIssueRecord.objects.all().order_by('-date_issued')

@@ -1,12 +1,50 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
-
+from django.db.models import Sum, F
 
 class Unit(models.Model):
     name=models.CharField(max_length=200, null=True, blank=True)
-    update=models.DateField(auto_now_add=True)
+    update=models.DateField(auto_now_add=True,null=True)
+    
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        creating = self._state.adding
+        super().save(*args, **kwargs)
+        if creating:
+            DispensaryLocker.objects.create(unit=self)
+    
+    def total_unit_value(self):
+        store_value = sum(
+            store.total_value for store in self.unit_store.all()  # Corrected related name
+            if store.total_value is not None
+        )
+        # return total_value
+
+    # Calculate value from dispensary locker
+        locker_value = 0
+        if hasattr(self, 'dispensary_locker'):
+            locker_value = self.dispensary_locker.inventory.aggregate(
+                total=Sum(F('drug__cost_price') * F('quantity'))
+            )['total'] or 0
+
+        return store_value + locker_value
+    
+    @classmethod
+    def combined_unit_value(cls):
+        combined_value = sum(
+            unit.total_unit_value() for unit in cls.objects.all()
+        )
+        return combined_value
+
+    @classmethod
+    def grand_total_value(cls):
+        main_store_value = Drug.total_store_value()  # Assuming Drug model handles the main store
+        combined_unit_value = cls.combined_unit_value()
+        grand_total = main_store_value + combined_unit_value
+        return grand_total
+
     def __str__(self):
         return self.name
 
@@ -107,13 +145,13 @@ class Record(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name="drug_records")
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, null=True, blank=True, related_name="drug_records")
     unit_issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, null=True, blank=True)
-    siv = models.CharField('SIV',max_length=100, null=True, blank=True)
-    srv = models.CharField('SRV',max_length=100, null=True, blank=True)
-    invoice_no = models.PositiveIntegerField('INVOICE NUMBER',null=True, blank=True)
-    quantity = models.PositiveIntegerField('QTY ISSUED',null=True, blank=True)
+    siv = models.CharField('SIV', max_length=100, null=True, blank=True)
+    srv = models.CharField('SRV', max_length=100, null=True, blank=True)
+    invoice_no = models.PositiveIntegerField('INVOICE NUMBER', null=True, blank=True)
+    quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
     date_issued = models.DateField()
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_records')
-    remark = models.CharField('REMARKS',max_length=200, null=True, blank=True)
+    remark = models.CharField('REMARKS', max_length=200, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def save(self, *args, **kwargs):
@@ -134,6 +172,15 @@ class Record(models.Model):
                 self.quantity = original_quantity + available_quantity
             else:
                 raise ValidationError(_("No drugs available in the store."), code='invalid_quantity')
+
+        # Deduct from the main store
+        self.drug.total_purchased_quantity -= quantity_difference
+        self.drug.save()
+
+        # Update the unit's store
+        unit_store, created = UnitStore.objects.get_or_create(unit=self.unit_issued_to, drug=self.drug)
+        unit_store.quantity += quantity_difference
+        unit_store.save()
 
         super().save(*args, **kwargs)
 
@@ -159,3 +206,73 @@ class Restock(models.Model):
 
     class Meta:
         verbose_name_plural = 'restocking record'
+
+class UnitStore(models.Model):
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='unit_store')
+    drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='unit_store_drugs')
+    quantity = models.PositiveIntegerField('Quantity Available', default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def total_value(self):
+        return self.quantity * self.drug.cost_price
+
+    def __str__(self):
+        return f"{self.quantity} of {self.drug.generic_name} in {self.unit.name}"
+
+class DispensaryLocker(models.Model):
+    unit = models.OneToOneField(Unit, on_delete=models.CASCADE, related_name='dispensary_locker')
+    name = models.CharField(max_length=100, default="Dispensary Locker")
+    
+    def __str__(self):
+        return f"{self.unit.name}'s {self.name}"
+
+class LockerInventory(models.Model):
+    locker = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, related_name='inventory')
+    drug = models.ForeignKey(Drug, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=0)
+    updated = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        unique_together = ['locker', 'drug']
+
+    def __str__(self):
+        return f"{self.drug.name} in {self.locker}"
+
+class UnitIssueRecord(models.Model):
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='issuing_unit')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='unitissue_category')
+    drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='issued_drugs')
+    quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
+    date_issued = models.DateField(null=True)
+    issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
+    issued_to_locker = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, null=True, blank=True)
+    issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def clean(self):
+        if self.issued_to and self.issued_to_locker:
+            raise ValidationError("Cannot issue to both a unit and a locker at the same time.")
+        if not self.issued_to and not self.issued_to_locker:
+            raise ValidationError("Must issue to either a unit or a locker.")
+    
+    def save(self, *args, **kwargs):
+        unit_store = UnitStore.objects.get(unit=self.unit, drug=self.drug)
+        
+        if self.quantity > unit_store.quantity:
+            raise ValidationError(_("Not enough drugs in the unit store."), code='invalid_quantity')
+        
+        # Deduct from the issuing unit's store
+        unit_store.quantity -= self.quantity
+        unit_store.save()
+
+        # Add to the receiving unit's store if applicable
+        if self.issued_to:
+            receiving_store, created = UnitStore.objects.get_or_create(unit=self.issued_to, drug=self.drug)
+            receiving_store.quantity += self.quantity
+            receiving_store.save()
+
+        super().save(*args, **kwargs)
+
+

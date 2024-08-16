@@ -25,7 +25,24 @@ urlpatterns=[
     path('restock-report/', views.restock_report, name='restock_report'),
     path('restock-pdf/', views.restock_pdf, name='restock_pdf'),
     
-    path('worth/', views.worth, name='worth'),
+    path('stores/', StoreListView.as_view(), name='store_list'),
+    path('stores/<int:pk>/', UnitDashboardView.as_view(), name='unit_dashboard'),
+    path('stores/bulk-locker/<int:pk>/', UnitBulkLockerDetailView.as_view(), name='unit_bulk_locker'),
+    path('stores/dispensary-locker/<int:pk>/', UnitDispensaryLockerView.as_view(), name='unit_dispensary'),
+    path('stores/drug-transfer/<int:pk>/', UnitTransferView.as_view(), name='unit_transfer'),
+    
+    path('unit-issue-record/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),
+
+    path('store/locker/<int:unit_id>/', views.dispensaryissuerecord, name='dispensary_record'),
+    path('unit-issue-record/<int:pk>/update/', UnitIssueRecordUpdateView.as_view(), name='dispensary_record_update'),
+    
+    path('unit-issue-record/new/<int:unit_id>/', views.unitissuerecord, name='unit_issue_record_create'),
+    path('unit-issue-records/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),
+    path('unit-issue-record/<int:pk>/update/', UnitIssueRecordUpdateView.as_view(), name='unit_issue_record_update'),
+
+
+    # path('worth/', views.worth, name='worth'),
+    path('worth/', InventoryWorthView.as_view(), name='worth'),
     path('get_drugs_by_category/<int:category_id>/', views.get_drugs_by_category, name='get_drugs_by_category'),
     path('',include('django.contrib.auth.urls')),
 ]
