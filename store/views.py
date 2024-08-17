@@ -22,6 +22,9 @@ from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, get_object_or_404, redirect, HttpResponseRedirect
+from django.db.models import Case, When, Value
+from django.db.models import CharField
+
 
 class CustomLoginView(LoginView):
     template_name='login.html'
@@ -96,8 +99,7 @@ class DrugUpdateView(UpdateView):
         messages.success(self.request, "Drug updated successfully.")
         return super().form_valid(form)
 
-from django.db.models import Case, When, Value
-from django.db.models import CharField
+
 class ExpiryNotificationView(ListView):
     model = Drug
     template_name = 'store/expiry_notification.html'
@@ -623,7 +625,6 @@ def dispensaryissuerecord(request, unit_id):
     return render(request, 'store/create_dispensary_record.html', {'formset': formset, 'unit': unit})
 
 
-
 class UnitIssueRecordListView(ListView):
     model = UnitIssueRecord
     template_name = 'store/unitissuerecord_list.html'
@@ -631,4 +632,50 @@ class UnitIssueRecordListView(ListView):
     paginate_by = 10  # Optional: for pagination
 
     def get_queryset(self):
-        return UnitIssueRecord.objects.all().order_by('-date_issued')
+        return DispenseRecord.objects.all().order_by('-date_issued')
+    
+
+@login_required
+def dispenserecord(request, dispensary_id):
+    dispensary = get_object_or_404(DispensaryLocker, id=dispensary_id)
+    DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=1)
+    
+    if request.method == 'POST':
+        formset = DispensaryFormSet(request.POST, queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})
+        if formset.is_valid():
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        instance.dispensary = dispensary
+                        instance.dispensed_by = request.user
+                        instance.save()
+
+                    messages.success(request, 'Drugs dispensed successfully')
+                    return redirect('unit_dispensary', pk=dispensary.unit.id)
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+    else:
+        formset = DispensaryFormSet(queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})
+    
+    return render(request, 'store/dispense_form.html', {'formset': formset, 'dispensary': dispensary})
+
+
+class DispenseRecordView(ListView):
+    model = DispenseRecord
+    template_name = 'store/dispensed_list.html'
+    context_object_name = 'dispensed_list'
+    paginate_by = 10
+
+    def get_queryset(self):
+        dispensary_locker_id = self.kwargs.get('pk')
+        return DispenseRecord.objects.filter(dispensary_id=dispensary_locker_id).order_by('-updated')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        dispensary_locker_id = self.kwargs.get('pk')
+        dispensary_locker = get_object_or_404(DispensaryLocker, id=dispensary_locker_id)
+        
+        context['total_dispensed'] = self.get_queryset().count()
+        context['dispensary'] = dispensary_locker
+        return context

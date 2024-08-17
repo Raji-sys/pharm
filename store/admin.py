@@ -110,3 +110,10 @@ class UnitAdmin(admin.ModelAdmin):
 #     list_display = ('locker', 'drug','quantity')
 #     list_filter = ('locker', 'drug')
 #     search_fields = ('locker',)
+
+
+@admin.register(DispenseRecord)
+class DispenseRecordAdmin(admin.ModelAdmin):
+    list_display = ('dispensary', 'patient_info','drug', 'quantity', 'dispensed_by', 'updated')
+    search_fields = ('dispense__name', 'drug__generic_name', 'patient_info', 'issued_by__username')
+    list_filter = ('updated','dispensed_by', 'dispensary')

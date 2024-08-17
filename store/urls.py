@@ -45,6 +45,10 @@ urlpatterns=[
 
     # path('worth/', views.worth, name='worth'),
     path('worth/', InventoryWorthView.as_view(), name='worth'),
+
+    path('unit/dispensary/<int:dispensary_id>/dispense/', views.dispenserecord, name='dispense'),
+    path('unit/dispensary/dispensed-list/<int:pk>/', DispenseRecordView.as_view(), name='dispensed_list'),
+
     path('get_drugs_by_category/<int:category_id>/', views.get_drugs_by_category, name='get_drugs_by_category'),
     path('',include('django.contrib.auth.urls')),
 ]

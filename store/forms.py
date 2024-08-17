@@ -180,3 +180,44 @@ class DispensaryIssueRecordForm(forms.ModelForm):
             self.add_error('quantity', f"Not enough {drug.generic_name} in {unit.name}'s store. Available: {unit_store.quantity}")
 
         return cleaned_data
+    
+
+
+class DispenseRecordForm(forms.ModelForm):
+    class Meta:
+        model = DispenseRecord
+        fields = ['category','drug', 'quantity', 'patient_info']
+
+    def __init__(self, *args, **kwargs):
+        self.dispensary = kwargs.pop('dispensary', None)
+        super(DispenseRecordForm, self).__init__(*args, **kwargs)
+        self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
+        
+        if self.dispensary:
+            self.fields['drug'].queryset = Drug.objects.filter(
+                lockerinventory__locker=self.dispensary,
+                lockerinventory__quantity__gt=0
+            ).distinct()
+
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
+
+    def clean(self):
+        cleaned_data = super().clean()
+        drug = cleaned_data.get('drug')
+        quantity = cleaned_data.get('quantity')
+
+        if not drug or not quantity:
+            return cleaned_data
+
+        if quantity <= 0:
+            raise forms.ValidationError("Quantity must be greater than zero.")
+
+        try:
+            inventory = LockerInventory.objects.get(locker=self.dispensary, drug=drug)
+            if quantity > inventory.quantity:
+                raise forms.ValidationError(f"Not enough {drug.name} in inventory. Available: {inventory.quantity}")
+        except LockerInventory.DoesNotExist:
+            raise forms.ValidationError(f"{drug.name} is not available in this dispensary.")
+
+        return cleaned_data

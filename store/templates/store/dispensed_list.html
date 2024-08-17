@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+{%block title%}DISPENSARY RECORD{%endblock%}
+{%block content %}
+<div class="container mx-auto p-4">
+    <span class="flex justify-center p-4 gap-4 text-xl">
+        {% if dispensary %}
+        <a href="{% url 'unit_dispensary' dispensary.unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
+        <h2 class="text-center text-teal-700 uppercase">{{ dispensary.unit.name }} dispensary records</h2>
+    {% endif %}
+    </span>
+    <div class="md:mx-20 mx-2 rounded-xl p-4 shadow-black shadow-sm bg-emerald-50">
+     
+        <div class="overflow-x-auto p-4 uppercase">
+        <table class="min-w-full divide-y divide-emerald-200">
+          <thead class="bg-emerald-50">
+            <tr class="text-xs">
+                <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+                    #
+                </th>
+              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+            Patient 
+             </th>
+              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+                DISPENSED DRUG
+              </th>
+              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+                QUANTITY
+              </th>
+              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+                DATE
+              </th>
+              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+                EDIT
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-emerald-200">
+            {% for d in dispensed %}
+            <tr class="bg-emerald-100 hover:bg-emerald-200 transition-colors duration-300 text-xs">
+                <td class=" p-3 whitespace-nowrap">
+                    {{forloop.counter}}
+                </td>
+                
+                <td class=" p-3 whitespace-nowrap">
+                  {{ d.patient_info|default_if_none:'' }}
+                </td>
+              <td class=" p-3 whitespace-nowrap">
+                {{ d.drug.generic_name|default_if_none:'' }} <br> {{ d.drug.trade_name|default_if_none:'' }} <br>{{ d.drug.strength|default_if_none:'' }}
+              </td>
+              <td class=" p-3 whitespace-nowrap">
+                {{ d.quantity|default_if_none:'' }}
+              </td>
+              <td class=" p-3 whitespace-nowrap">
+                {{ d.updated|default_if_none:'' }}
+              </td>
+            <td class=" p-3 whitespace-nowrap">
+                <span class="space-x-4">
+                    <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fa fa-solid fa-edit fa-lg text-cyan-700"></i></a>
+                    
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="bg-white">
+              <td colspan="2" class=" p-3 text-center text-emerald-500">
+                No records
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{%endblock%}
