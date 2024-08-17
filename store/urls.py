@@ -35,7 +35,7 @@ urlpatterns=[
     path('unit-issue-record/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),
 
     path('store/locker/<int:unit_id>/', views.dispensaryissuerecord, name='dispensary_record'),
-    # path('unit-issue-record/<int:pk>/update/', DispensaryRecordUpdateView.as_view(), name='dispensary_record_update'),
+    path('expiry-date-notification/', ExpiryNotificationView.as_view(), name='expiry_notification'),
     
     path('unit-issue-record/new/<int:unit_id>/', views.unitissuerecord, name='unit_issue_record_create'),
     path('unit-issue-records/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),

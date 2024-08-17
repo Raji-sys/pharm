@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Sum, F
+from django.utils import timezone
+from datetime import timedelta
 
 class Unit(models.Model):
     name=models.CharField(max_length=200, null=True, blank=True)
@@ -117,8 +119,15 @@ class Drug(models.Model):
     total_purchased_quantity = models.PositiveIntegerField('TOTAL QTY PURCHASED',default=0)
     expiration_date = models.DateField(null=True, blank=True)
     added_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='added_drugs')
+    entered_expiry_period = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateField('DATE UPDATED',auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if self.expiration_date:
+            six_months_before = self.expiration_date - timedelta(days=180)
+            if timezone.now().date() >= six_months_before and not self.entered_expiry_period:
+                self.entered_expiry_period = timezone.now()
+        super().save(*args, **kwargs)
     def __str__(self):
         return self.generic_name
 

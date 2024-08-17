@@ -34,7 +34,19 @@ class CustomLoginView(LoginView):
 
 @login_required
 def index(request):
-    return render(request, 'store/index.html')
+    today = timezone.now().date()
+    six_months_later = today + timedelta(days=180)
+
+    expiring_drugs_count = Drug.objects.filter(
+        expiration_date__gt=today,
+        expiration_date__lte=six_months_later
+    ).count()
+
+    context = {
+        'expiring_drugs_count': expiring_drugs_count
+    }
+    return render(request, 'store/index.html', context)
+
 
 @login_required
 def create_drug(request):
@@ -83,6 +95,47 @@ class DrugUpdateView(UpdateView):
         form.instance.added_by = self.request.user
         messages.success(self.request, "Drug updated successfully.")
         return super().form_valid(form)
+
+from django.db.models import Case, When, Value
+from django.db.models import CharField
+class ExpiryNotificationView(ListView):
+    model = Drug
+    template_name = 'store/expiry_notification.html'
+    context_object_name = 'drugs'
+    paginate_by = 10
+
+    def get_queryset(self):
+        today = timezone.now().date()
+        three_months_later = today + timedelta(days=90)
+        six_months_later = today + timedelta(days=180)
+
+        # Annotate the queryset with an expiration status
+        queryset = Drug.objects.filter(
+            expiration_date__range=(today, six_months_later)
+        ).annotate(
+            status=Case(
+                When(expiration_date__lte=three_months_later, then=Value('critical')),
+                When(expiration_date__lte=six_months_later, then=Value('expiring_soon')),
+                default=Value('ok'),
+                output_field=CharField(),
+            )
+        ).order_by('expiration_date')
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.now().date()
+        three_months_later = today + timedelta(days=90)
+        six_months_later = today + timedelta(days=180)
+
+        # Calculate the total drugs expiring within 6 months and within 3 months
+        queryset = self.get_queryset()
+        context['total_expiring_in_6_months'] = queryset.count()
+        context['total_expiring_in_3_months'] = queryset.filter(expiration_date__lte=three_months_later).count()
+
+        return context
+
 
 @login_required
 def drug_report(request):
