@@ -84,28 +84,28 @@ class UnitAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_filter = ('update',)
 
-@admin.register(UnitStore)
-class UnitStoreAdmin(admin.ModelAdmin):
-    list_display = ('unit', 'drug', 'quantity', 'total_value', 'updated_at')
-    search_fields = ('unit__name', 'drug__generic_name')
-    list_filter = ('unit', 'drug', 'updated_at')
+# @admin.register(UnitStore)
+# class UnitStoreAdmin(admin.ModelAdmin):
+#     list_display = ('unit', 'drug', 'quantity', 'total_value', 'updated_at')
+#     search_fields = ('unit__name', 'drug__generic_name')
+#     list_filter = ('unit', 'drug', 'updated_at')
 
-@admin.register(UnitIssueRecord)
-class UnitIssueRecordAdmin(admin.ModelAdmin):
-    list_display = ('unit', 'drug', 'quantity', 'date_issued', 'issued_to', 'issued_by', 'updated_at')
-    search_fields = ('unit__name', 'drug__generic_name', 'issued_to__name', 'issued_by__username')
-    list_filter = ('date_issued', 'issued_to', 'issued_by', 'unit')
-
-
-@admin.register(DispensaryLocker)
-class LockerAdmin(admin.ModelAdmin):
-    list_display = ('unit', 'name')
-    list_filter = ('unit', 'name')
-    search_fields = ('name',)
+# @admin.register(UnitIssueRecord)
+# class UnitIssueRecordAdmin(admin.ModelAdmin):
+#     list_display = ('unit', 'drug', 'quantity', 'date_issued', 'issued_to', 'issued_by', 'updated_at')
+#     search_fields = ('unit__name', 'drug__generic_name', 'issued_to__name', 'issued_by__username')
+#     list_filter = ('date_issued', 'issued_to', 'issued_by', 'unit')
 
 
-@admin.register(LockerInventory)
-class LockerInventoryAdmin(admin.ModelAdmin):
-    list_display = ('locker', 'drug','quantity')
-    list_filter = ('locker', 'drug')
-    search_fields = ('locker',)
+# @admin.register(DispensaryLocker)
+# class LockerAdmin(admin.ModelAdmin):
+#     list_display = ('unit', 'name')
+#     list_filter = ('unit', 'name')
+#     search_fields = ('name',)
+
+
+# @admin.register(LockerInventory)
+# class LockerInventoryAdmin(admin.ModelAdmin):
+#     list_display = ('locker', 'drug','quantity')
+#     list_filter = ('locker', 'drug')
+#     search_fields = ('locker',)

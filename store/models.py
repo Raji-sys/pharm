@@ -274,5 +274,3 @@ class UnitIssueRecord(models.Model):
             receiving_store.save()
 
         super().save(*args, **kwargs)
-
-

@@ -3,7 +3,10 @@
 {%block title%}{{store.name}} DASHBOARD{%endblock%}
 
 {%block content %}
-<h1 class="uppercase text-center p-4 text-2xl text-teal-700">{{store.name}} DASHBOARD</h1>
+<span class="flex justify-center p-4 text-xl gap-4">
+  <a href="{%url 'store_list' %}"><i class="fa-solid fa-arrow-left"></i></a>
+  <h1 class="uppercase text-center  text-teal-700">{{store.name}} DASHBOARD</h1>
+   </span>
 <div class="md:gap-10 md:max-w-4xl md:mx-auto mt-2 rounded-xl p-8 mx-1 shadow-gray-500 shadow-lg  bg-gray-100">
   <div class="p-1 md:p-8 text-center grid grid-cols-1 md:flex md:justify-center gap-6">
               <div>

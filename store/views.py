@@ -454,7 +454,6 @@ def unitissuerecord(request, unit_id):
                 instance.unit = unit
                 instance.save()
                 
-                # Update locker inventory if issued to locker
                 if instance.issued_to_locker:
                     locker_inventory, created = LockerInventory.objects.get_or_create(
                         locker=instance.issued_to_locker,
