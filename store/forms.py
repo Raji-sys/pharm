@@ -7,7 +7,7 @@ class DrugForm(forms.ModelForm):
     
     class Meta:
         model = Drug
-        fields = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','supply_date','expiration_date']  
+        fields = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','selling_price','total_purchased_quantity','supply_date','expiration_date']  
         widgets = {
             'supply_date': DateInput(attrs={'type': 'date'})
         }
@@ -39,22 +39,18 @@ class RecordForm(forms.ModelForm):
         cleaned_data = super().clean()
         quantity = cleaned_data.get('quantity')
         drug = cleaned_data.get('drug')
-
         if drug and quantity is not None:
             available_quantity = drug.current_balance
-
             # If this is an update, add back the original quantity
             if self.instance.pk:
                 available_quantity += self.instance.quantity
-
             if quantity > available_quantity:
                 if available_quantity > 0:
-                    self.add_error(None, f"Warning: Only {available_quantity} units available. The issued quantity should be adjusted.")
+                    self.add_error('quantity', f"Warning: Only {available_quantity} units available. Please adjust the issued quantity.")
                 else:
-                    raise ValidationError("Not enough available in the store.")
-
+                    self.add_error('quantity', "Not enough available in the store.")
         return cleaned_data
-    
+
 class RestockForm(forms.ModelForm):
     class Meta:
         model = Restock
@@ -80,21 +76,17 @@ class UnitIssueRecordForm(forms.ModelForm):
         widgets = {
             'date_issued': forms.DateInput(attrs={'type': 'date'}),
         }
+
     def __init__(self, *args, **kwargs):
         self.issuing_unit = kwargs.pop('issuing_unit', None)
         super(UnitIssueRecordForm, self).__init__(*args, **kwargs)
-        
         self.fields['unit'].widget.attrs['readonly'] = True
         self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
-
-        # Exclude the current unit from the issued_to options
         if self.issuing_unit:
             self.fields['issued_to'].queryset = Unit.objects.exclude(id=self.issuing_unit.id)
-
         for field in self.fields.values():
-            field.required=False    
+            field.required = False
             field.widget.attrs.update({'class':'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
-        
 
     def clean_quantity(self):
         quantity = self.cleaned_data.get('quantity')
@@ -109,17 +101,15 @@ class UnitIssueRecordForm(forms.ModelForm):
         unit = cleaned_data.get('unit')
         issued_to = cleaned_data.get('issued_to')
         issued_to_locker = cleaned_data.get('issued_to_locker')
-
-        if issued_to and issued_to_locker:
-            raise forms.ValidationError("Cannot issue to both a unit and a locker at the same time.")
-        if not issued_to and not issued_to_locker:
-            raise forms.ValidationError("Must issue to either a unit or a locker.")
-
-        if unit and issued_to and unit == issued_to:
-            raise forms.ValidationError("A unit cannot issue drugs to itself.")
         drug = cleaned_data.get('drug')
         quantity = cleaned_data.get('quantity')
 
+        if issued_to and issued_to_locker:
+            self.add_error(None, "Cannot issue to both a unit and a locker at the same time.")
+        if not issued_to and not issued_to_locker:
+            self.add_error(None, "Must issue to either a unit or a locker.")
+        if unit and issued_to and unit == issued_to:
+            self.add_error(None, "A unit cannot issue drugs to itself.")
 
         # Skip validation if any required field is missing
         if not all([unit, drug, quantity]):
@@ -127,33 +117,33 @@ class UnitIssueRecordForm(forms.ModelForm):
 
         # Validate that the unit has enough of the drug available
         unit_store = UnitStore.objects.filter(unit=unit, drug=drug).first()
-        if unit_store and unit_store.quantity < quantity:
-            raise forms.ValidationError(f"Not enough {drug.generic_name} in {unit.name}'s store.")
+        if not unit_store:
+            self.add_error('drug', f"{drug.generic_name} is not available in {unit.name}'s store.")
+        elif unit_store.quantity < quantity:
+            self.add_error('quantity', f"Not enough {drug.generic_name} in {unit.name}'s store. Available: {unit_store.quantity}")
+
         return cleaned_data
 
 
 class DispensaryIssueRecordForm(forms.ModelForm):
     class Meta:
         model = UnitIssueRecord
-        fields = ['unit', 'category', 'drug', 'quantity', 'date_issued','issued_to_locker']
+        fields = ['unit', 'category', 'drug', 'quantity', 'date_issued', 'issued_to_locker']
         widgets = {
             'date_issued': forms.DateInput(attrs={'type': 'date'}),
         }
+
     def __init__(self, *args, **kwargs):
         self.issuing_unit = kwargs.pop('issuing_unit', None)
         super(DispensaryIssueRecordForm, self).__init__(*args, **kwargs)
-        
         self.fields['unit'].widget.attrs['readonly'] = True
+        self.fields['issued_to_locker'].widget.attrs['readonly'] = True
         self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
-
-        # Exclude the current unit from the issued_to options
         if self.issuing_unit:
             self.fields['issued_to_locker'].queryset = DispensaryLocker.objects.filter(unit=self.issuing_unit)
-
         for field in self.fields.values():
-            field.required=False    
+            field.required = False
             field.widget.attrs.update({'class':'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
-        
 
     def clean_quantity(self):
         quantity = self.cleaned_data.get('quantity')
@@ -168,17 +158,15 @@ class DispensaryIssueRecordForm(forms.ModelForm):
         unit = cleaned_data.get('unit')
         issued_to = cleaned_data.get('issued_to')
         issued_to_locker = cleaned_data.get('issued_to_locker')
-
-        if issued_to and issued_to_locker:
-            raise forms.ValidationError("Cannot issue to both a unit and a locker at the same time.")
-        if not issued_to and not issued_to_locker:
-            raise forms.ValidationError("Must issue to either a unit or a locker.")
-
-        if unit and issued_to and unit == issued_to:
-            raise forms.ValidationError("A unit cannot issue drugs to itself.")
         drug = cleaned_data.get('drug')
         quantity = cleaned_data.get('quantity')
 
+        if issued_to and issued_to_locker:
+            self.add_error(None, "Cannot issue to both a unit and a locker at the same time.")
+        if not issued_to and not issued_to_locker:
+            self.add_error(None, "Must issue to either a unit or a locker.")
+        if unit and issued_to and unit == issued_to:
+            self.add_error(None, "A unit cannot issue drugs to itself.")
 
         # Skip validation if any required field is missing
         if not all([unit, drug, quantity]):
@@ -186,6 +174,9 @@ class DispensaryIssueRecordForm(forms.ModelForm):
 
         # Validate that the unit has enough of the drug available
         unit_store = UnitStore.objects.filter(unit=unit, drug=drug).first()
-        if unit_store and unit_store.quantity < quantity:
-            raise forms.ValidationError(f"Not enough {drug.generic_name} in {unit.name}'s store.")
+        if not unit_store:
+            self.add_error('drug', f"{drug.generic_name} is not available in {unit.name}'s store.")
+        elif unit_store.quantity < quantity:
+            self.add_error('quantity', f"Not enough {drug.generic_name} in {unit.name}'s store. Available: {unit_store.quantity}")
+
         return cleaned_data

@@ -8,7 +8,8 @@
         <a href="{% url 'unit_dashboard' store.pk %}" ><i class="fa-solid fa-arrow-left"></i></a>
         <h2 class="text-center text-teal-700 uppercase">{{ store.name }} bulk locker</h2>
         </span>
-        <div class="flex justify-end items-center m-2 space-x-2">
+        <div class="flex justify-between items-center m-2 space-x-2">
+            <h3 class="text-lg uppercase">locker worth: <span class="text-green-700">&#x20A6;{{total_worth}}</span></h3>
             <a href="{% url 'dispensary_record' store.id%}"
    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
     <i class="fas fa-plus mr-2"></i> send to dispensary
@@ -20,8 +21,12 @@
                     <thead class="bg-orange-500">
                         <tr class="text-xs text-center text-white uppercase">
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">#</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Drug</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Quantity</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Generic Drug</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade Drug</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Cost Price</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Selling Price</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Balance QTY</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Total Value</th>
                         </tr>
                     </thead>
@@ -30,6 +35,10 @@
                         <tr class="{% cycle 'bg-white' 'bg-orange-50' %} text-xs text-center">
                             <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.drug.strength|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.drug.trade_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ unit_store_drug.drug.cost_price|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ unit_store_drug.drug.selling_price|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.quantity|default_if_none:''|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ unit_store_drug.total_value|floatformat:2|intcomma }}</td>
                         </tr>
@@ -66,9 +75,5 @@
                 {% endif %}
             </div>
         </div>
-
-        <p class="mt-4 text-sm text-gray-600">
-            <a href="{% url 'unit_dashboard' store.pk%}" class="text-orange-600 hover:text-orange-800">Go Back</a>
-        </p>
     </div>
 {% endblock %}

@@ -99,28 +99,29 @@ def drug_report(request):
 @login_required
 def create_record(request):
     RecordFormSet = modelformset_factory(Record, form=RecordForm, extra=5)
-    
     if request.method == 'POST':
         formset = RecordFormSet(request.POST)
         if formset.is_valid():
-            instances = formset.save(commit=False)
-            any_saved = False
-            for instance in instances:
-                if instance.drug and instance.quantity:
-                    try:
-                        instance.issued_by = request.user
-                        instance.save()
-                        any_saved = True
-                    except ValidationError as e:
-                        formset.add_error(None, str(e))
-          
-            if any_saved:
-                messages.success(request, 'Drugs issued successfully. Some quantities may have been adjusted.')
-                return redirect('record')  # Make sure 'record' is the correct name for your URL
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    any_saved = False
+                    for instance in instances:
+                        if instance.drug and instance.quantity:
+                            instance.issued_by = request.user
+                            instance.save()
+                            any_saved = True
+                    if any_saved:
+                        messages.success(request, 'Drugs issued successfully.')
+                        return redirect('record')
+                    else:
+                        messages.warning(request, 'No drugs were issued. Please fill in at least one form.')
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
     else:
-        formset = RecordFormSet(queryset=Record.objects.none())    
+        formset = RecordFormSet(queryset=Record.objects.none())
+    
     return render(request, 'store/create_record.html', {'formset': formset})
-
 
 @login_required
 def records(request):
@@ -355,7 +356,7 @@ class InventoryWorthView(TemplateView):
         context['grand_total_value'] = Unit.grand_total_value()
         
         unit_worths = {}
-        for unit in Unit.objects.all():
+        for unit in Unit.objects.all().order_by('name'):
             store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
             locker_value = 0
             if hasattr(unit, 'dispensary_locker'):
@@ -396,8 +397,13 @@ class UnitBulkLockerDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug')
+        # Calculate total worth by summing up the total_value of all UnitStore objects
+        total_worth = sum(drug.total_value for drug in unit_store_drugs)
         # Fetch the drugs available in this store
         context['unit_store_drugs'] = UnitStore.objects.filter(unit=self.object).order_by('drug__generic_name')
+        
+        context['total_worth'] = total_worth
         return context
 
 class UnitDispensaryLockerView(DetailView):
@@ -408,8 +414,15 @@ class UnitDispensaryLockerView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        dispensary_drugs = LockerInventory.objects.filter(locker__unit=self.object).select_related('drug')
+
+     # Calculate total worth
+        total_worth = dispensary_drugs.aggregate(
+            total=Sum(F('drug__cost_price') * F('quantity'))
+        )['total'] or 0        # Calculate total worth by summing up the total_value of all UnitStore objects
         # Fetch the drugs available in this store
         context['dispensary_drugs'] = LockerInventory.objects.filter(locker__unit=self.object).order_by('drug__generic_name')
+        context['total_worth'] = total_worth
         return context
 
 class UnitTransferView(DetailView):
@@ -421,14 +434,14 @@ class UnitTransferView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Fetch unit issue records where this unit is the issuing unit
-        context['unit_issue_records'] = UnitIssueRecord.objects.filter(unit=self.object).order_by('-date_issued')
+        context['unit_issue_records'] = UnitIssueRecord.objects.filter(unit=self.object,issued_to__isnull=False, issued_to_locker__isnull=True).order_by('-date_issued')
         return context
-    
+
+
 @login_required
 def unitissuerecord(request, unit_id):
     unit = get_object_or_404(Unit, id=unit_id)
-    
-    # Create a custom formset that passes the issuing_unit to each form
+        # Create a custom formset that passes the issuing_unit to each form
     class CustomUnitIssueFormSet(BaseModelFormSet):
         def __init__(self, *args, **kwargs):
             self.issuing_unit = kwargs.pop('issuing_unit', None)
@@ -437,48 +450,72 @@ def unitissuerecord(request, unit_id):
         def _construct_form(self, i, **kwargs):
             kwargs['issuing_unit'] = self.issuing_unit
             return super()._construct_form(i, **kwargs)
+    UnitIssueFormSet = modelformset_factory(UnitIssueRecord, form=UnitIssueRecordForm, formset=CustomUnitIssueFormSet, extra=1)
 
-    UnitIssueFormSet = modelformset_factory(
-        UnitIssueRecord, 
-        form=UnitIssueRecordForm, 
-        formset=CustomUnitIssueFormSet,
-        extra=1
-    )
-    
     if request.method == 'POST':
         formset = UnitIssueFormSet(request.POST, issuing_unit=unit)
         if formset.is_valid():
-            instances = formset.save(commit=False)
-            for instance in instances:
-                instance.issued_by = request.user
-                instance.unit = unit
-                instance.save()
-                
-                if instance.issued_to_locker:
-                    locker_inventory, created = LockerInventory.objects.get_or_create(
-                        locker=instance.issued_to_locker,
-                        drug=instance.drug,
-                        defaults={'quantity': 0}
-                    )
-                    locker_inventory.quantity += instance.quantity
-                    locker_inventory.save()
-                
-            messages.success(request, 'Drugs restocked')
-            return redirect('unit_transfer', pk=unit_id)
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        instance.issued_by = request.user
+                        instance.unit = unit
+                        instance.save()
+                        if instance.issued_to_locker:
+                            locker_inventory, created = LockerInventory.objects.get_or_create(
+                                locker=instance.issued_to_locker,
+                                drug=instance.drug,
+                                defaults={'quantity': 0}
+                            )
+                            locker_inventory.quantity += instance.quantity
+                            locker_inventory.save()
+                    messages.success(request, 'Drugs restocked')
+                    return redirect('unit_transfer', pk=unit_id)
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
     else:
         formset = UnitIssueFormSet(
             queryset=UnitIssueRecord.objects.none(),
             issuing_unit=unit,
             initial=[{'unit': unit}] * 1
         )
-    return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})
-    
-    
+
+    return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})    
+
+class TransferUpdateView(UpdateView):
+    model = UnitIssueRecord
+    form_class = UnitIssueRecordForm
+    template_name = 'store/transfer_update.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['issuing_unit'] = self.object.unit
+        return kwargs
+
+    def get_success_url(self):
+        return reverse_lazy('unit_transfer', kwargs={'pk': self.object.unit.pk})
+
+    def form_valid(self, form):
+        try:
+            form.instance.issued_by = self.request.user
+            response = super().form_valid(form)
+            messages.success(self.request, "Record updated successfully.")
+            return response
+        except ValidationError as e:
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "There was an error updating the record. Please check the form.")
+        return super().form_invalid(form)
+
+
 @login_required
 def dispensaryissuerecord(request, unit_id):
     unit = get_object_or_404(Unit, id=unit_id)
-    
-    # Create a custom formset that passes the issuing_unit to each form
+    unit_locker = DispensaryLocker.objects.filter(unit=unit).first()
+
     class CustomUnitIssueFormSet(BaseModelFormSet):
         def __init__(self, *args, **kwargs):
             self.issuing_unit = kwargs.pop('issuing_unit', None)
@@ -489,59 +526,49 @@ def dispensaryissuerecord(request, unit_id):
             return super()._construct_form(i, **kwargs)
 
     UnitIssueFormSet = modelformset_factory(
-        UnitIssueRecord, 
-        form=DispensaryIssueRecordForm, 
+        UnitIssueRecord,
+        form=DispensaryIssueRecordForm,
         formset=CustomUnitIssueFormSet,
         extra=1
     )
-    
+
     if request.method == 'POST':
         formset = UnitIssueFormSet(request.POST, issuing_unit=unit)
         if formset.is_valid():
-            instances = formset.save(commit=False)
-            for instance in instances:
-                instance.issued_by = request.user
-                instance.unit = unit
-                instance.save()
-                
-                # Update locker inventory if issued to locker
-                if instance.issued_to_locker:
-                    locker_inventory, created = LockerInventory.objects.get_or_create(
-                        locker=instance.issued_to_locker,
-                        drug=instance.drug,
-                        defaults={'quantity': 0}
-                    )
-                    locker_inventory.quantity += instance.quantity
-                    locker_inventory.save()
-                
-            messages.success(request, 'Drugs restocked')
-            return redirect('unit_bulk_locker', pk=unit_id)
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        instance.issued_by = request.user
+                        instance.unit = unit
+                        instance.save()
+                        # Update locker inventory if issued to locker
+                        if instance.issued_to_locker:
+                            locker_inventory, created = LockerInventory.objects.get_or_create(
+                                locker=instance.issued_to_locker,
+                                drug=instance.drug,
+                                defaults={'quantity': 0}
+                            )
+                            locker_inventory.quantity += instance.quantity
+                            locker_inventory.save()
+                    messages.success(request, 'Drugs restocked')
+                    return redirect('unit_bulk_locker', pk=unit_id)
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+        else:
+            for form in formset:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field.capitalize()}: {error}")
     else:
         formset = UnitIssueFormSet(
             queryset=UnitIssueRecord.objects.none(),
             issuing_unit=unit,
-            initial=[{'unit': unit}] * 1
+            initial=[{'unit': unit, 'issued_to_locker': unit_locker}] * 1
         )
 
     return render(request, 'store/create_dispensary_record.html', {'formset': formset, 'unit': unit})
 
-
-class DispensaryRecordUpdateView(LoginRequiredMixin, UpdateView):
-    model = UnitIssueRecord
-    form_class = DispensaryIssueRecordForm
-    template_name = 'store/create_dispensary_record.html'
-    success_url = reverse_lazy('unit-issue-record-list')
-
-
-class UnitIssueRecordUpdateView(LoginRequiredMixin, UpdateView):
-    model = UnitIssueRecord
-    form_class = UnitIssueRecordForm
-    template_name = 'store/unitissuerecord_form.html'
-    success_url = reverse_lazy('unit-issue-record-list')
-
-    def form_valid(self, form):
-        form.instance.issued_by = self.request.user
-        return super().form_valid(form)
 
 
 class UnitIssueRecordListView(ListView):

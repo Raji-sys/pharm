@@ -29,16 +29,18 @@ urlpatterns=[
     path('stores/<int:pk>/', UnitDashboardView.as_view(), name='unit_dashboard'),
     path('stores/bulk-locker/<int:pk>/', UnitBulkLockerDetailView.as_view(), name='unit_bulk_locker'),
     path('stores/dispensary-locker/<int:pk>/', UnitDispensaryLockerView.as_view(), name='unit_dispensary'),
+
     path('stores/drug-transfer/<int:pk>/', UnitTransferView.as_view(), name='unit_transfer'),
     
     path('unit-issue-record/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),
 
     path('store/locker/<int:unit_id>/', views.dispensaryissuerecord, name='dispensary_record'),
-    path('unit-issue-record/<int:pk>/update/', UnitIssueRecordUpdateView.as_view(), name='dispensary_record_update'),
+    # path('unit-issue-record/<int:pk>/update/', DispensaryRecordUpdateView.as_view(), name='dispensary_record_update'),
     
     path('unit-issue-record/new/<int:unit_id>/', views.unitissuerecord, name='unit_issue_record_create'),
     path('unit-issue-records/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),
-    path('unit-issue-record/<int:pk>/update/', UnitIssueRecordUpdateView.as_view(), name='unit_issue_record_update'),
+
+    path('unit-issue-record/update/<int:pk>/', TransferUpdateView.as_view(), name='transfer_update'),
 
 
     # path('worth/', views.worth, name='worth'),

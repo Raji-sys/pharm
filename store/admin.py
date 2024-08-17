@@ -90,6 +90,7 @@ class UnitAdmin(admin.ModelAdmin):
 #     search_fields = ('unit__name', 'drug__generic_name')
 #     list_filter = ('unit', 'drug', 'updated_at')
 
+
 # @admin.register(UnitIssueRecord)
 # class UnitIssueRecordAdmin(admin.ModelAdmin):
 #     list_display = ('unit', 'drug', 'quantity', 'date_issued', 'issued_to', 'issued_by', 'updated_at')

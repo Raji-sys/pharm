@@ -113,6 +113,7 @@ class Drug(models.Model):
     dosage_form = models.CharField(choices=dosage,max_length=100, null=True, blank=True)
     pack_size = models.CharField('PACK SIZE',max_length=100, null=True, blank=True)
     cost_price = models.DecimalField('COST PRICE',max_digits=10, decimal_places=2, null=True, blank=True)
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     total_purchased_quantity = models.PositiveIntegerField('TOTAL QTY PURCHASED',default=0)
     expiration_date = models.DateField(null=True, blank=True)
     added_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='added_drugs')

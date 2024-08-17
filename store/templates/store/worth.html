@@ -3,21 +3,22 @@
 {% load static %}
 {% block title %}Inventory Worth{% endblock %}
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 uppercase">
-    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-        <div class="bg-white px-6 py-2 border-b-2">
-            <h3 class="text-lg font-bold text-emerald-700 uppercase tracking-wider text-center">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 uppercase ">
+    <div class="bg-white bg-opacity-50  shadow-lg rounded-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 px-6 py-4 border-b-2">
+            <h3 class="text-lg font-bold text-white uppercase tracking-wider text-center">
                 Live Inventory Worth
             </h3>
             <p class="text-emerald-100 text-xs mt-1 text-center">
-                <span class="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full"> As of: {{ today }}</span>
+                <span class="bg-white text-emerald-700 text-xs px-2 py-1 rounded-full"> As of: {{ today }}</span>
             </p>
-                <p class="text-xs text-blue-700 text-center p-2">
-                    This values are updated in real-time based on current inventory levels and prices
-                </p>
+            <p class="text-xs text-white text-center p-2">
+                These values are updated in real-time based on current inventory levels and prices
+            </p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-4">
-            <div class="bg-blue-600 p-4 rounded-lg text-center">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-700 p-6 rounded-lg text-center shadow-md hover:shadow-lg transition-shadow duration-300">
+                <i class="fas fa-warehouse text-white text-3xl mb-2"></i>
                 <h2 class="text-lg font-bold text-gray-100">
                     Main Store Value
                 </h2>
@@ -25,7 +26,8 @@
                     &#x20A6;{{ total_store_value|floatformat:2|intcomma }}
                 </p>
             </div>
-            <div class="bg-purple-600 p-4 rounded-lg text-center">
+            <div class="bg-gradient-to-br from-purple-500 to-purple-700 p-6 rounded-lg text-center shadow-md hover:shadow-lg transition-shadow duration-300">
+                <i class="fas fa-hospital-alt text-white text-3xl mb-2"></i>
                 <h2 class="text-lg font-bold text-gray-100">
                     Combined Unit Stores Value
                 </h2>
@@ -33,7 +35,8 @@
                     &#x20A6;{{ combined_unit_value|floatformat:2|intcomma }}
                 </p>
             </div>
-            <div class="bg-green-600 p-4 rounded-lg text-center">
+            <div class="bg-gradient-to-br from-green-500 to-green-700 p-6 rounded-lg text-center shadow-md hover:shadow-lg transition-shadow duration-300">
+                <i class="fas fa-chart-line text-white text-3xl mb-2"></i>
                 <h2 class="text-lg font-bold text-gray-100">
                     Grand Total Value
                 </h2>
@@ -42,24 +45,23 @@
                 </p>
             </div>
         </div>
-        <div class="bg-white p-4 rounded-lg">
-            <h2 class="text-lg font-bold text-cyan-700 text-center mb-2 ">
+        <div class="bg-white p-6 rounded-lg">
+            <h2 class="text-lg font-bold text-cyan-700 text-center mb-2">
                 Individual Unit Values
             </h2>
-            <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {% for unit_name, values in unit_worths.items %}
-                <li class="text-center bg-cyan-600 p-2 rounded-lg shadow-sm">
-                    <h3 class="text-sm font-semibold text-white mb-2">{{ unit_name }}</h3>
-                    <div class="flex justify-between border-b">
+                <li class="text-center bg-gradient-to-br from-cyan-500 to-cyan-700 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <h3 class="text-sm font-semibold text-white mb-3">{{ unit_name }}</h3>
+                    <div class="flex justify-between border-b border-cyan-400 pb-2 mb-2">
                         <p class="text-xs text-white">bulk locker: <br> &#x20A6;{{ values.store_value|floatformat:2|intcomma }}</p>
-                        <p class="text-xs text-white">dispensary locker: <br> &#x20A6;{{ values.locker_value|floatformat:2|intcomma }}</p>                        
+                        <p class="text-xs text-white">dispensary locker: <br> &#x20A6;{{ values.locker_value|floatformat:2|intcomma }}</p>
                     </div>
                     <p class="text-sm font-bold text-white mt-2">Total: &#x20A6;{{ values.total_value|floatformat:2|intcomma }}</p>
                 </li>
                 {% endfor %}
             </ul>
         </div>
-        
     </div>
 </div>
 {% endblock %}

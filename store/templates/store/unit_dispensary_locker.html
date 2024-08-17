@@ -6,7 +6,8 @@
         <span class="flex justify-center p-4 gap-4 text-xl">
             <a href="{% url 'unit_dashboard' store.pk %}" ><i class="fa-solid fa-arrow-left"></i></a>
             <h2 class="text-center text-teal-700 uppercase">{{ store.name }} dispensary locker</h2>
-            </span>
+        </span>
+        <h3 class="text-lg uppercase">locker worth: <span class="text-green-700">&#x20A6;{{total_worth}}</span></h3>
         <!-- Unit Issue Records Table -->
         <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
             <div class="overflow-x-auto max-h-[65vh]">
@@ -14,10 +15,11 @@
                     <thead class="bg-fuchsia-500">
                         <tr class="text-xs text-center text-white uppercase">
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">#</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Drug</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Quantity</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Generic Drug</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade Drug</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Balance QTY</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Date restocked</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Update</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -25,13 +27,10 @@
                         <tr class="{% cycle 'bg-white' 'bg-fuchsia-50' %} text-xs text-center">
                             <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
                             <td class="px-4 py-2 text-gray-700">{{ r.updated|date:"d-M-Y" }}</td>
-                            <td class="px-4 py-2 text-center">
-                                <a href="{% url 'dispensary_record_update' r.id %}" class="text-fuchsia-700 hover:text-fuchsia-900">
-                                    <i class="fas fa-edit fa-lg"></i>
-                                </a>
-                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -68,9 +67,5 @@
                 {% endif %}
             </div>
         </div>
-
-        <p class="mt-4 text-sm text-gray-600">
-            <a href="{% url 'unit_dashboard' store.pk%}" class="text-fuchsia-600 hover:text-fuchsia-800">Go Back</a>
-        </p>
     </div>
 {% endblock %}

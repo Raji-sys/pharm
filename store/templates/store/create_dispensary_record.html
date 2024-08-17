@@ -1,46 +1,55 @@
 {% extends "base.html" %}
-{% block title %}
-DRUGS TO DISPENSARY LOCKER
-{% endblock %}
+{% block title %}DISPENSARY TRANSFER FORM{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
         <h1 class="text-sm font-bold text-white uppercase tracking-wider text-center">
-            DRUGS TO DISPENSARY LOCKER
+            DISPENSARY TRANSFER FORM
         </h1>
+        {% if messages %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            {% for message in messages %}
+            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
         <form method="post" class="bg-white p-6 rounded-lg shadow-md">
             {% csrf_token %}
             {{ formset.management_form }}
             {% for form in formset %}
             <div class="mb-4 last:mb-0">
-              {% if form.non_field_errors %}
-              <div class="text-red-600 text-xs mb-4">
-                {{ form.non_field_errors.0 }}
-              </div>
-              {% endif %}
-              <div class="grid grid-cols-1 gap-2 md:grid-cols-3 border-t p-2">
-                {% for field in form.visible_fields %}
-                <div class="space-y-1">
-                  <label class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
-                  <div class="mt-1">
-                    {{ field }}
-                  </div>
-                  {% if field.errors %}
-                  <p class="text-red-600 text-xs mt-1">{{ field.errors.0 }}</p>
-                  {% endif %}
+                {% if form.non_field_errors %}
+                <div class="text-red-600 text-xs mb-4">
+                    {{ form.non_field_errors }}
                 </div>
-                {% endfor %}
-              </div>
+                {% endif %}
+                <div class="grid grid-cols-1 gap-2 md:grid-cols-3 border-t p-2">
+                    {% for field in form.visible_fields %}
+                    <div class="space-y-1">
+                        <label class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
+                        <div class="mt-1">
+                            {{ field }}
+                        </div>
+                        {% if field.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ field.errors }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             {% endfor %}
             <div class="mt-8 flex justify-center">
-              <button type="submit" class="bg-fuchsia-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 text-xs inline-flex items-center justify-center">
-                <i class="fas fa-save mr-2"></i> Save
-              </button>
+                <button type="submit" class="bg-fuchsia-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 text-xs inline-flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i> Save
+                </button>
             </div>
-          </form>
+        </form>
+    </div>
 </div>
-</div>
+<script>
+    // Your existing JavaScript code here
+</script>
+{% endblock %}
 <script>
     function initializePage() {
       function load_drugs(index) {
