@@ -15,29 +15,38 @@
         <table class="min-w-full divide-y divide-emerald-200">
           <thead class="bg-emerald-50">
             <tr class="text-xs">
-                <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+                <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
                     #
                 </th>
-              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+              <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
             Patient 
              </th>
-              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
-                DISPENSED DRUG
+              <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
+                DRUG
               </th>
-              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+              <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
+                TRADE NAME
+              </th>
+              <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
+                STRENGTH
+              </th>
+              <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
                 QUANTITY
               </th>
-              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+              <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
                 DATE
               </th>
-              <th class=" p-3 text-left text-xs font-medium text-emerald-500 uppercase tracking-wider">
+              <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
+                DISPENSED BY
+              </th>
+              <th class=" p-3 text-center text-xs font-medium text-emerald-700 uppercase tracking-wider">
                 EDIT
               </th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-emerald-200">
-            {% for d in dispensed %}
-            <tr class="bg-emerald-100 hover:bg-emerald-200 transition-colors duration-300 text-xs">
+            {% for d in dispensed_list %}
+            <tr class="bg-emerald-100 hover:bg-emerald-200 transition-colors duration-300 text-xs text-center">
                 <td class=" p-3 whitespace-nowrap">
                     {{forloop.counter}}
                 </td>
@@ -46,7 +55,13 @@
                   {{ d.patient_info|default_if_none:'' }}
                 </td>
               <td class=" p-3 whitespace-nowrap">
-                {{ d.drug.generic_name|default_if_none:'' }} <br> {{ d.drug.trade_name|default_if_none:'' }} <br>{{ d.drug.strength|default_if_none:'' }}
+                {{ d.drug.generic_name|default_if_none:'' }}
+              </td>
+              <td class=" p-3 whitespace-nowrap">
+                  {{ d.drug.trade_name|default_if_none:'' }}
+              </td>
+              <td class=" p-3 whitespace-nowrap">
+               {{ d.drug.strength|default_if_none:'' }}
               </td>
               <td class=" p-3 whitespace-nowrap">
                 {{ d.quantity|default_if_none:'' }}
@@ -54,16 +69,18 @@
               <td class=" p-3 whitespace-nowrap">
                 {{ d.updated|default_if_none:'' }}
               </td>
+              <td class=" p-3 whitespace-nowrap">
+                {{ d.dispensed_by|default_if_none:'' }}
+              </td>
             <td class=" p-3 whitespace-nowrap">
                 <span class="space-x-4">
-                    <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fa fa-solid fa-edit fa-lg text-cyan-700"></i></a>
-                    
+                    <a href="#" class="text-blue-500 hover:text-blue-700"><i class="fa fa-solid fa-edit fa-lg text-cyan-700"></i></a>                    
                 </span>
               </td>
             </tr>
             {% empty %}
             <tr class="bg-white">
-              <td colspan="2" class=" p-3 text-center text-emerald-500">
+              <td colspan="2" class=" p-3 text-center text-emerald-700">
                 No records
               </td>
             </tr>

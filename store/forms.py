@@ -72,10 +72,10 @@ class RestockForm(forms.ModelForm):
 class UnitIssueRecordForm(forms.ModelForm):
     class Meta:
         model = UnitIssueRecord
-        fields = ['unit', 'category', 'drug', 'quantity', 'date_issued', 'issued_to']
-        widgets = {
-            'date_issued': forms.DateInput(attrs={'type': 'date'}),
-        }
+        fields = ['unit', 'category', 'drug', 'quantity', 'issued_to']
+        # widgets = {
+        #     'date_issued': forms.DateInput(attrs={'type': 'date'}),
+        # }
 
     def __init__(self, *args, **kwargs):
         self.issuing_unit = kwargs.pop('issuing_unit', None)
@@ -128,7 +128,7 @@ class UnitIssueRecordForm(forms.ModelForm):
 class DispensaryIssueRecordForm(forms.ModelForm):
     class Meta:
         model = UnitIssueRecord
-        fields = ['unit', 'category', 'drug', 'quantity', 'date_issued', 'issued_to_locker']
+        fields = ['unit', 'category', 'drug', 'quantity', 'issued_to_locker']
         widgets = {
             'date_issued': forms.DateInput(attrs={'type': 'date'}),
         }
@@ -216,8 +216,8 @@ class DispenseRecordForm(forms.ModelForm):
         try:
             inventory = LockerInventory.objects.get(locker=self.dispensary, drug=drug)
             if quantity > inventory.quantity:
-                raise forms.ValidationError(f"Not enough {drug.name} in inventory. Available: {inventory.quantity}")
+                raise forms.ValidationError(f"Not enough {drug} in inventory. Available: {inventory.quantity}")
         except LockerInventory.DoesNotExist:
-            raise forms.ValidationError(f"{drug.name} is not available in this dispensary.")
+            raise forms.ValidationError(f"{drug} is not available in this dispensary.")
 
         return cleaned_data

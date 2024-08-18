@@ -496,7 +496,8 @@ class UnitTransferView(DetailView):
 @login_required
 def unitissuerecord(request, unit_id):
     unit = get_object_or_404(Unit, id=unit_id)
-        # Create a custom formset that passes the issuing_unit to each form
+    
+    # Create a custom formset that passes the issuing_unit to each form
     class CustomUnitIssueFormSet(BaseModelFormSet):
         def __init__(self, *args, **kwargs):
             self.issuing_unit = kwargs.pop('issuing_unit', None)
@@ -505,7 +506,13 @@ def unitissuerecord(request, unit_id):
         def _construct_form(self, i, **kwargs):
             kwargs['issuing_unit'] = self.issuing_unit
             return super()._construct_form(i, **kwargs)
-    UnitIssueFormSet = modelformset_factory(UnitIssueRecord, form=UnitIssueRecordForm, formset=CustomUnitIssueFormSet, extra=1)
+    
+    UnitIssueFormSet = modelformset_factory(
+        UnitIssueRecord,
+        form=UnitIssueRecordForm,
+        formset=CustomUnitIssueFormSet,
+        extra=2
+        )
 
     if request.method == 'POST':
         formset = UnitIssueFormSet(request.POST, issuing_unit=unit)
@@ -533,7 +540,7 @@ def unitissuerecord(request, unit_id):
         formset = UnitIssueFormSet(
             queryset=UnitIssueRecord.objects.none(),
             issuing_unit=unit,
-            initial=[{'unit': unit}] * 1
+            initial=[{'unit': unit}] * 2
         )
 
     return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})    
@@ -584,7 +591,7 @@ def dispensaryissuerecord(request, unit_id):
         UnitIssueRecord,
         form=DispensaryIssueRecordForm,
         formset=CustomUnitIssueFormSet,
-        extra=1
+        extra=2
     )
 
     if request.method == 'POST':
@@ -619,7 +626,7 @@ def dispensaryissuerecord(request, unit_id):
         formset = UnitIssueFormSet(
             queryset=UnitIssueRecord.objects.none(),
             issuing_unit=unit,
-            initial=[{'unit': unit, 'issued_to_locker': unit_locker}] * 1
+            initial=[{'unit': unit, 'issued_to_locker': unit_locker}] * 2
         )
 
     return render(request, 'store/create_dispensary_record.html', {'formset': formset, 'unit': unit})
@@ -638,7 +645,7 @@ class UnitIssueRecordListView(ListView):
 @login_required
 def dispenserecord(request, dispensary_id):
     dispensary = get_object_or_404(DispensaryLocker, id=dispensary_id)
-    DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=1)
+    DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=2)
     
     if request.method == 'POST':
         formset = DispensaryFormSet(request.POST, queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})

@@ -61,10 +61,12 @@
                 </div>
                 <div class="hidden md:flex items-center space-x-4 uppercase text-xs">
                     {% if request.user.is_authenticated and request.path != "/" %}
-                    <a href="{% url 'list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Drugs</a>
-                    <a href="{% url 'record' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Issue</a>
-                    <a href="{% url 'restocked' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Restock</a>
-                    <a href="{% url 'worth' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">Worth</a>
+                    <a href="{% url 'list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="border-l border-r p-1">MAIN STORE Drugs</span></a>
+                    <a href="{% url 'record' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="border-l border-r p-1">MAIN STORE Issue</span></a>
+                    <a href="{% url 'restocked' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="border-l border-r p-1">MAIN STORE Restocking</span></a>
+                    <a href="{% url 'worth' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="border-l border-r p-1">PHARMACY Worth</span></a>
+                    <a href="{% url 'store_list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="border-l border-r p-1">PHARMACY UNITS</span></a>
+                    <a href="{% url 'expiry_notification' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="border-l border-r p-1">EXPIRY NOTICE</span></a>
                     {% endif %}
                     {% if request.user.is_authenticated %}
                     <form method="POST" action="{% url 'logout' %}" >
@@ -81,10 +83,30 @@
             </div>
             <div class="md:hidden hidden uppercase text-xs" id="mobile-menu">
                 {% if request.user.is_authenticated and request.path != "/" %}
-                <a href="{% url 'list' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Drugs</a>
-                <a href="{% url 'record' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Issue</a>
-                <a href="{% url 'restocked' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Restock</a>
-                <a href="{% url 'worth' %}" class="block py-2 text-white hover:text-green-200 transition duration-300">Worth</a>
+                <a href="{% url 'list' %}" class="block py-2 text-white hover:text-green-200 transition duration-300"><span class="border-l border-r p-1">
+                    MAIN STORE Drugs
+                </span> 
+                </a>
+                <a href="{% url 'record' %}" class="block py-2 text-white hover:text-green-200 transition duration-300"><span class="border-l border-r p-1">
+                    MAIN STORE Record
+                </span>
+                </a>
+                <a href="{% url 'restocked' %}" class="block py-2 text-white hover:text-green-200 transition duration-300"><span class="border-l border-r p-1">
+                    MAIN STORE Restocking
+                </span>
+                </a>
+                <a href="{% url 'worth' %}" class="block py-2 text-white hover:text-green-200 transition duration-300"><span class="border-l border-r p-1">
+                    PHARMACY Worth
+                </span>
+                </a>
+                <a href="{% url 'store_list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="border-l border-r p-1">
+                    PHARMACY UNITS
+                </span>
+                </a>
+                <a href="{% url 'expiry_notification' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="border-l border-r p-1">
+                    EXPIRY NOTICE
+                </span>
+                </a>
                 {% endif %}
                 {% if request.user.is_authenticated %}
                 <form method="POST" action="{% url 'logout' %}" >
