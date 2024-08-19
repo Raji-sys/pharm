@@ -3,7 +3,10 @@
 {% block title %}Restocking Record{% endblock %}
 
 {% block content %}
+<span class="flex justify-center p-4 gap-4 text-xl">
+    <a href="{% url 'restocked' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
 <h1 class="text-lg font-bold text-blue-800 text-center uppercase">Restocking Report</h1>
+</span>
 <div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}
@@ -19,7 +22,7 @@
     <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
         <div class="px-4 py-5 sm:p-6">
             <form method="get" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div class="flex justify-center gap-4">
                     {% for field in restockfilter.form %}
                     <div>
                         <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
@@ -45,8 +48,6 @@
                         {% endif %}
                     </div>
                  {% endfor %}
-                 </div>
-                <div class="flex justify-end">
                     <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <i class="fa-solid fa-search mr-2"></i> Search
                     </button>

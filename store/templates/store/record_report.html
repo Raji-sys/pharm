@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}ISSUANCE RECORD REPORT{% endblock %}
+{% block title %}RECORD REPORT{% endblock %}
 
 {% block content %}
+<span class="flex justify-center p-4 gap-4 text-xl">
+    <a href="{% url 'record' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
 <h1 class="text-lg font-bold text-amber-600 text-center uppercase">Issuance Record Report Filters</h1>
+</span>
 <div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}
@@ -18,10 +21,10 @@
 
     <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
         <div class="px-4 py-5 sm:p-6">
-            <form method="get" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-4">
+            <form method="get" class="space-y-4 ">
+                <div class=" flex flexjustify-center gap-4">
                 {% for field in recordfilter.form %}
-                   <div>
+                   <div class="">
                        <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
                        {% if field.field.widget.input_type == 'select' %}
                        <select name="{{ field.name }}" id="{{ field.id_for_label }}" 
@@ -45,11 +48,9 @@
                        {% endif %}
                    </div>
                 {% endfor %}
-                </div>
-                <div class="flex justify-end">
-                   <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
-                       <i class="fa-solid fa-search mr-2"></i> Search
-                   </button>
+                    <button type="submit" class="inline-flex items-center px-4 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                        <i class="fa-solid fa-search mr-2"></i> Search
+                    </button>
                 </div>
                </form>
         </div>
@@ -67,32 +68,30 @@
                 <thead class="bg-amber-400">
                     <tr class="text-xs">
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">System Date Issued</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Physical Time Issued</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Date Issued</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Issued By</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Drug info</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Trade Name & <br> Supplier</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">GENERIC NAME</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Trade Name</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Strength</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Remark</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">QTy</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for r in recordfilter.qs %}
                     <tr class="{% cycle 'bg-white' 'bg-amber-50' %} hover:bg-amber-100 transition duration-150 ease-in-out text-xs text-center">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.updated_at|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{r.date_issued}}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.issued_by|default_if_none:'N/A'|upper }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}<br>{{ r.drug.strength|default_if_none:''|upper }}></td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.trade_name|default_if_none:'N/A'|upper }} <br><small>{{ r.drug.supplier|default_if_none:'N/A'|upper }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.strength|default_if_none:''|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.supplier|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.remark|default_if_none:'N/A'|upper }}</td>
                     </tr>
                     {% empty %}
                     <tr>

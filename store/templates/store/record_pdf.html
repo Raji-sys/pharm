@@ -104,7 +104,7 @@ h1 {
             width: 30px;
         }
         .sn {
-            width: 40px;
+            width: 60px;
         }
         .t{
             font-style: bold;
@@ -137,12 +137,12 @@ h1 {
             <tr>
                 <th class="small-column">#</th>
                 <th class="">DATE ISSUED</th>
-                <th class="">DRUG INFO</th>
+                <th class="">GENERIC DRUG </th>
                 <th class="">TRADE NAME</th>
+                <th class="">STRENGTH</th>
                 <th class="">SUPPLIER</th>
-                <th class="">UNIT ISSUED TO</th>
-                <th class="sn">QTY ISSUED</th>
-                <th class="">REMARK</th>
+                <th class="">ISSUED TO</th>
+                <th class="sn">QTY </th>
             </tr>
               {% for r in f %}        
         <tr class=>
@@ -156,11 +156,13 @@ h1 {
                 </small>
             </td>    
             <td>
-                {{r.drug.generic_name|default_if_none:''|upper}} <br>
-               <small class="t">{{r.drug.strength|default_if_none:''|upper}}</small> 
+                {{r.drug.generic_name|default_if_none:''|upper}}
             </td>
             <td>
                 {{r.drug.trade_name|default_if_none:''|upper}}
+            </td>
+            <td class="">
+                {{r.drug.strength|default_if_none:''|upper}}
             </td>
             <td>
                    {{r.drug.supplier|default_if_none:''|upper}}
@@ -170,9 +172,6 @@ h1 {
             </td>
             <td class="sn">
             {{r.quantity|default_if_none:''|upper}}
-            </td>
-            <td>
-            {{r.remark|default_if_none:''|upper}}
             </td>
           </tr>
           {%endfor%}

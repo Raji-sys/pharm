@@ -23,10 +23,10 @@ class DrugForm(forms.ModelForm):
 class RecordForm(forms.ModelForm):
     class Meta:
         model = Record
-        fields = ['category', 'drug', 'unit_issued_to', 'quantity', 'date_issued']
-        widgets = {
-            'date_issued': forms.DateInput(attrs={'type': 'date'})
-        }
+        fields = ['category', 'drug', 'unit_issued_to', 'quantity']
+        # widgets = {
+        #     'date_issued': forms.DateInput(attrs={'type': 'date'})
+        # }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -54,10 +54,10 @@ class RecordForm(forms.ModelForm):
 class RestockForm(forms.ModelForm):
     class Meta:
         model = Restock
-        fields = ['category', 'drug', 'quantity', 'date']
-        widgets = {
-            'date': DateInput(attrs={'type': 'date'})
-        }
+        fields = ['category', 'drug', 'quantity']
+        # widgets = {
+        #     'date': DateInput(attrs={'type': 'date'})
+        # }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

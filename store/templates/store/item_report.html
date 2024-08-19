@@ -2,10 +2,13 @@
 {% load humanize %}
 {% load static %}
 
-{% block title %}Drugs Inventory{% endblock %}
+{% block title %}Inventory Report{% endblock %}
 
 {% block content %}
-<h1 class="text-lg text-center font-bold text-cyan-800 m-2 uppercase">Drug Inventory Report Filters</h1>
+<span class="flex justify-center p-4 gap-4 text-xl">
+    <a href="{% url 'list' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
+<h1 class="text-lg text-center font-bold text-cyan-800 uppercase">Drug Inventory Report Filters</h1>
+</span>
 <div class="max-w-7xl mx-auto px-4">
     <div class="flex justify-end items-center m-2 space-x-2">
     {% if request.GET.urlencode %}
@@ -22,7 +25,7 @@
     <!-- Filter Form -->
     <div class="bg-white shadow-md rounded-lg p-6 mb-8">
         <form method="get" class="space-y-1 text-xs">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
             {% for field in drugfilter.form %}
                <div>
                    <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
@@ -48,11 +51,11 @@
                    {% endif %}
                </div>
             {% endfor %}
-            </div>
-            <div class="flex justify-end">
+            <div class="mt-4">
                 <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
                     <i class="fas fa-search mr-2"></i> Search
                 </button>
+            </div>
             </div>
         </form>
     </div>
@@ -82,7 +85,7 @@
                     {% for i in po %}
                     <tr class="{% cycle 'bg-white hover:bg-cyan-50' 'bg-cyan-50 hover:bg-cyan-100' %} text-xs text-center">
                         <td class="px-6 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.updated_at|date:'d-m-Y'|default_if_none:'N/A' }}<br> <small> added by: {{ i.added_by|upper }}</small></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.supply_date|date:'d-m-Y'|default_if_none:'N/A' }}<br> <small> added by: {{ i.added_by|upper }}</small></td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.category|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.generic_name|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.strength|default_if_none:''|upper }}</td>

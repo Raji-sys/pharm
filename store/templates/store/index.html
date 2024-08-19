@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<div class=" bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+<div class=" bg-gray-100 py-12 px-4 sm:px-6 lg:px-8 mt-8">
     <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div class="md:flex">
             <div class="md:flex-shrink-0 bg-green-500 md:w-1/3 flex items-center justify-center p-12">
@@ -10,58 +10,35 @@
             </div>
             <div class="p-4 md:p-16 md:w-2/3">
                 <div class="uppercase tracking-wide text-center text-3xl text-green-600 mb-2">
-                    NOHD Pharmacy Store
+                    NOHD Pharmacy
                 </div>
                 <p class="text-gray-700 text-sm mb-6 text-center border-b-2 border-zinc-200 p-2">
                     Inventory Management System
                 </p>
                 <div class="grid md:grid-cols-2 gap-4 text-xs uppercase">
-                    <a href="{% url 'list' %}" class="w-full md:w-auto">
+                    <a href="{% url 'main_store' %}" class="w-full md:w-auto">
                         <div class="bg-cyan-600 hover:bg-white hover:text-cyan-700 hover:border hover:border-cyan-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
-                            <i class="fa fa-solid fa-pills mr-2"></i>
-                            <span>Main store Inventory</span>
+                            <i class="fa fa-solid fa-warehouse mr-2 fa-2x"></i>
+                            <span>Main store</span>
                         </div>
                     </a>
-                    <a href="{% url 'record' %}" class="w-full md:w-auto">
-                        <div class="bg-amber-600 hover:bg-white hover:text-amber-700 hover:border hover:border-amber-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
-                            <i class="fa fa-solid fa-clipboard-list mr-2"></i>
-                            <span>Main Store Record</span>
-                        </div>
-                    </a>
-                    <a href="{% url 'restocked' %}" class="w-full md:w-auto">
-                        <div class="bg-blue-600 hover:bg-white hover:text-blue-700 hover:border hover:border-blue-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
-                            <i class="fa fa-solid fa-recycle mr-2"></i>
-                            <span>Main store Restocking</span>
-                        </div>
-                    </a>
-                    <a href="{% url 'worth' %}" class="w-full md:w-auto">
-                        <div class="bg-emerald-600 hover:bg-white hover:text-emerald-700 hover:border hover:border-emerald-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
-                            <span class="mr-2">&#x20A6;</span>
-                            <span>Pharmacy Worth</span>
-                        </div>
-                    </a>                   
-                </div>
-
-                <div class="mt-6 border-t-2 p-4">
                     <a href="{% url 'store_list' %}" class=" md:w-auto text-xs uppercase">
                         <div class="bg-fuchsia-600 hover:bg-white hover:text-fuchsia-700 hover:border hover:border-fuchsia-600 text-white p-3 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
-                            <i class="fa fa-solid fa-warehouse mr-2"></i>
+                            <i class="fa fa-solid fa-hospital mr-2 fa-2x"></i>
                             <span>pharmacy units</span>
                         </div>
                     </a>
-                    <div class="relative mt-4">
-                        <a href="{% url 'expiry_notification' %}" class="md:w-auto text-xs uppercase">
-                            <div class="bg-white hover:bg-rose-600 hover:text-white border border-rose-700 hover:border hover:border-rose-600 text-rose-700 p-3 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
-                                <i class="fa fa-solid fa-warning mr-2"></i>
-                                <span>drug expiry notification</span>
-                            </div>
-                        </a>
-                        {% if expiring_drugs_count > 0 %}
-                            <span class="absolute -top-2 -right-2 bg-blue-500 text-white hover:bg-white hover:border border-blue-700 hover:text-blue-700 text-sm font-bold rounded-full h-10 w-10 flex items-center justify-center">
-                                {{ expiring_drugs_count }}
-                            </span>
-                        {% endif %}
-                    </div>
+                </div>
+
+                <div class="mt-4 p-2">
+
+                    <a href="{% url 'worth' %}" class="w-full md:w-auto uppercase">
+                        <div class="bg-emerald-600 hover:bg-white hover:text-emerald-700 hover:border hover:border-emerald-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
+                            <span class="mr-2 text-xl">&#x20A6;</span>
+                            <span class="text-xs">Pharmacy Worth</span>
+                        </div>
+                    </a>                   
+
                 </div>
 
             </div>

@@ -4,9 +4,12 @@
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
         <div class="bg-gradient-to-r from-cyan-700 to-cyan-900 px-6 py-4">
-            <h1 class="text-sm font-bold text-white uppercase tracking-wider text-center">
+            <span class="flex justify-center p-1 gap-4 text-sm text-white">
+                <a href="{% url 'list' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
+            <h1 class="text-sm text-center font-bold uppercase">
                 Add a New Drug to the Store
             </h1>
+            </span>
         </div>
         
         {% if form.non_field_errors %}

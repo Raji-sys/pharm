@@ -5,9 +5,12 @@
   <div class="max-w-5xl mx-auto">
     <div class="bg-blue-100 shadow-xl rounded-lg overflow-hidden">
       <div class="bg-blue-600 px-4 py-4">
+        <span class="flex justify-center p-1 gap-4 text-sm text-white">
+          <a href="{% url 'restocked' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
         <h2 class="text-sm font-bold text-white text-center uppercase">Restock Drugs</h2>
+        </span>
       </div>
-      <form id="recordForm" action="" method="POST" enctype="multipart/form-data" class="p-3 text-xs">
+      <form id="recordForm" action="" method="POST" enctype="multipart/form-data" class="p-3 text-xs text-center">
         {% csrf_token %}
         {{ formset.management_form }}
         {% for form in formset %}
@@ -45,15 +48,7 @@
                   <p class="text-red-600 text-xs mt-1">{{ form.quantity.errors.0 }}</p>
                 {% endif %}
               </div>
-              <div class="space-y-1">
-                <label class="block text-xs font-medium text-gray-700">Date</label>
-                <div class="mt-1">
-                  {{ form.date }}
-                </div>
-                {% if form.date.errors %}
-                  <p class="text-red-600 text-xs mt-1">{{ form.date.errors.0 }}</p>
-                {% endif %}
-              </div>
+
 
             </div>
           </div>

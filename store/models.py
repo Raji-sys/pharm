@@ -159,7 +159,7 @@ class Record(models.Model):
     srv = models.CharField('SRV', max_length=100, null=True, blank=True)
     invoice_no = models.PositiveIntegerField('INVOICE NUMBER', null=True, blank=True)
     quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
-    date_issued = models.DateField()
+    date_issued = models.DateTimeField(auto_now_add=True)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_records')
     remark = models.CharField('REMARKS', max_length=200, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -201,7 +201,7 @@ class Restock(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='restock_category')
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, null=True,)
     quantity = models.IntegerField()
-    date = models.DateField()
+    date = models.DateTimeField(auto_now_add=True)
     restocked_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_restocking')
     updated = models.DateTimeField(auto_now_add=True)
 
