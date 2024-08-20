@@ -1,4 +1,4 @@
-from .filters import DrugFilter, RecordFilter, RestockFilter, DrugSearchFilter
+from .filters import *
 from django.shortcuts import render, redirect
 from .forms import *
 from django.contrib.auth.views import LoginView
@@ -41,7 +41,11 @@ def group_required(group_name):
 
 def unit_group_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
-        unit = Unit.objects.get(pk=kwargs['pk'])
+        unit_id = kwargs.get('unit_id')  # Use 'unit_id' instead of 'pk'
+        if unit_id is None:
+            raise PermissionDenied
+
+        unit = Unit.objects.get(pk=unit_id)
         if request.user.groups.filter(name=unit.name).exists():
             return view_func(request, *args, **kwargs)
         else:
@@ -50,8 +54,10 @@ def unit_group_required(view_func):
 
 class UnitGroupRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        unit = get_object_or_404(Unit, pk=self.kwargs['pk'])
-        # Check if the user's groups include the unit's name as the group name
+        if hasattr(self, 'get_unit_for_mixin'):
+            unit = self.get_unit_for_mixin()
+        else:
+            unit = get_object_or_404(Unit, pk=self.kwargs['pk'])
         return self.request.user.groups.filter(name=unit.name).exists()
     
 class CustomLoginView(LoginView):
@@ -82,7 +88,7 @@ def index(request):
 
 class StoreGroupRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        return self.request.user.groups.filter(name='store').exists()
+        return self.request.user.groups.filter(name='STORE').exists()
     
 class MainStoreDashboardView(LoginRequiredMixin, StoreGroupRequiredMixin,TemplateView):
     template_name = 'store/main_store_dashboard.html'
@@ -100,7 +106,7 @@ class MainStoreDashboardView(LoginRequiredMixin, StoreGroupRequiredMixin,Templat
         return context
 
 
-@group_required('store')
+@group_required('STORE')
 def create_drug(request):
     if request.method == 'POST':
         form = DrugForm(request.POST)
@@ -115,7 +121,7 @@ def create_drug(request):
     return render(request, 'store/create_item.html', {'form': form})
 
 
-@group_required('store')
+@group_required('STORE')
 def drugs_list(request):
     drugs = Drug.objects.all().order_by('category')
     query = request.GET.get('q')
@@ -197,7 +203,7 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
         return context
 
 
-@group_required('store')
+@group_required('STORE')
 def drug_report(request):
     drugfilter=DrugFilter(request.GET, queryset=Drug.objects.all().order_by('generic_name'))    
     pgtn=drugfilter.qs
@@ -209,7 +215,7 @@ def drug_report(request):
     return render(request, 'store/item_report.html', context)
 
 
-@group_required('store')
+@group_required('STORE')
 def create_record(request):
     RecordFormSet = modelformset_factory(Record, form=RecordForm, extra=5)
     if request.method == 'POST':
@@ -237,7 +243,7 @@ def create_record(request):
     return render(request, 'store/create_record.html', {'formset': formset})
 
 
-@group_required('store')
+@group_required('STORE')
 def records(request):
     records = Record.objects.all().order_by('-updated_at')
     pgn=Paginator(records,10)
@@ -274,7 +280,7 @@ def get_drugs_by_category(request, category_id):
     return JsonResponse({'drugs': drug_list})
 
 
-@group_required('store')
+@group_required('STORE')
 def record_report(request):
     # Apply the filter to all records, ordered by most recently updated
     recordfilter = RecordFilter(request.GET, queryset=Record.objects.all().order_by('-updated_at'))
@@ -312,7 +318,7 @@ def record_report(request):
     return render(request, 'store/record_report.html', context)
 
 
-@group_required('store')
+@group_required('STORE')
 def restock(request):
     RestockFormSet = modelformset_factory(Restock, form=RestockForm, extra=5)
 
@@ -343,7 +349,7 @@ class RestockUpdateView(LoginRequiredMixin, StoreGroupRequiredMixin,UpdateView):
         return super().form_valid(form)
     
 
-@group_required('store')
+@group_required('STORE')
 def restocked_list(request):
     restock = Restock.objects.all().order_by('-updated')
     pgn=Paginator(restock,10)
@@ -354,7 +360,7 @@ def restocked_list(request):
     return render(request, 'store/restocked_list.html', context)
     
 
-@group_required('store')
+@group_required('STORE')
 def restock_report(request):
     restockfilter = RestockFilter(request.GET, queryset=Restock.objects.all().order_by('-updated'))
     filtered_queryset = restockfilter.qs
@@ -407,7 +413,7 @@ def pdf_generator(buffer):
         yield chunk
 
 
-@group_required('store')
+@group_required('STORE')
 def drug_pdf(request):
     ndate = datetime.datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
@@ -427,7 +433,7 @@ def drug_pdf(request):
     return response
 
 
-@group_required('store')
+@group_required('STORE')
 def record_pdf(request):
     ndate = datetime.datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
@@ -465,7 +471,7 @@ def record_pdf(request):
     return response
 
 
-@group_required('store')
+@group_required('STORE')
 def restock_pdf(request):
     ndate = datetime.datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
@@ -745,7 +751,7 @@ class UnitIssueRecordListView(LoginRequiredMixin,UnitGroupRequiredMixin,ListView
         return DispenseRecord.objects.all().order_by('-date_issued')
     
 
-@unit_group_required
+@login_required
 def dispenserecord(request, dispensary_id):
     dispensary = get_object_or_404(DispensaryLocker, id=dispensary_id)
     DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=2)
@@ -771,21 +777,98 @@ def dispenserecord(request, dispensary_id):
     return render(request, 'store/dispense_form.html', {'formset': formset, 'dispensary': dispensary})
 
 
-class DispenseRecordView(LoginRequiredMixin,UnitGroupRequiredMixin,ListView):
+class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
     model = DispenseRecord
     template_name = 'store/dispensed_list.html'
     context_object_name = 'dispensed_list'
     paginate_by = 10
 
+    def dispatch(self, request, *args, **kwargs):
+        self.dispensary_locker = get_object_or_404(DispensaryLocker, pk=kwargs['pk'])
+        self.unit = self.dispensary_locker.unit  # Assuming DispensaryLocker has a relation to Unit
+        return super().dispatch(request, *args, **kwargs)
+
     def get_queryset(self):
-        dispensary_locker_id = self.kwargs.get('pk')
-        return DispenseRecord.objects.filter(dispensary_id=dispensary_locker_id).order_by('-updated')
+        return DispenseRecord.objects.filter(dispensary=self.dispensary_locker).order_by('-updated')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        dispensary_locker_id = self.kwargs.get('pk')
-        dispensary_locker = get_object_or_404(DispensaryLocker, id=dispensary_locker_id)
-        
         context['total_dispensed'] = self.get_queryset().count()
-        context['dispensary'] = dispensary_locker
+        context['dispensary_locker'] = self.dispensary_locker
         return context
+
+    def get_unit_for_mixin(self):
+        return self.unit
+    
+    
+@login_required
+def dispense_report(request, pk):
+    dispensary = get_object_or_404(DispensaryLocker, id=pk)
+    
+    # Initialize the filter with the queryset and manually set the initial value
+    dispensefilter = DispenseFilter(request.GET, queryset=DispenseRecord.objects.filter(dispensary=dispensary).order_by('-updated'))
+    
+    # Set initial value for the dispensary filter
+    dispensefilter.form.initial['dispensary'] = pk
+    
+    filtered_queryset = dispensefilter.qs
+    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    if filtered_queryset.exists() and filtered_queryset.first().drug.selling_price:
+        first_drug = filtered_queryset.first().drug.selling_price
+    else:
+        first_drug = 0
+
+    total_price = total_quantity * first_drug
+    total_appearance = filtered_queryset.count()
+
+    pgn = Paginator(filtered_queryset, 10)
+    pn = request.GET.get('page')
+    po = pgn.get_page(pn)
+
+    context = {
+        'dispensary':dispensary,
+        'dispensefilter': dispensefilter,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+        'po': po
+    }
+    return render(request, 'store/dispense_report.html', context)
+
+
+@login_required
+def dispense_pdf(request):
+    ndate = datetime.datetime.now()
+    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
+    f = DispenseFilter(request.GET, queryset=DispenseRecord.objects.all()).qs
+    total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    
+    if f.exists() and f.first().drug.selling_price:
+        first_drug = f.first().drug.selling_price
+    else:
+        first_drug = 0
+    
+    total_price = total_quantity * first_drug
+    total_appearance = f.count()
+    keys = [key for key, value in request.GET.items() if value]
+    result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
+    
+    context = {
+        'f': f,
+        'pagesize': 'A4',
+        'orientation': 'Portrait',
+        'result': result,
+        'keys': keys,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+    }
+    
+    pdf_buffer = generate_pdf(context, 'store/dispense_pdf.html')
+    
+    if pdf_buffer is None:
+        return HttpResponse('Error generating PDF', status=500)
+    
+    response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
+    return response

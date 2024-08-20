@@ -8,15 +8,23 @@
             <h2 class="text-center text-teal-700 uppercase">{{ store.name }} dispensary locker</h2>
         </span>
         <div class="flex justify-between items-center m-2 space-x-2">
-            <h3 class="text-lg uppercase">locker worth: <span class="text-green-700">&#x20A6;{{total_worth}}</span></h3>
+          <div>
+              <h3 class="text-lg uppercase">locker worth: <span class="text-green-700">&#x20A6;{{total_worth}}</span></h3>
+            </div>
+          <div>
             <a href="{% url 'dispense' store.dispensary_locker.id %}"
-               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-fuchsia-500">
-                <i class="fas fa-plus mr-2"></i> Dispense
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                <i class="fas fa-pills fa-2xl mr-2"></i> Dispense drugs
             </a>
             <a href="{% url 'dispensed_list' store.dispensary_locker.id %}"
-               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
-                <i class="fas fa-file-archive mr-2 fa-2xl"></i> Dispensary record
-            </a>
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+            <i class="fas fa-file-archive mr-2 fa-2xl"></i> Dispensary record
+        </a>
+        <a href="{% url 'dispense_report' store.dispensary_locker.id %}"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <i class="fas fa-file-pdf mr-2 fa-2xl"></i> Dispensary Report
+    </a>
+</div>
     </div>
         <!-- Unit Issue Records Table -->
         <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">

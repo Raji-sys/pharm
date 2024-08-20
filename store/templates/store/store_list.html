@@ -7,7 +7,7 @@
         <div class="bg-gradient-to-r from-cyan-500 to-emerald-500 p-4 text-center">
             <span class="text-lg font-bold text-white uppercase tracking-wider">Unit Stores</span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-8 p-6 justify-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-8 p-6">
             {% for store in stores %}
             <a href="{% url 'unit_dashboard' store.pk %}" class="block">
                 <div class="bg-white rounded-lg shadow-lg hover:shadow-2xl transition duration-300 ease-in-out transform hover:-translate-y-2 hover:scale-105">

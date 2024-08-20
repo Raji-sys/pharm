@@ -24,14 +24,14 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-@admin.register(Restock)
-class RestockAdmin(admin.ModelAdmin):
-    list_display = ('category','drug', 'quantity', 'date')
+# @admin.register(Restock)
+# class RestockAdmin(admin.ModelAdmin):
+#     list_display = ('category','drug', 'quantity', 'date')
 
-    def drug_name(self, obj):
-        return obj.drug.name
+#     def drug_name(self, obj):
+#         return obj.drug.name
     
-    drug_name.short_description = 'drug Name'
+#     drug_name.short_description = 'drug Name'
 
 
 @admin.register(Drug)
@@ -55,34 +55,40 @@ class DrugAdmin(ImportMixin,admin.ModelAdmin):
         obj.save()
 
 
-@admin.register(Record)
-class RecordAdmin(admin.ModelAdmin):
-    exclude = ('issued_by', 'balance')
-    list_display = ['drug', 'unit_issued_to', 'issued_by_username', 'quantity', 'date_issued','updated_at']
-    search_fields = ['drug', 'issued_to','drug__supplier','drug__supply_date']
-    list_filter = ['unit_issued_to', 'drug','drug__supplier','drug__supply_date']
-    list_per_page = 10
+# @admin.register(Record)
+# class RecordAdmin(admin.ModelAdmin):
+#     exclude = ('issued_by', 'balance')
+#     list_display = ['drug', 'unit_issued_to', 'issued_by_username', 'quantity', 'date_issued','updated_at']
+#     search_fields = ['drug', 'issued_to','drug__supplier','drug__supply_date']
+#     list_filter = ['unit_issued_to', 'drug','drug__supplier','drug__supply_date']
+#     list_per_page = 10
 
-    def save_model(self, request, obj, form, change):
-        try:
-            obj.issued_by = request.user
-            super().save_model(request, obj, form, change)
-        except ValidationError as e:
-            messages.error(request, f"Error: {e.message}")
+#     def save_model(self, request, obj, form, change):
+#         try:
+#             obj.issued_by = request.user
+#             super().save_model(request, obj, form, change)
+#         except ValidationError as e:
+#             messages.error(request, f"Error: {e.message}")
 
-    def drug_date(self, obj):
-        return obj.drug.supply_date
+#     def drug_date(self, obj):
+#         return obj.drug.supply_date
 
-    def issued_by_username(self, obj):
-        return obj.issued_by.username if obj.issued_by else None
+#     def issued_by_username(self, obj):
+#         return obj.issued_by.username if obj.issued_by else None
 
-    issued_by_username.short_description = "Issued By"
+#     issued_by_username.short_description = "Issued By"
 
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'update', 'total_unit_value')
     search_fields = ('name',)
     list_filter = ('update',)
+
+# @admin.register(DispensaryLocker)
+# class DispensaryLockerAdmin(admin.ModelAdmin):
+#     list_display = ('name', 'unit')
+#     search_fields = ('name','unit')
+#     list_filter = ('name','unit')
 
 # @admin.register(UnitStore)
 # class UnitStoreAdmin(admin.ModelAdmin):
@@ -112,8 +118,8 @@ class UnitAdmin(admin.ModelAdmin):
 #     search_fields = ('locker',)
 
 
-@admin.register(DispenseRecord)
-class DispenseRecordAdmin(admin.ModelAdmin):
-    list_display = ('dispensary', 'patient_info','drug', 'quantity', 'dispensed_by', 'updated')
-    search_fields = ('dispense__name', 'drug__generic_name', 'patient_info', 'issued_by__username')
-    list_filter = ('updated','dispensed_by', 'dispensary')
+# @admin.register(DispenseRecord)
+# class DispenseRecordAdmin(admin.ModelAdmin):
+#     list_display = ('dispensary', 'patient_info','drug', 'quantity', 'dispensed_by', 'updated')
+#     search_fields = ('dispense__name', 'drug__generic_name', 'patient_info', 'issued_by__username')
+#     list_filter = ('updated','dispensed_by', 'dispensary')

@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOHD PHARMACY REPORT</title>
+    <style>
+        @page{
+    margin: 0.8cm;
+    padding: 0.1cm;
+    border: 1px solid #1f2fdf;
+}
+    body {
+        font-family: Arial, sans-serif;
+        color: #333;
+        margin: 0;
+        box-sizing: border-box;
+        min-height: 100vh;
+    }
+    .logo-container {
+        text-align: center;
+        margin-top: 0%;
+    }
+
+    .logo-image {
+        width: 150px;
+        display: inline-block;
+        margin-top: 0%;
+
+    }
+
+h1 {
+            color: #039a10;
+            text-align: center;
+        }
+
+
+        .queryset-data {
+            margin: 2px 0;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .result {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .summary {
+            background-color: #e6f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .summary b {
+            color: #1f2fdf;
+            margin-right: 15px;
+            font-size: medium;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+         td {
+            border: 1px solid #ddd;
+            text-align: center;
+    padding: 5px; /* Adjust the padding as needed */
+    word-wrap: break-word; /* Allow text to wrap */
+    overflow: hidden; /* Add this line to prevent overflow */
+    text-overflow: ellipsis; /* Add this line to display ellipsis (...) for truncated text */
+    white-space: normal; /* Allow text wrap */
+
+        }
+
+        th {
+          padding: 2px;
+            background-color: #1f2fdf;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #e6f3ff;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+        .small-column {
+            width: 30px;
+        }
+        .t{
+            font-style: bold;
+            font-size: 10px;
+        }
+        .rose{
+         color: red;   
+        }
+
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
+    </div>
+    <h1> NOHD PHARMACY DISPENSARY REPORT</h1>
+    <div class="result">
+      {{ result|upper }}
+    </div>
+    <hr>
+    <div class="summary">
+        <b>FILTERED BY:</b> {% for key in keys %}{{ key|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        <b>ISSUED: {{ total_appearance }}</b>
+        <b>QUANTITY: {{ total_quantity }}</b>
+        <b>WORTH: N{{ total_price }}</b>
+    </div>
+
+  <table>
+        <thead>
+            <tr>
+                <th class="small-column">#</th>
+                <th class="">DISPENSARY</th>
+                <th class="">DATE ISSUED</th>
+                <th class="">PATIENT</th>
+                <th class="">DRUG INFO</th>
+                <th class="">TRADE NAME</th>
+                <th class="">SUPPLIER</th>
+                <th class="">QUANITITY ISSUED</th>
+                <th class="">DISPENSED</th>
+            </tr>
+              {% for r in f %}        
+        <tr class=>
+            <td class="small-column text-center">
+                {{forloop.counter}}
+            </td>    
+            <td class="text-center">
+                {{ r.dispensed_by.groups.all|first|default_if_none:'' }}
+            </td>    
+            <td class="text-center">
+                {{r.updated|default_if_none:''}}<br>
+            </td>    
+            <td class="text-center">
+                {{r.patient_info|default_if_none:''|upper}}<br>
+            </td>    
+            <td>
+                {{r.drug.generic_name|default_if_none:''|upper}} <br>
+               <small class="t">{{r.drug.strength|default_if_none:''|upper}}</small> 
+            </td>
+            <td>
+                {{r.drug.trade_name|default_if_none:''|upper}}
+            </td>
+            <td>
+                {{r.drug.supplier|default_if_none:''|upper}}
+            </td>
+            <td>
+            {{r.quantity|default_if_none:''|upper}}
+            </td>
+            <td>
+            {{r.dispensed_by|default_if_none:''|upper}}
+            </td>
+          </tr>
+          {%endfor%}
+        </tbody>
+</table>
+
+</body>
+</html>

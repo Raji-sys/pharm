@@ -49,6 +49,8 @@ urlpatterns=[
 
     path('unit/dispensary/<int:dispensary_id>/dispense/', views.dispenserecord, name='dispense'),
     path('unit/dispensary/dispensed-list/<int:pk>/', DispenseRecordView.as_view(), name='dispensed_list'),
+    path('dispense-report/<int:pk>/', views.dispense_report, name='dispense_report'),
+    path('dispense-pdf/', views.dispense_pdf, name='dispense_pdf'),
 
     path('get_drugs_by_category/<int:category_id>/', views.get_drugs_by_category, name='get_drugs_by_category'),
     path('',include('django.contrib.auth.urls')),

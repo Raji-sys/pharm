@@ -1,18 +1,7 @@
 from tabnanny import verbose
 import django_filters
-from .models import Drug, Category, Record, Restock, Unit
+from .models import *
 from django import forms
-
-
-class DrugSearchFilter(django_filters.FilterSet):
-    generic_name = django_filters.CharFilter(label="GENERIC NAME",field_name='generic_name', lookup_expr='icontains')
-    trade_name = django_filters.CharFilter(label="TRADE NAME",field_name='trade_name', lookup_expr='icontains')
-   
-    class Meta:
-        model = Drug
-        fields = ['generic_name','trade_name',]
-
-
 from django_filters import rest_framework as filters
 from django.forms.widgets import SelectDateWidget
 import datetime
@@ -134,3 +123,64 @@ class RestockFilter(django_filters.FilterSet):
     class Meta:
         model = Restock
         exclude = ['updated', 'date', 'quantity', 'restocked_by']
+
+
+
+class DispenseFilter(django_filters.FilterSet):
+    # Date Filters
+    date_exact = django_filters.DateFilter(
+        label="EXACT DATE",
+        field_name='updated',
+        lookup_expr='exact',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    date_start = django_filters.DateFilter(
+        label="DATE FROM",
+        field_name='updated',
+        lookup_expr='gte',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    date_end = django_filters.DateFilter(
+        label="DATE TO",
+        field_name='updated',
+        lookup_expr='lte',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+
+    # Dispensary Filter
+    dispensary = django_filters.ModelChoiceFilter(
+        label="DISPENSARY",
+        field_name='dispensary',
+        queryset=DispensaryLocker.objects.all(),
+        widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
+    )
+
+    category = django_filters.ChoiceFilter(
+        label="CATEGORY",
+        field_name='drug__category',
+        lookup_expr='iexact',
+        choices=Category.DRUG_CLASSES,
+        widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
+    )
+
+    # Drug Filter
+    drug = django_filters.CharFilter(
+        label="DRUG",
+        field_name='drug__name',
+        lookup_expr='icontains'
+    )
+
+    dispensed_by = django_filters.CharFilter(
+        label="DISPENSED BY",
+        field_name='dispensed_by__username',
+        lookup_expr='icontains'
+    )
+    patient_info = django_filters.CharFilter(
+        label="PATIENT INFO",
+        field_name='patient_info',
+        lookup_expr='icontains'
+    )
+
+    class Meta:
+        model = DispenseRecord
+        fields = ['date_exact', 'date_start', 'date_end', 'dispensary', 'category', 'drug', 'dispensed_by', 'patient_info']

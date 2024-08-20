@@ -18,7 +18,7 @@
   </div>
   {% endif %}
 
-      <form id="recordForm" action="" method="POST" enctype="multipart/form-data" class="p-3 text-xs">
+      <form id="recordForm" action="" method="POST" enctype="multipart/form-data" class="p-3 text-xs text-center">
         {% csrf_token %}
         {{ formset.management_form }}
         {% for form in formset %}
@@ -28,7 +28,7 @@
                 {{ form.non_field_errors.0 }}
               </div>
             {% endif %}
-            <div class="grid grid-cols-1 gap-20 md:grid-cols-5">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
               <div class="space-y-1">
                 <label class="block text-xs font-medium text-gray-700">Class</label>
                 <div class="mt-1">

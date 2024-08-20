@@ -19,7 +19,7 @@ class Unit(models.Model):
     
     def total_unit_value(self):
         store_value = sum(
-            store.total_value for store in self.unit_store.all()  # Corrected related name
+            store.total_value for store in self.unit_store.all()
             if store.total_value is not None
         )
         # return total_value
@@ -234,7 +234,7 @@ class DispensaryLocker(models.Model):
     name = models.CharField(max_length=100, default="Dispensary Locker")
     
     def __str__(self):
-        return f"{self.unit.name}'s {self.name}"
+        return f"{self.unit.name} {self.name}"
 
 class LockerInventory(models.Model):
     locker = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, related_name='inventory')
@@ -246,7 +246,7 @@ class LockerInventory(models.Model):
         unique_together = ['locker', 'drug']
 
     def __str__(self):
-        return f"{self.drug.name} in {self.locker}"
+        return f"{self.drug} in {self.locker}"
 
 class UnitIssueRecord(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='issuing_unit')
@@ -280,7 +280,6 @@ class UnitIssueRecord(models.Model):
             receiving_store, created = UnitStore.objects.get_or_create(unit=self.issued_to, drug=self.drug)
             receiving_store.quantity += self.quantity
             receiving_store.save()
-
         super().save(*args, **kwargs)
 
 
