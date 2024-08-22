@@ -128,6 +128,7 @@ class Drug(models.Model):
             if timezone.now().date() >= six_months_before and not self.entered_expiry_period:
                 self.entered_expiry_period = timezone.now()
         super().save(*args, **kwargs)
+    
     def __str__(self):
         return self.generic_name
 

@@ -125,29 +125,42 @@ def create_drug(request):
 def drugs_list(request):
     drugs = Drug.objects.all().order_by('category')
     query = request.GET.get('q')
+    
     # Apply search filter using Q
     if query:
         drugs = drugs.filter(
             Q(generic_name__icontains=query) | Q(trade_name__icontains=query)
         )
-
+    
     today = timezone.now().date()
+    one_month_later = today + timedelta(days=31)
+    three_months_later = today + timedelta(days=90)
     six_months_later = today + timedelta(days=180)
     
     for drug in drugs:
         if drug.expiration_date:
-            drug.expires_soon = drug.expiration_date <= six_months_later
+            if drug.expiration_date <= one_month_later:
+                drug.expiry_status = 'urgent'
+            elif drug.expiration_date <= three_months_later:
+                drug.expiry_status = 'critical'
+            elif drug.expiration_date <= six_months_later:
+                drug.expiry_status = 'expiring_soon'
+            else:
+                drug.expiry_status = 'ok'
         else:
-            drug.expires_soon = False
-
+            drug.expiry_status = 'unknown'
+    
     # Pagination
     paginator = Paginator(drugs, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    
     context = {
         'po': page_obj,
-        'query': query  # Pass the query to the template for display in the search box
+        'query': query,
+        'total_expiring_in_6_months': drugs.filter(expiration_date__lte=six_months_later).count(),
+        'total_expiring_in_3_months': drugs.filter(expiration_date__lte=three_months_later).count(),
+        'total_expiring_in_1_month': drugs.filter(expiration_date__lte=one_month_later).count(),
     }
     return render(request, 'store/items_list.html', context)
 
@@ -172,6 +185,7 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         today = timezone.now().date()
+        one_month_later = today + timedelta(days=31)
         three_months_later = today + timedelta(days=90)
         six_months_later = today + timedelta(days=180)
 
@@ -180,6 +194,7 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
             expiration_date__range=(today, six_months_later)
         ).annotate(
             status=Case(
+                When(expiration_date__lte=one_month_later, then=Value('urgent')),
                 When(expiration_date__lte=three_months_later, then=Value('critical')),
                 When(expiration_date__lte=six_months_later, then=Value('expiring_soon')),
                 default=Value('ok'),
@@ -192,13 +207,14 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         today = timezone.now().date()
+        one_month_later = today + timedelta(days=31)
         three_months_later = today + timedelta(days=90)
         six_months_later = today + timedelta(days=180)
 
-        # Calculate the total drugs expiring within 6 months and within 3 months
         queryset = self.get_queryset()
         context['total_expiring_in_6_months'] = queryset.count()
         context['total_expiring_in_3_months'] = queryset.filter(expiration_date__lte=three_months_later).count()
+        context['total_expiring_in_1_month'] = queryset.filter(expiration_date__lte=one_month_later).count()
 
         return context
 
