@@ -203,6 +203,7 @@ class Restock(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, null=True,)
     quantity = models.IntegerField()
     date = models.DateTimeField(auto_now_add=True)
+    expiration_date = models.DateField(null=True, blank=True)
     restocked_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_restocking')
     updated = models.DateTimeField(auto_now_add=True)
 

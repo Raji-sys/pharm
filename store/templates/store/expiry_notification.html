@@ -2,12 +2,12 @@
 {% load static %}
 {% block title %}Expiry Date Notification{% endblock %}
 {% block content %}
-<div class="container mx-auto px-4 py-4 uppercase">
-    <span class="flex justify-center p-4 gap-4 text-xl">
+<div class="container mx-auto px-4 py-2 uppercase">
+    <span class="flex justify-center p-2 gap-4 text-xl">
         <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
-        <h1 class="text-xl font-medium text-blue-700">Drug Expiry Notifications</h1>
+        <h1 class="text-lg font-medium text-blue-700">Drug Expiry Notifications</h1>
     </span>
-    <div class="">
+    <div class="flex justify-center gap-4">
         <!-- Notification Box -->
         <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 mb-2 text-xs w-fit " role="alert">
             <div class="flex items-center space-x-4">
@@ -16,12 +16,16 @@
                     <span>&nbsp;Expiring within 6 months</span>
                 </div>
                 <div class="flex items-center">
-                    <span class="bg-blue-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">{{ total_expiring_in_3_months }}</span>
+                    <span class="bg-yellow-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">{{ total_expiring_in_3_months }}</span>
                     <span>&nbsp;Expiring within 3 months</span>
                 </div>
                 <div class="flex items-center">
-                    <span class="bg-blue-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">{{ total_expiring_in_1_month }}</span>
+                    <span class="bg-orange-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">{{ total_expiring_in_1_month }}</span>
                     <span>&nbsp;Expiring within 1 month</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="bg-rose-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">{{ total_expired }}</span>
+                    <span>&nbsp;Expired</span>
                 </div>
             </div>
         </div>
@@ -50,24 +54,29 @@
                     <td class="p-3 whitespace-nowrap  text-gray-600">{{ drug.strength }}</td>
                     <td class="p-3 whitespace-nowrap  text-gray-600">{{ drug.expiration_date }}</td>
                     <td class="p-3 whitespace-nowrap">
-                        {% if drug.status == 'urgent' %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700">
+                        {% if drug.status == 'expired' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-rose-50 text-red-600">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Expired!
+                        </span>
+                        {% elif drug.status == 'urgent' %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-500">
                                 <i class="fas fa-exclamation-triangle mr-2"></i>Expiring in less than 31 days
                             </span>
                         {% elif drug.status == 'critical' %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-500">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-500">
                                 <i class="fas fa-exclamation-triangle mr-2"></i>Expiring in less than 3 months
                             </span>
                         {% elif drug.status == 'expiring_soon' %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-500">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-500">
                                 <i class="fas fa-exclamation-circle mr-2"></i>Expiring in less than 6 months
                             </span>
                         {% else %}
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-500">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-500">
                                 <i class="fas fa-check-circle mr-2"></i>OK – Expiring in more than 6 months
                             </span>
                         {% endif %}
                     </td>
+                    
                 </tr>
                 {% endfor %}
             </tbody>

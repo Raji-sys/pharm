@@ -72,28 +72,33 @@
                         <td class="p-3 whitespace-nowrap  text-gray-500">&#x20A6;{{ i.cost_price|default_if_none:'N/A' }}</td>
                         <td class="p-3 whitespace-nowrap">
                             {% if i.expiration_date %}
-                                {% if i.expiry_status == 'urgent' %}
-                                    <span class="text-red-600 font-semibold">
-                                        {{ i.expiration_date|date:'M-Y' }}
-                                        <br><small class="text-xs">(31 days!)</small>
-                                    </span>
-                                {% elif i.expiry_status == 'critical' %}
-                                    <span class="text-yellow-500 font-semibold">
-                                        {{ i.expiration_date|date:'M-Y' }}
-                                        <br><small class="text-xs">(3 months to expires)</small>
-                                    </span>
-                                {% elif i.expiry_status == 'expiring_soon' %}
-                                    <span class="text-blue-500">
-                                        {{ i.expiration_date|date:'M-Y' }}
-                                        <br><small class="text-xs">(6 months to expires)</small>
-                                    </span>
-                                {% else %}
-                                    <span class="text-gray-500">
-                                        {{ i.expiration_date|date:'M-Y' }}
-                                    </span>
-                                {% endif %}
+                            {% if i.expiry_status == 'expired' %}
+                                <span class="text-rose-700 font-semibold">
+                                    {{ i.expiration_date|date:'M-Y' }}
+                                    <br><small class="text-xs">(Expired!)</small>
+                                </span>
+                            {% elif i.expiry_status == 'urgent' %}
+                                <span class="text-orange-600 font-semibold">
+                                    {{ i.expiration_date|date:'M-Y' }}
+                                    <br><small class="text-xs">(31 days!)</small>
+                                </span>
+                            {% elif i.expiry_status == 'critical' %}
+                                <span class="text-yellow-500 font-semibold">
+                                    {{ i.expiration_date|date:'M-Y' }}
+                                    <br><small class="text-xs">(3 months to expire)</small>
+                                </span>
+                            {% elif i.expiry_status == 'expiring_soon' %}
+                                <span class="text-blue-500">
+                                    {{ i.expiration_date|date:'M-Y' }}
+                                    <br><small class="text-xs">(6 months to expire)</small>
+                                </span>
                             {% else %}
-                                <span class="text-gray-500">N/A</span>
+                                <span class="text-green-500">
+                                    {{ i.expiration_date|date:'M-Y' }}
+                                </span>
+                        {% endif %}
+                            {% else %}
+                                <span class="text-green-500">N/A</span>
                             {% endif %}
                         </td>                        <td class="p-3 whitespace-nowrap text-gray-500 text-center"><a href="{% url 'update_drug' i.id %}"><i class="fa fa-solid fa-edit fa-lg text-cyan-700"></i></a></td>
                     </tr>

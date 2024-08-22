@@ -28,22 +28,79 @@
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Selling Price</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Balance QTY</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Total Value</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Expiry Date</th>
+                            <!-- <th scope="col" class="px-4 py-2 font-medium tracking-wider">Last Restock Date</th> -->
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Restock Expiry Date</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {% for unit_store_drug in unit_store_drugs %}
+                        {% for i in unit_store_drugs %}
                         <tr class="{% cycle 'bg-white' 'bg-orange-50' %} text-xs text-center">
                             <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.drug.generic_name|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.drug.strength|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.drug.trade_name|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ unit_store_drug.drug.cost_price|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ unit_store_drug.drug.selling_price|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ unit_store_drug.quantity|default_if_none:''|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ unit_store_drug.total_value|floatformat:2|intcomma }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.strength|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.trade_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.drug.cost_price|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.drug.selling_price|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.quantity|default_if_none:''|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.total_value|floatformat:2|intcomma }}</td>
+                            <td class="px-4 py-2 font-medium 
+                            {% if i.drug.expiration_date <= today %}text-rose-700
+                            {% elif i.drug.expiration_date <= one_month_later %}text-rose-700
+                            {% elif i.drug.expiration_date <= three_months_later %}text-yellow-500
+                            {% elif i.drug.expiration_date <= six_months_later %}text-blue-500
+                            {% else %}text-gray-800{% endif %}">
+                            {% if i.drug.expiration_date %}
+                                {{ i.drug.expiration_date|date:"M-Y" }}
+                                {% if i.drug.expiration_date <= today %}
+                                    <br><small class="text-rose-700">(Expired!)</small>
+                                {% elif i.drug.expiration_date <= one_month_later %}
+                                    <br><small class="text-orange-600">(1 month to expire!)</small>
+                                {% elif i.drug.expiration_date <= three_months_later %}
+                                    <br><small>(3 months to expire)</small>
+                                {% elif i.drug.expiration_date <= six_months_later %}
+                                    <br><small class="text-blue-500">(6 months to expire)</small>
+                                {% endif %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                                                
+                            <!-- <td class="px-4 py-2 font-medium text-gray-800">
+                                {% if i.restock_info %}
+                                    {{ i.restock_info.date|date:"M d, Y" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td> -->
+                            <td class="px-4 py-2 font-medium 
+                            {% if i.restock_info and i.restock_info.expiration_date %}
+                                {% if i.restock_info.expiration_date <= today %}text-rose-700
+                                {% elif i.restock_info.expiration_date <= one_month_later %}text-orange-700
+                                {% elif i.restock_info.expiration_date <= three_months_later %}text-yellow-500
+                                {% elif i.restock_info.expiration_date <= six_months_later %}text-blue-500
+                                {% else %}text-gray-800{% endif %}
+                            {% else %}text-gray-800{% endif %}">
+                            
+                            {% if i.restock_info and i.restock_info.expiration_date %}
+                                {{ i.restock_info.expiration_date|date:"M d, Y" }}
+                                {% if i.restock_info.expiration_date <= today %}
+                                    <br><small class="text-rose-700">(Expired!)</small>
+                                {% elif i.restock_info.expiration_date <= one_month_later %}
+                                    <br><small class="text-orange-600">(1 month to expire!)</small>
+                                {% elif i.restock_info.expiration_date <= three_months_later %}
+                                    <br><small class="text-yellow-500">(3 months to expire)</small>
+                                {% elif i.restock_info.expiration_date <= six_months_later %}
+                                    <br><small class="text-blue-500">(6 months to expire)</small>
+                                {% endif %}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        
                         </tr>
                         {% endfor %}
-                    </tbody>
+                    </tbody>                
                 </table>
             </div>
         </div>

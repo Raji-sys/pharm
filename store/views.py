@@ -126,7 +126,6 @@ def drugs_list(request):
     drugs = Drug.objects.all().order_by('category')
     query = request.GET.get('q')
     
-    # Apply search filter using Q
     if query:
         drugs = drugs.filter(
             Q(generic_name__icontains=query) | Q(trade_name__icontains=query)
@@ -139,18 +138,19 @@ def drugs_list(request):
     
     for drug in drugs:
         if drug.expiration_date:
-            if drug.expiration_date <= one_month_later:
-                drug.expiry_status = 'urgent'
+            if drug.expiration_date <= today:
+                drug.expiry_status = 'expired'  # Drug has expired
+            elif drug.expiration_date <= one_month_later:
+                drug.expiry_status = 'urgent'  # Expiring within 31 days
             elif drug.expiration_date <= three_months_later:
-                drug.expiry_status = 'critical'
+                drug.expiry_status = 'critical'  # Expiring within 3 months
             elif drug.expiration_date <= six_months_later:
-                drug.expiry_status = 'expiring_soon'
+                drug.expiry_status = 'expiring_soon'  # Expiring within 6 months
             else:
                 drug.expiry_status = 'ok'
         else:
             drug.expiry_status = 'unknown'
     
-    # Pagination
     paginator = Paginator(drugs, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -163,6 +163,7 @@ def drugs_list(request):
         'total_expiring_in_1_month': drugs.filter(expiration_date__lte=one_month_later).count(),
     }
     return render(request, 'store/items_list.html', context)
+
 
 
 class DrugUpdateView(LoginRequiredMixin, StoreGroupRequiredMixin, UpdateView):
@@ -185,17 +186,16 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         today = timezone.now().date()
-        one_month_later = today + timedelta(days=31)
-        three_months_later = today + timedelta(days=90)
         six_months_later = today + timedelta(days=180)
 
         # Annotate the queryset with an expiration status
         queryset = Drug.objects.filter(
-            expiration_date__range=(today, six_months_later)
+            expiration_date__lte=six_months_later
         ).annotate(
             status=Case(
-                When(expiration_date__lte=one_month_later, then=Value('urgent')),
-                When(expiration_date__lte=three_months_later, then=Value('critical')),
+                When(expiration_date__lte=today, then=Value('expired')),
+                When(expiration_date__lte=today + timedelta(days=31), then=Value('urgent')),
+                When(expiration_date__lte=today + timedelta(days=90), then=Value('critical')),
                 When(expiration_date__lte=six_months_later, then=Value('expiring_soon')),
                 default=Value('ok'),
                 output_field=CharField(),
@@ -212,11 +212,14 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
         six_months_later = today + timedelta(days=180)
 
         queryset = self.get_queryset()
-        context['total_expiring_in_6_months'] = queryset.count()
-        context['total_expiring_in_3_months'] = queryset.filter(expiration_date__lte=three_months_later).count()
-        context['total_expiring_in_1_month'] = queryset.filter(expiration_date__lte=one_month_later).count()
+
+        context['total_expired'] = queryset.filter(expiration_date__lte=today).count()
+        context['total_expiring_in_1_month'] = queryset.filter(expiration_date__gt=today, expiration_date__lte=one_month_later).count()
+        context['total_expiring_in_3_months'] = queryset.filter(expiration_date__gt=one_month_later, expiration_date__lte=three_months_later).count()
+        context['total_expiring_in_6_months'] = queryset.filter(expiration_date__gt=three_months_later, expiration_date__lte=six_months_later).count()
 
         return context
+
 
 
 @group_required('STORE')
@@ -573,18 +576,57 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
     model = Unit
     template_name = 'store/unit_bulk_locker.html'
     context_object_name = 'store'
-    paginate_by=10
+    paginate_by = 10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug')
-        # Calculate total worth by summing up the total_value of all UnitStore objects
-        total_worth = sum(drug.total_value for drug in unit_store_drugs)
-        # Fetch the drugs available in this store
-        context['unit_store_drugs'] = UnitStore.objects.filter(unit=self.object).order_by('drug__generic_name')
-        
+
+        today = timezone.now().date()
+        one_month_later = today + timedelta(days=31)
+        three_months_later = today + timedelta(days=90)
+        six_months_later = today + timedelta(days=180)
+
+        total_worth = 0
+        total_expiring_in_1_month = 0
+        total_expiring_in_3_months = 0
+        total_expiring_in_6_months = 0
+
+        for unit_store_drug in unit_store_drugs:
+            total_worth += unit_store_drug.total_value
+
+            # Assign restock info if available
+            unit_store_drug.restock_info = Restock.objects.filter(drug=unit_store_drug.drug).order_by('-date').first()
+
+            # Calculate expiry status for original drug (removed as we'll handle this in the template)
+            if unit_store_drug.drug.expiration_date:
+                if unit_store_drug.drug.expiration_date <= one_month_later:
+                    total_expiring_in_1_month += unit_store_drug.quantity
+                elif unit_store_drug.drug.expiration_date <= three_months_later:
+                    total_expiring_in_3_months += unit_store_drug.quantity
+                elif unit_store_drug.drug.expiration_date <= six_months_later:
+                    total_expiring_in_6_months += unit_store_drug.quantity
+
+            # Calculate expiry status for restocked drug (if required)
+            if unit_store_drug.restock_info and unit_store_drug.restock_info.expiration_date:
+                # Optionally process restock expiry status in the template
+                pass
+
+        # Order by generic name
+        context['unit_store_drugs'] = unit_store_drugs.order_by('drug__generic_name')
         context['total_worth'] = total_worth
+        context['total_expiring_in_6_months'] = total_expiring_in_6_months
+        context['total_expiring_in_3_months'] = total_expiring_in_3_months
+        context['total_expiring_in_1_month'] = total_expiring_in_1_month
+
+        # Pass date ranges to the template for comparison
+        context['today'] = today
+        context['one_month_later'] = one_month_later
+        context['three_months_later'] = three_months_later
+        context['six_months_later'] = six_months_later
+
         return context
+
 
 class UnitDispensaryLockerView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
@@ -789,9 +831,7 @@ def dispenserecord(request, dispensary_id):
                 messages.error(request, f"An error occurred: {str(e)}")
     else:
         formset = DispensaryFormSet(queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})
-    
     return render(request, 'store/dispense_form.html', {'formset': formset, 'dispensary': dispensary})
-
 
 class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
     model = DispenseRecord
