@@ -7,7 +7,7 @@
 <div class="mx-1">
   <span class="flex justify-center p-4 gap-4 text-xl">
   <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>
-    <h1 class="text-lg font-bold text-cyan-800 text-center uppercase">Drug Inventory</h1>
+    <h1 class="text-lg  text-cyan-800 text-center uppercase">Drug Inventory</h1>
     </span>
     <div class="flex flex-wrap justify-center items-center m-2 space-x-2 gap-2">
         <a href="{% url 'create_drug' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
@@ -52,6 +52,7 @@
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Balance</th>
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Expiry Date</th>
+                        <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Value</th>
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Update</th>
                     </tr>
                 </thead>
@@ -88,19 +89,21 @@
                                     <br><small class="text-xs">(3 months to expire)</small>
                                 </span>
                             {% elif i.expiry_status == 'expiring_soon' %}
-                                <span class="text-blue-500">
-                                    {{ i.expiration_date|date:'M-Y' }}
+                            <span class="text-blue-500">
+                                {{ i.expiration_date|date:'M-Y' }}
                                     <br><small class="text-xs">(6 months to expire)</small>
                                 </span>
                             {% else %}
-                                <span class="text-green-500">
-                                    {{ i.expiration_date|date:'M-Y' }}
+                            <span class="text-green-500">
+                                {{ i.expiration_date|date:'M-Y' }}
                                 </span>
-                        {% endif %}
-                            {% else %}
+                                {% endif %}
+                                {% else %}
                                 <span class="text-green-500">N/A</span>
-                            {% endif %}
-                        </td>                        <td class="p-3 whitespace-nowrap text-gray-500 text-center"><a href="{% url 'update_drug' i.id %}"><i class="fa fa-solid fa-edit fa-lg text-cyan-700"></i></a></td>
+                                {% endif %}
+                            </td>                      
+                            <td class="p-3 whitespace-nowrap  text-gray-500">&#x20A6;{{ i.total_value|default_if_none:'N/A' }}</td>
+                         <td class="p-3 whitespace-nowrap text-gray-500 text-center"><a href="{% url 'update_drug' i.id %}"><i class="fa fa-solid fa-edit fa-lg text-cyan-700"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

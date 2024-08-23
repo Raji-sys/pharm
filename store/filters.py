@@ -46,7 +46,7 @@ class RecordFilter(django_filters.FilterSet):
     trade_name = django_filters.CharFilter(label="TRADE NAME", field_name='drug__trade_name', lookup_expr='icontains')
     supplier = django_filters.CharFilter(label="SUPPLIER", field_name='drug__supplier', lookup_expr='icontains')
     unit_issued_to = django_filters.ModelChoiceFilter(
-        label="UNIT ISSUED",
+        label="UNIT",
         queryset=Unit.objects.all(),
         field_name='unit_issued_to',
         to_field_name='id',
@@ -57,7 +57,7 @@ class RecordFilter(django_filters.FilterSet):
     # Date Issued Filters
     date_issued_exact = django_filters.DateFilter(
         label="EXACT DATE ISSUED",
-        field_name='date_issued',
+        field_name='updated_at',
         lookup_expr='exact',
         widget=forms.DateInput(attrs={'type':'date'})
     )

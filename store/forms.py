@@ -200,6 +200,7 @@ class DispenseRecordForm(forms.ModelForm):
             ).distinct()
 
         for field in self.fields.values():
+            field.required = False
             field.widget.attrs.update({'class': 'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
 
     def clean(self):

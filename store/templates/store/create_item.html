@@ -6,7 +6,7 @@
         <div class="bg-gradient-to-r from-cyan-700 to-cyan-900 px-6 py-4">
             <span class="flex justify-center p-1 gap-4 text-sm text-white">
                 <a href="{% url 'list' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
-            <h1 class="text-sm text-center font-bold uppercase">
+            <h1 class="text-sm text-center  uppercase">
                 Add a New Drug to the Store
             </h1>
             </span>
@@ -14,7 +14,7 @@
         
         {% if form.non_field_errors %}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong class="font-bold">Error!</strong>
+            <strong class="">Error!</strong>
             <span class="block sm:inline">{{ form.non_field_errors.0 }}</span>
         </div>
         {% endif %}

@@ -14,11 +14,11 @@
           <div>
             <a href="{% url 'dispense' store.dispensary_locker.id %}"
                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
-                <i class="fas fa-pills fa-2xl mr-2"></i> Dispense drugs
+                <i class="fas fa-pills fa-2xl mr-2"></i> Dispense Drugs
             </a>
             <a href="{% url 'dispensed_list' store.dispensary_locker.id %}"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
-            <i class="fas fa-file-archive mr-2 fa-2xl"></i> Dispensary record
+            <i class="fas fa-file-archive mr-2 fa-2xl"></i> Dispensary Record
         </a>
         <a href="{% url 'dispense_report' store.dispensary_locker.id %}"
         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -37,6 +37,7 @@
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade Drug</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Balance QTY</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Selling Price</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Date restocked</th>
                         </tr>
                     </thead>
@@ -48,6 +49,7 @@
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ r.drug.selling_price|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 text-gray-700">{{ r.updated|date:"d-M-Y" }}</td>
                         </tr>
                         {% endfor %}

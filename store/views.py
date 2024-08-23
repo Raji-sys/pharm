@@ -225,12 +225,37 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
 @group_required('STORE')
 def drug_report(request):
     drugfilter=DrugFilter(request.GET, queryset=Drug.objects.all().order_by('generic_name'))    
+    filtered_queryset = drugfilter.qs
+
+    # Calculate total quantity across all filtered records
+    total_quantity = filtered_queryset.aggregate(models.Sum('total_purchased_quantity'))['total_purchased_quantity__sum'] or 0
+    
+        # Attempt to get the cost price of the first drug in the filtered queryset
+    first_drug_cost = Decimal('0')
+    if filtered_queryset.exists():
+        first_drug = filtered_queryset.first()
+        if first_drug and first_drug.cost_price is not None:
+            first_drug_cost = first_drug.cost_price
+
+    # Calculate total price (assuming all drugs have the same price as the first one)
+    total_price = total_quantity * first_drug_cost
+
+    # Count the number of records in the filtered queryset
+    total_appearance = filtered_queryset.count()
+
     pgtn=drugfilter.qs
     pgn=Paginator(pgtn,10)
     pn=request.GET.get('page')
     po=pgn.get_page(pn)
 
-    context = {'drugfilter': drugfilter,'po':po}
+    context = {
+        'drugfilter': drugfilter,
+        'po':po,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+
+               }
     return render(request, 'store/item_report.html', context)
 
 
@@ -832,6 +857,7 @@ def dispenserecord(request, dispensary_id):
     else:
         formset = DispensaryFormSet(queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})
     return render(request, 'store/dispense_form.html', {'formset': formset, 'dispensary': dispensary})
+
 
 class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
     model = DispenseRecord

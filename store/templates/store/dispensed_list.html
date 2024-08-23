@@ -5,48 +5,48 @@
 <div class="container mx-auto p-4">
     <span class="flex justify-center p-4 gap-4 text-xl">
         {% if dispensary_locker %}
-        <a href="{% url 'unit_dispensary' dispensary_locker.unit.id %}" class="text-teal-600 hover:text-teal-800 transition-colors duration-300">
+        <a href="{% url 'unit_dispensary' dispensary_locker.unit.id %}" >
             <i class="fa-solid fa-arrow-left"></i>
         </a>
-        <h2 class="text-center text-teal-700 uppercase font-bold">{{ dispensary_locker.unit.name }} Dispensary Records</h2>
+        <h2 class="text-center text-teal-700 uppercase ">{{ dispensary_locker.unit.name }} Dispensary Records</h2>
         {% endif %}
     </span>
-    <div class="md:mx-20 mx-2 rounded-xl shadow-lg bg-white">
+    <div class="md:mx-20 mx-2 rounded-xl shadow-lg bg-white uppercase">
         <div class="overflow-x-auto rounded-lg">
             <table class="min-w-full divide-y divide-emerald-200 ">
                 <thead class="bg-emerald-500">
-                    <tr>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">#</th>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">Patient</th>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">Drug</th>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">Trade Name</th>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">Strength</th>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">Quantity</th>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">Dispensed By</th>
-                        <th class="p-3 text-left text-xs font-medium text-white uppercase tracking-wider">Edit</th>
+                    <tr class="text-center">
+                        <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">#</th>
+                        <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">Patient</th>
+                        <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">Drug</th>
+                        <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">Trade Name</th>
+                        <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">Strength</th>
+                        <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">Quantity</th>
+                        <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">Dispense Date</th>
+                        <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">Dispensed By</th>
+                        <!-- <th class="p-3  text-xs font-medium text-white uppercase tracking-wider">Edit</th> -->
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-emerald-100">
                     {% for d in dispensed_list %}
-                    <tr class="hover:bg-emerald-50 transition-colors duration-300">
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-700">{{forloop.counter}}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-700">{{ d.patient_info|default_if_none:'' }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-700">{{ d.drug.generic_name|default_if_none:'' }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-700">{{ d.drug.trade_name|default_if_none:'' }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-700">{{ d.drug.strength|default_if_none:'' }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-700">{{ d.quantity|default_if_none:'' }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-700">{{ d.updated|default_if_none:'' }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm text-gray-700">{{ d.dispensed_by|default_if_none:'' }}</td>
-                        <td class="p-3 whitespace-nowrap text-sm">
+                    <tr class="hover:bg-emerald-50 transition-colors duration-300 text-xs text-center">
+                        <td class="p-3 whitespace-nowrap  text-gray-700">{{forloop.counter}}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-700">{{ d.patient_info|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-700">{{ d.drug.generic_name|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-700">{{ d.drug.trade_name|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-700">{{ d.drug.strength|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-700">{{ d.quantity|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-700">{{ d.dispense_date|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-700">{{ d.dispensed_by|default_if_none:'' }}</td>
+                        <!-- <td class="p-3 whitespace-nowrap ">
                             <a href="#" class="text-teal-600 hover:text-teal-800 transition-colors duration-300">
                                 <i class="fa fa-solid fa-edit fa-lg"></i>
                             </a>
-                        </td>
+                        </td> -->
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="p-3 text-center text-sm text-gray-500">No records found</td>
+                        <td colspan="9" class="p-3 text-center  text-gray-500">No records found</td>
                     </tr>
                     {% endfor %}
                 </tbody>

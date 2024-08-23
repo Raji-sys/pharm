@@ -163,7 +163,7 @@ class Record(models.Model):
     date_issued = models.DateTimeField(auto_now_add=True)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_records')
     remark = models.CharField('REMARKS', max_length=200, null=True, blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateField(auto_now=True)
     
     def save(self, *args, **kwargs):
         if not self.drug:
@@ -292,7 +292,8 @@ class DispenseRecord(models.Model):
     quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
     patient_info = models.CharField(max_length=100,null=True)
     dispensed_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    updated = models.DateTimeField(auto_now=True)
+    dispense_date = models.DateTimeField(auto_now=True)
+    updated = models.DateField(auto_now=True)
     
     def clean(self):
         pass    
