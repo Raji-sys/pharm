@@ -255,11 +255,11 @@ class UnitIssueRecord(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='unitissue_category')
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='issued_drugs')
     quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
-    date_issued = models.DateField(auto_now_add=True,null=True)
+    date_issued = models.DateTimeField(auto_now_add=True,null=True)
     issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
     issued_to_locker = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, null=True, blank=True)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateField(auto_now=True)
     
     def clean(self):
         if self.issued_to and self.issued_to_locker:

@@ -9,7 +9,7 @@
         @page{
     margin: 0.8cm;
     padding: 0.1cm;
-    border: 1px solid #1f2fdf;
+    border: 1px solid #079502;
 }
     body {
         font-family: Arial, sans-serif;
@@ -55,7 +55,7 @@ h1 {
         }
 
         .summary b {
-            color: #1f2fdf;
+            color: #079502;
             margin-right: 15px;
             font-size: medium;
         }
@@ -66,20 +66,18 @@ h1 {
             margin-top: 10px;
         }
 
-         td {
+        td {
             border: 1px solid #ddd;
             text-align: center;
-    padding: 5px; /* Adjust the padding as needed */
-    word-wrap: break-word; /* Allow text to wrap */
-    overflow: hidden; /* Add this line to prevent overflow */
-    text-overflow: ellipsis; /* Add this line to display ellipsis (...) for truncated text */
-    white-space: normal; /* Allow text wrap */
-
+            padding: 5px; 
+            word-wrap: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
         }
-
         th {
           padding: 2px;
-            background-color: #1f2fdf;
+            background-color: #079502;
             color: white;
             text-transform: uppercase;
             font-weight: bold;
@@ -117,7 +115,7 @@ h1 {
     <div class="logo-container">
         <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
     </div>
-    <h1> NOHD PHARMACY DISPENSARY REPORT</h1>
+    <h1> NOHD PHARMACY BULK LOCKER REPORT</h1>
     <div class="result">
       {{ result|upper }}
     </div>
@@ -133,14 +131,14 @@ h1 {
         <thead>
             <tr>
                 <th class="small-column">#</th>
-                <th class="">DISPENSARY</th>
+                <th class="">UNIT</th>
                 <th class="">DATE ISSUED</th>
                 <th class="">PATIENT</th>
                 <th class="">DRUG INFO</th>
                 <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
                 <th class="">QUANITITY ISSUED</th>
-                <th class="">DISPENSED BY</th>
+                <th class="">ISSUED BY</th>
             </tr>
               {% for r in f %}        
         <tr class=>
@@ -148,10 +146,10 @@ h1 {
                 {{forloop.counter}}
             </td>    
             <td class="text-center">
-                {{ r.dispensed_by.groups.all|first|default_if_none:'' }}
+                {{ r.unit|default_if_none:'' }}
             </td>    
             <td class="text-center">
-                {{r.updated|default_if_none:''}}<br>
+                {{r.date_issued|default_if_none:''}}<br>
             </td>    
             <td class="text-center">
                 {{r.patient_info|default_if_none:''|upper}}<br>
@@ -170,7 +168,7 @@ h1 {
             {{r.quantity|default_if_none:''|upper}}
             </td>
             <td>
-            {{r.dispensed_by|default_if_none:''|upper}}
+            {{r.issued_by|default_if_none:''|upper}}
             </td>
           </tr>
           {%endfor%}

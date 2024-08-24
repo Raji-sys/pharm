@@ -4,13 +4,13 @@
 
 {% block content %}
 <span class="flex justify-center p-4 gap-4 text-xl">
-    <a href="{%url 'unit_dispensary' dispensary.unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>    
-<h1 class="text-lg text-blue-800 text-center uppercase">{{dispensary.unit.name}} Dispensary Report</h1>
+    <a href="{%url 'unitissue_report' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>    
+<h1 class="text-lg text-blue-800 text-center uppercase">{{unit.name}} Bulk Locker Report</h1>
 </span>
 <div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}
-            <a href="{% url 'dispense_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
+            <a href="{% url 'unitissue_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
                 <i class="fa-solid fa-file-pdf mr-2"></i> Generate PDF
             </a>
             <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
@@ -23,7 +23,7 @@
         <div class="px-4 py-5 sm:p-6">
             <form method="get" class="space-y-4">
                 <div class="flex justify-center gap-4">
-                    {% for field in dispensefilter.form %}
+                    {% for field in unitissuefilter.form %}
                     <div>
                         <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
                         {% if field.field.widget.input_type == 'select' %}
@@ -61,7 +61,7 @@
         <div class="overflow-x-auto max-h-[70vh]">
             <div class="bg-white">
                 <p class="p-2 whitespace-nowrap text-xs text-blue-700 text-center uppercase">
-                    dispensed: {{ total_appearance }} times - Quantity: {{ total_quantity }} - Worth: &#x20A6;{{ total_price }}
+                    moved: {{ total_appearance }} times - Quantity: {{ total_quantity }} - Worth: &#x20A6;{{ total_price }}
                 </p>
             </div>
             <table class="min-w-full divide-y divide-gray-200">
@@ -75,20 +75,21 @@
                         <th scope="col" class="px-3 py-2  text-xs font-medium text-gray-900 uppercase tracking-wider">TRADE NAME</th>
                         <th scope="col" class="px-3 py-2  text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
                         <th scope="col" class="px-3 py-2  text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-3 py-2  text-xs font-medium text-gray-900 uppercase tracking-wider">ISSUED BY</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    {% for r in dispensefilter.qs %}
-                    <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-100 transition duration-150 ease-in-out text-xs text-center">
+                    {% for i in unitissuefilter.qs %}
+                    <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-100 transition duration-150 ease-in-out text-xs text-center uppercase">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.dispense_date|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ r.drug.strength|default_if_none:''|upper }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.trade_name|default_if_none:'N/A'|upper }} </td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.supplier|default_if_none:'N/A'|upper }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.dispensed_by|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.date_issued|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.drug.category|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.drug.strength|default_if_none:''|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.drug.trade_name|default_if_none:'N/A'|upper }} </td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.drug.supplier|default_if_none:'N/A'|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.quantity|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.issued_by|default_if_none:'N/A' }}</td>
                     </tr>
                     {% empty %}
                     <tr>
