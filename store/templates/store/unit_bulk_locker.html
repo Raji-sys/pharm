@@ -8,21 +8,26 @@
         <a href="{% url 'unit_dashboard' store.pk %}" ><i class="fa-solid fa-arrow-left"></i></a>
         <h2 class="text-center text-teal-700 uppercase">{{ store.name }} bulk locker</h2>
         </span>
+
         <div class="flex justify-between items-center m-2 space-x-2">
+
             <div>
                 <h3 class="text-lg uppercase">locker worth: <span class="text-green-700">&#x20A6;{{total_worth}}</span></h3>
             </div>
-        <div>
+            
+            <div>
             <a href="{% url 'dispensary_record' store.id%}"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-            <i class="fas fa-plus mr-2"></i> send to dispensary
+            <i class="fas fa-prescription-bottle-medical mr-2 fa-2xl"></i> send to dispensary
             </a>
             <a href="{% url 'unitissue_report' store.id %}"
-        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-        <i class="fas fa-file-pdf mr-2 fa-2xl"></i> Bulk Locker Report
-        </a>
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-file-pdf mr-2 fa-2xl"></i> Bulk Locker Report
+            </a>
+            </div>
+
         </div>
-    </div>
+        
         <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
             <div class="overflow-x-auto max-h-[65vh]">
                 <table class="min-w-full divide-y divide-gray-300">
@@ -61,7 +66,7 @@
                                 {% if i.drug.expiration_date <= today %}
                                     <br><small class="text-rose-700">(Expired!)</small>
                                 {% elif i.drug.expiration_date <= one_month_later %}
-                                    <br><small class="text-orange-600">(1 month to expire!)</small>
+                                    <br><small class="text-orange-600">(less than 31 to expire!)</small>
                                 {% elif i.drug.expiration_date <= three_months_later %}
                                     <br><small>(3 months to expire)</small>
                                 {% elif i.drug.expiration_date <= six_months_later %}

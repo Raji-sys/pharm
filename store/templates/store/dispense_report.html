@@ -75,11 +75,12 @@
                         <th scope="col" class="px-3 py-2  text-xs font-medium text-gray-900 uppercase tracking-wider">TRADE NAME</th>
                         <th scope="col" class="px-3 py-2  text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
                         <th scope="col" class="px-3 py-2  text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-3 py-2  text-xs font-medium text-gray-900 uppercase tracking-wider">DISPENSED BY</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for r in dispensefilter.qs %}
-                    <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-100 transition duration-150 ease-in-out text-xs text-center">
+                    <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-100 transition duration-150 ease-in-out text-xs text-center uppercase">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.dispense_date|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>

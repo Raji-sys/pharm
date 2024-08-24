@@ -138,6 +138,7 @@ h1 {
                 <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
                 <th class="">QUANITITY ISSUED</th>
+                <th class="">ISSUED TO</th>
                 <th class="">ISSUED BY</th>
             </tr>
               {% for r in f %}        
@@ -166,6 +167,9 @@ h1 {
             </td>
             <td>
             {{r.quantity|default_if_none:''|upper}}
+            </td>
+            <td>
+            {{r.issued_to|default_if_none:''|upper}}
             </td>
             <td>
             {{r.issued_by|default_if_none:''|upper}}

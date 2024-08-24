@@ -208,27 +208,34 @@ class UnitIssueFilter(django_filters.FilterSet):
     )
 
     # UNIT ISSUE Filter
-    unit = django_filters.ModelChoiceFilter(
-        label="UNIT",
-        field_name='unit',
+    # unit = django_filters.ModelChoiceFilter(
+    #     label="UNIT",
+    #     field_name='unit',
+    #     queryset=Unit.objects.all(),
+    #     widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
+    # )
+
+    issued_to = django_filters.ModelChoiceFilter(
+        label="UNIT TO",
+        field_name='issued_to',
         queryset=Unit.objects.all(),
         widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
     )
 
     issued_to_locker = django_filters.ModelChoiceFilter(
-        label="DISPENSARY LOCKER",
-        field_name='issue_to_locker',
+        label="LOCKER",
+        field_name='issued_to_locker',
         queryset=DispensaryLocker.objects.all(),
         widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
     )
 
-    category = django_filters.ChoiceFilter(
-        label="CATEGORY",
-        field_name='drug__category',
-        lookup_expr='iexact',
-        choices=Category.DRUG_CLASSES,
-        widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
-    )
+    # category = django_filters.ChoiceFilter(
+    #     label="CATEGORY",
+    #     field_name='drug__category',
+    #     lookup_expr='iexact',
+    #     choices=Category.DRUG_CLASSES,
+    #     widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
+    # )
 
     # Drug Filter
     drug = django_filters.CharFilter(
@@ -245,4 +252,4 @@ class UnitIssueFilter(django_filters.FilterSet):
 
     class Meta:
         model = UnitIssueRecord
-        fields = ['date_exact', 'date_start', 'date_end', 'unit', 'category', 'drug', 'issued_by']
+        fields = ['date_exact', 'date_start', 'date_end', 'drug', 'issued_to','issued_to_locker','issued_by']
