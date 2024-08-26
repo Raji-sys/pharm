@@ -213,7 +213,7 @@ class Restock(models.Model):
         self.drug.save()
 
     def __str__(self):
-        return f"{self.quantity} of {self.drug.name} restockd on {self.date}"
+        return f"{self.quantity} of {self.drug} restockd on {self.date}"
 
     class Meta:
         verbose_name_plural = 'restocking record'

@@ -7,6 +7,11 @@ from import_export.admin import ImportMixin
 from import_export import resources
 from import_export.fields import Field
 from datetime import datetime
+from django.utils.dateparse import parse_date
+from datetime import datetime
+from django.utils.dateparse import parse_date
+from import_export import fields, resources
+
 
 admin.site.site_header="ADMIN PANEL"
 admin.site.index_title="PHARMACY INVENTORY MANAGEMENT SYSTEM"
@@ -26,8 +31,27 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
+# class DrugResource(resources.ModelResource):
+#     expiration_date = Field(attribute='expiration_date', column_name='expiration_date')
+
+#     class Meta:
+#         model = Drug
+#         import_id_fields = ('id',)
+#         fields = ('id', 'date_added', 'supply_date', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'expiration_date', 'added_by', 'entered_expiry_period', 'updated_at')
+
+#     def before_import_row(self, row, **kwargs):
+#         if 'expiration_date' in row and row['expiration_date']:
+#             if isinstance(row['expiration_date'], datetime):
+#                 # If it's already a datetime object, just get the date
+#                 row['expiration_date'] = row['expiration_date'].date()
+#             elif isinstance(row['expiration_date'], str):
+#                 # If it's a string, parse it to datetime then get the date
+#                 expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
+#                 row['expiration_date'] = expiration_datetime.date()
+
+
 class DrugResource(resources.ModelResource):
-    expiration_date = Field(attribute='expiration_date', column_name='expiration_date')
+    expiration_date = fields.Field(attribute='expiration_date', column_name='expiration_date')
 
     class Meta:
         model = Drug
@@ -40,10 +64,19 @@ class DrugResource(resources.ModelResource):
                 # If it's already a datetime object, just get the date
                 row['expiration_date'] = row['expiration_date'].date()
             elif isinstance(row['expiration_date'], str):
-                # If it's a string, parse it to datetime then get the date
-                expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
-                row['expiration_date'] = expiration_datetime.date()
-
+                # Try parsing as date first
+                parsed_date = parse_date(row['expiration_date'])
+                if parsed_date:
+                    row['expiration_date'] = parsed_date
+                else:
+                    # If parsing as date fails, try parsing as datetime
+                    try:
+                        expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
+                        row['expiration_date'] = expiration_datetime.date()
+                    except ValueError:
+                        # If all parsing attempts fail, set to None or handle as needed
+                        row['expiration_date'] = None
+                        
 @admin.register(Drug)
 class DrugAdmin(ImportMixin, admin.ModelAdmin):
     resource_class = DrugResource

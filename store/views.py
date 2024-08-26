@@ -123,7 +123,7 @@ def create_drug(request):
 
 @group_required('STORE')
 def drugs_list(request):
-    drugs = Drug.objects.all().order_by('category')
+    drugs = Drug.objects.all().order_by('dosafe_form')
     query = request.GET.get('q')
     
     if query:
