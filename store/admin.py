@@ -31,8 +31,67 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
+from decimal import Decimal, InvalidOperation
+from datetime import datetime
+from django.utils.dateparse import parse_date
+from import_export import fields, resources
+
+class DrugResource(resources.ModelResource):
+    date_added = fields.Field(attribute='date_added', column_name='date_added')
+    supply_date = fields.Field(attribute='supply_date', column_name='supply_date')
+    expiration_date = fields.Field(attribute='expiration_date', column_name='expiration_date')
+    cost_price = fields.Field(attribute='cost_price', column_name='cost_price')
+    selling_price = fields.Field(attribute='selling_price', column_name='selling_price')
+    entered_expiry_period = fields.Field(attribute='entered_expiry_period', column_name='entered_expiry_period')
+    updated_at = fields.Field(attribute='updated_at', column_name='updated_at')
+
+    class Meta:
+        model = Drug
+        import_id_fields = ('id',)
+        fields = ('id', 'date_added', 'supply_date', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'expiration_date', 'added_by', 'entered_expiry_period', 'updated_at')
+
+    def before_import_row(self, row, **kwargs):
+        date_fields = ['date_added', 'supply_date', 'expiration_date', 'entered_expiry_period', 'updated_at']
+        decimal_fields = ['cost_price', 'selling_price']
+
+        for field in date_fields:
+            if field in row and row[field]:
+                row[field] = self.parse_date(row[field])
+
+        for field in decimal_fields:
+            if field in row and row[field]:
+                row[field] = self.parse_decimal(row[field])
+
+    def parse_date(self, value):
+        if isinstance(value, datetime):
+            return value
+        elif isinstance(value, str):
+            # Try parsing as date first
+            parsed_date = parse_date(value)
+            if parsed_date:
+                return parsed_date
+            # If that fails, try common datetime formats
+            for fmt in ('%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d/%m/%Y', '%m/%d/%Y'):
+                try:
+                    return datetime.strptime(value, fmt)
+                except ValueError:
+                    continue
+        return None
+
+    def parse_decimal(self, value):
+        if isinstance(value, (int, float, Decimal)):
+            return Decimal(value)
+        elif isinstance(value, str):
+            # Remove any non-numeric characters except for the decimal point
+            cleaned_value = ''.join(char for char in value if char.isdigit() or char == '.')
+            try:
+                return Decimal(cleaned_value)
+            except InvalidOperation:
+                return None
+        return None
+
 # class DrugResource(resources.ModelResource):
-#     expiration_date = Field(attribute='expiration_date', column_name='expiration_date')
+#     expiration_date = fields.Field(attribute='expiration_date', column_name='expiration_date')
 
 #     class Meta:
 #         model = Drug
@@ -45,37 +104,18 @@ class CategoryAdmin(admin.ModelAdmin):
 #                 # If it's already a datetime object, just get the date
 #                 row['expiration_date'] = row['expiration_date'].date()
 #             elif isinstance(row['expiration_date'], str):
-#                 # If it's a string, parse it to datetime then get the date
-#                 expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
-#                 row['expiration_date'] = expiration_datetime.date()
-
-
-class DrugResource(resources.ModelResource):
-    expiration_date = fields.Field(attribute='expiration_date', column_name='expiration_date')
-
-    class Meta:
-        model = Drug
-        import_id_fields = ('id',)
-        fields = ('id', 'date_added', 'supply_date', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'expiration_date', 'added_by', 'entered_expiry_period', 'updated_at')
-
-    def before_import_row(self, row, **kwargs):
-        if 'expiration_date' in row and row['expiration_date']:
-            if isinstance(row['expiration_date'], datetime):
-                # If it's already a datetime object, just get the date
-                row['expiration_date'] = row['expiration_date'].date()
-            elif isinstance(row['expiration_date'], str):
-                # Try parsing as date first
-                parsed_date = parse_date(row['expiration_date'])
-                if parsed_date:
-                    row['expiration_date'] = parsed_date
-                else:
-                    # If parsing as date fails, try parsing as datetime
-                    try:
-                        expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
-                        row['expiration_date'] = expiration_datetime.date()
-                    except ValueError:
-                        # If all parsing attempts fail, set to None or handle as needed
-                        row['expiration_date'] = None
+#                 # Try parsing as date first
+#                 parsed_date = parse_date(row['expiration_date'])
+#                 if parsed_date:
+#                     row['expiration_date'] = parsed_date
+#                 else:
+#                     # If parsing as date fails, try parsing as datetime
+#                     try:
+#                         expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
+#                         row['expiration_date'] = expiration_datetime.date()
+#                     except ValueError:
+#                         # If all parsing attempts fail, set to None or handle as needed
+#                         row['expiration_date'] = None
                         
 @admin.register(Drug)
 class DrugAdmin(ImportMixin, admin.ModelAdmin):
