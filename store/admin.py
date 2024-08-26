@@ -4,7 +4,9 @@ from .models import *
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from import_export.admin import ImportMixin
-
+from import_export import resources
+from import_export.fields import Field
+from datetime import datetime
 
 admin.site.site_header="ADMIN PANEL"
 admin.site.index_title="PHARMACY INVENTORY MANAGEMENT SYSTEM"
@@ -24,21 +26,29 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ['name']
 
 
-# @admin.register(Restock)
-# class RestockAdmin(admin.ModelAdmin):
-#     list_display = ('category','drug', 'quantity', 'date')
+class DrugResource(resources.ModelResource):
+    expiration_date = Field(attribute='expiration_date', column_name='expiration_date')
 
-#     def drug_name(self, obj):
-#         return obj.drug.name
-    
-#     drug_name.short_description = 'drug Name'
+    class Meta:
+        model = Drug
+        import_id_fields = ('id',)
+        fields = ('id', 'date_added', 'supply_date', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'expiration_date', 'added_by', 'entered_expiry_period', 'updated_at')
 
+    def before_import_row(self, row, **kwargs):
+        if 'expiration_date' in row and row['expiration_date']:
+            if isinstance(row['expiration_date'], datetime):
+                # If it's already a datetime object, just get the date
+                row['expiration_date'] = row['expiration_date'].date()
+            elif isinstance(row['expiration_date'], str):
+                # If it's a string, parse it to datetime then get the date
+                expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
+                row['expiration_date'] = expiration_datetime.date()
 
 @admin.register(Drug)
-class DrugAdmin(ImportMixin,admin.ModelAdmin):
-    form=DrugAdminForm
-    # readonly_fields=('total_purchased_quantity',)
-    exclude=('added_by','balance','total_value')
+class DrugAdmin(ImportMixin, admin.ModelAdmin):
+    resource_class = DrugResource
+    form = DrugAdminForm
+    exclude = ('added_by', 'balance', 'total_value')
     list_display = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
     list_filter = ['supply_date','category','supplier','added_by']
     search_fields = ['generic_name']
