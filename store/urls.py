@@ -47,6 +47,8 @@ urlpatterns=[
 
     # path('worth/', views.worth, name='worth'),
     path('worth/', InventoryWorthView.as_view(), name='worth'),
+    path('main-store-worth/', StoreWorthView.as_view(), name='main_store_value'),
+    path('unit-worth/<int:pk>', UnitWorthView.as_view(), name='unit_value'),
 
     path('unit/dispensary/<int:dispensary_id>/dispense/', views.dispenserecord, name='dispense'),
     path('unit/dispensary/dispensed-list/<int:pk>/', DispenseRecordView.as_view(), name='dispensed_list'),

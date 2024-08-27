@@ -7,37 +7,31 @@
   <a href="{%url 'store_list' %}"><i class="fa-solid fa-arrow-left"></i></a>
   <h1 class="uppercase text-center  text-teal-700">{{store.name}} DASHBOARD</h1>
    </span>
-<div class="md:gap-10 md:max-w-4xl md:mx-auto mt-2 rounded-xl p-8 mx-1 shadow-gray-500 shadow-lg  bg-gray-100">
-  <div class="p-1 md:p-8 text-center grid grid-cols-1 md:flex md:justify-center gap-6">
-              <div>
-                <a href="{%url 'unit_bulk_locker' store.pk %}">
-                  <div class="bg-orange-600 hover:bg-white text-white hover:text-orange-600 rounded-xl shadow-lg p-6 md:p-12 border-2 border-white transition duration-300">
-                    <div class=" uppercase text-xs ">
-                        <i class="fa-solid fa-pills fa-3x"></i><br>
-                      BULK LOCKER</div>
-                  </div>
-                </a>
-              </div>
-              <div>
-                <a href="{%url 'unit_dispensary' store.pk %}">
-                  <div class="bg-fuchsia-600 border-2 hover:bg-white text-white hover:text-fuchsia-600 rounded-xl shadow-lg p-6 md:p-12 transition duration-300">
-                    <div class=" uppercase text-xs">
-                        <i class="fa-solid fa-file-prescription fa-3x"></i><br>
-                      DISPENSARY LOCKER</div>
-                  </div>
-                </a>
-              </div>
-              <div>
-                <a href="{%url 'unit_transfer' store.pk %}">
-                  <div class="bg-emerald-600 border-2 hover:bg-white text-white hover:text-emerald-600 rounded-xl shadow-lg p-6 md:p-12 transition duration-300">
-                    <div class=" uppercase text-xs">
-                    <i class="fa-solid fa-handshake-alt fa-3x"></i><br>
-                      TRANSFERS</div>
-                  </div>
-                </a>
-              </div>
-             </div>
-
-              
-    </div>    
-{%endblock%}
+   <div class="md:max-w-4xl md:mx-auto mt-2 rounded-xl p-4 md:p-8 mx-1 shadow-gray-500 shadow-lg bg-gray-100">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a href="{% url 'unit_bulk_locker' store.pk %}" class="block">
+            <div class="bg-orange-600 hover:bg-white text-white hover:text-orange-600 rounded-xl shadow-lg border-2 border-white transition duration-300 h-full flex flex-col justify-center items-center p-4">
+                <i class="fa-solid fa-pills text-4xl mb-2"></i>
+                <div class="uppercase text-xs text-center">BULK LOCKER</div>
+            </div>
+        </a>
+        <a href="{% url 'unit_dispensary' store.pk %}" class="block">
+            <div class="bg-fuchsia-600 hover:bg-white text-white hover:text-fuchsia-600 rounded-xl shadow-lg border-2 border-white transition duration-300 h-full flex flex-col justify-center items-center p-4">
+                <i class="fa-solid fa-file-prescription text-4xl mb-2"></i>
+                <div class="uppercase text-xs text-center">DISPENSARY LOCKER</div>
+            </div>
+        </a>
+        <a href="{% url 'unit_transfer' store.pk %}" class="block">
+            <div class="bg-stone-600 hover:bg-white text-white hover:text-stone-600 rounded-xl shadow-lg border-2 border-white transition duration-300 h-full flex flex-col justify-center items-center p-4">
+                <i class="fa-solid fa-handshake-alt text-4xl mb-2"></i>
+                <div class="uppercase text-xs text-center">TRANSFERS</div>
+            </div>
+        </a>
+        <a href="{% url 'unit_value' store.pk %}" class="block">
+            <div class="bg-green-600 hover:bg-white text-white hover:text-green-600 rounded-xl shadow-lg border-2 border-white transition duration-300 h-full flex flex-col justify-center items-center p-4">
+                <i class="fa-solid fa-calculator text-4xl mb-2"></i>
+                <div class="uppercase text-xs text-center">UNIT VALUE</div>
+            </div>
+        </a>
+    </div>
+</div>{%endblock%}

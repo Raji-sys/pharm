@@ -54,7 +54,7 @@
                         <i class="fa fa-solid fa-home-alt fa-2x"></i>
                     </a>
                     <span class="text-white text-xs">
-                        welcome, <strong class="uppercase">{{ request.user.first_name|default:request.user.username }}</strong>
+                        welcome, <strong class="uppercase">{{ request.user.first_name|default:request.user.username }} {{ request.user.last_name|default:'' }}</strong>
                     </span>
                {%if request.user.is_superuser%} <a href="{% url 'admin:index' %}" class="text-white hover:text-green-200 transition duration-300 text-xs border-b-2">Control Panel</a>{%endif%}
                 {%endif%}
@@ -63,7 +63,9 @@
                     {% if request.user.is_authenticated and request.path != "/" %}
                     <a href="{% url 'main_store' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="">MAIN STORE</span></a>
                     <a href="{% url 'store_list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="">UNITS</span></a>
-                    <a href="{% url 'worth' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="">Worth</span></a>
+                    {%if request.user.is_superuser%}
+                    <a href="{% url 'worth' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">
+                        <span class="">Worth</span></a> {%endif%}
                     {% endif %}
                     {% if request.user.is_authenticated %}
                     <form method="POST" action="{% url 'logout' %}" >

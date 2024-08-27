@@ -52,6 +52,7 @@ def unit_group_required(view_func):
             raise PermissionDenied
     return login_required(_wrapped_view)
 
+
 class UnitGroupRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         if hasattr(self, 'get_unit_for_mixin'):
@@ -123,12 +124,12 @@ def create_drug(request):
 
 @group_required('STORE')
 def drugs_list(request):
-    drugs = Drug.objects.all().order_by('dosafe_form')
+    drugs = Drug.objects.all().order_by('category')
     query = request.GET.get('q')
     
     if query:
         drugs = drugs.filter(
-            Q(generic_name__icontains=query) | Q(trade_name__icontains=query)
+            Q(generic_name__icontains=query) | Q(trade_name__icontains=query) | Q(category__name__icontains=query)
         )
     
     today = timezone.now().date()
@@ -289,7 +290,7 @@ def create_record(request):
 
 @group_required('STORE')
 def records(request):
-    records = Record.objects.all().order_by('-updated_at')
+    records = Record.objects.all().order_by('-date_issued')
     pgn=Paginator(records,10)
     pn=request.GET.get('page')
     po=pgn.get_page(pn)
@@ -320,7 +321,7 @@ class RecordUpdateView(LoginRequiredMixin, StoreGroupRequiredMixin, UpdateView):
 
 def get_drugs_by_category(request, category_id):
     drugs = Drug.objects.filter(category_id=category_id)
-    drug_list = [{'id': drug.id, 'name': drug.generic_name} for drug in drugs]
+    drug_list = [{'id': drug.id, 'name': drug.trade_name} for drug in drugs]
     return JsonResponse({'drugs': drug_list})
 
 
@@ -553,8 +554,59 @@ def restock_pdf(request):
     return response
 
 
-class InventoryWorthView(LoginRequiredMixin, TemplateView):
+class StoreWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        # You can customize this method to redirect non-superusers or show an error message
+        return super().handle_no_permission()
+
+    template_name = 'store/main_store_value.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['today'] = timezone.now()
+        context['total_store_value'] = Drug.total_store_value()
+        
+        return context
+
+
+class UnitWorthView(LoginRequiredMixin, DetailView):
+    model = Unit
+    template_name = 'store/unit_value.html'
+    context_object_name = 'unit'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        unit = self.object
+        context['today'] = timezone.now()
+
+        store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
+        locker_value = 0
+        if hasattr(unit, 'dispensary_locker'):
+            locker_value = unit.dispensary_locker.inventory.aggregate(
+                total=Sum(F('drug__cost_price') * F('quantity'))
+            )['total'] or 0
+
+        context['unit_worth'] = {
+            'store_value': store_value,
+            'locker_value': locker_value,
+            'total_value': store_value + locker_value
+        }
+
+        return context
+
+
+class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'store/worth.html'
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def handle_no_permission(self):
+        # You can customize this method to redirect non-superusers or show an error message
+        return super().handle_no_permission()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -591,10 +643,11 @@ class StoreListView(LoginRequiredMixin, ListView):
         return Unit.objects.all().order_by('name')
     
 
-class UnitDashboardView(LoginRequiredMixin, UnitGroupRequiredMixin,DetailView):
+class UnitDashboardView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
     template_name = 'store/unit_dashboard.html'
     context_object_name = 'store'
+
 
 
 class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
@@ -606,24 +659,26 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug')
-
+        
+        # Pagination
+        paginator = Paginator(unit_store_drugs, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
         today = timezone.now().date()
         one_month_later = today + timedelta(days=31)
         three_months_later = today + timedelta(days=90)
         six_months_later = today + timedelta(days=180)
-
+        
         total_worth = 0
         total_expiring_in_1_month = 0
         total_expiring_in_3_months = 0
         total_expiring_in_6_months = 0
-
-        for unit_store_drug in unit_store_drugs:
+        
+        for unit_store_drug in page_obj:
             total_worth += unit_store_drug.total_value
-
-            # Assign restock info if available
             unit_store_drug.restock_info = Restock.objects.filter(drug=unit_store_drug.drug).order_by('-date').first()
-
-            # Calculate expiry status for original drug (removed as we'll handle this in the template)
+            
             if unit_store_drug.drug.expiration_date:
                 if unit_store_drug.drug.expiration_date <= one_month_later:
                     total_expiring_in_1_month += unit_store_drug.quantity
@@ -631,25 +686,17 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
                     total_expiring_in_3_months += unit_store_drug.quantity
                 elif unit_store_drug.drug.expiration_date <= six_months_later:
                     total_expiring_in_6_months += unit_store_drug.quantity
-
-            # Calculate expiry status for restocked drug (if required)
-            if unit_store_drug.restock_info and unit_store_drug.restock_info.expiration_date:
-                # Optionally process restock expiry status in the template
-                pass
-
-        # Order by generic name
-        context['unit_store_drugs'] = unit_store_drugs.order_by('drug__generic_name')
+        
+        context['page_obj'] = page_obj
         context['total_worth'] = total_worth
         context['total_expiring_in_6_months'] = total_expiring_in_6_months
         context['total_expiring_in_3_months'] = total_expiring_in_3_months
         context['total_expiring_in_1_month'] = total_expiring_in_1_month
-
-        # Pass date ranges to the template for comparison
         context['today'] = today
         context['one_month_later'] = one_month_later
         context['three_months_later'] = three_months_later
         context['six_months_later'] = six_months_later
-
+        
         return context
 
 
@@ -657,31 +704,51 @@ class UnitDispensaryLockerView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
     model = Unit
     template_name = 'store/unit_dispensary_locker.html'
     context_object_name = 'store'
-    paginate_by=10
+    paginate_by = 10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         dispensary_drugs = LockerInventory.objects.filter(locker__unit=self.object).select_related('drug')
 
-     # Calculate total worth
+        # Calculate total worth
         total_worth = dispensary_drugs.aggregate(
             total=Sum(F('drug__cost_price') * F('quantity'))
-        )['total'] or 0        # Calculate total worth by summing up the total_value of all UnitStore objects
-        # Fetch the drugs available in this store
-        context['dispensary_drugs'] = LockerInventory.objects.filter(locker__unit=self.object).order_by('drug__generic_name')
+        )['total'] or 0
+
+        # Order the drugs and paginate
+        ordered_drugs = dispensary_drugs.order_by('drug__generic_name')
+        paginator = Paginator(ordered_drugs, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context['dispensary_drugs'] = page_obj
         context['total_worth'] = total_worth
+        context['page_obj'] = page_obj
         return context
 
-class UnitTransferView(LoginRequiredMixin,UnitGroupRequiredMixin,DetailView):
+class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
     template_name = 'store/unit_transfer.html'
     context_object_name = 'store'
-    paginate_by=10
+    paginate_by = 10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
         # Fetch unit issue records where this unit is the issuing unit
-        context['unit_issue_records'] = UnitIssueRecord.objects.filter(unit=self.object,issued_to__isnull=False, issued_to_locker__isnull=True).order_by('-date_issued')
+        unit_issue_records = UnitIssueRecord.objects.filter(
+            unit=self.object,
+            issued_to__isnull=False, 
+            issued_to_locker__isnull=True
+        ).order_by('-date_issued')
+
+        # Paginate the results
+        paginator = Paginator(unit_issue_records, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context['unit_issue_records'] = page_obj
+        context['page_obj'] = page_obj
         return context
 
 
@@ -783,7 +850,7 @@ def dispensaryissuerecord(request, unit_id):
         UnitIssueRecord,
         form=DispensaryIssueRecordForm,
         formset=CustomUnitIssueFormSet,
-        extra=2
+        extra=5
     )
 
     if request.method == 'POST':
@@ -818,7 +885,7 @@ def dispensaryissuerecord(request, unit_id):
         formset = UnitIssueFormSet(
             queryset=UnitIssueRecord.objects.none(),
             issuing_unit=unit,
-            initial=[{'unit': unit, 'issued_to_locker': unit_locker}] * 2
+            initial=[{'unit': unit, 'issued_to_locker': unit_locker}] * 5
         )
 
     return render(request, 'store/create_dispensary_record.html', {'formset': formset, 'unit': unit})

@@ -7,7 +7,7 @@
     <div class="bg-gradient-to-r from-cyan-500 to-emerald-500 p-4 text-center mb-2">
         <span class="text-lg font-bold text-white uppercase tracking-wider">MAIN STORE MANAGEMENT</span>
     </div>
-                <div class="grid md:grid-cols-4 grid-cols-2 gap-4 text-xs uppercase p-10">
+                <div class="grid md:grid-cols-5 grid-cols-2 gap-4 text-xs uppercase p-10">
                     <a href="{% url 'list' %}" class="w-full md:w-auto">
                         <div class="bg-cyan-600 hover:bg-white hover:text-cyan-700 hover:border hover:border-cyan-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
                             <i class="fa fa-solid fa-pills fa-2x mr-2"></i>
@@ -30,7 +30,7 @@
                         <a href="{% url 'expiry_notification' %}" class="md:w-auto text-xs uppercase">
                             <div class="bg-rose-600 hover:bg-white hover:text-rose-600 border border-rose-600 hover:border hover:border-rose-600 text-white p-3 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
                                 <i class="fa fa-solid fa-warning fa-2x mr-2"></i>
-                                <span>drug expiry notification</span>
+                                <span>expiry notice</span>
                             </div>
                         </a>
                         {% if expiring_drugs_count > 0 %}
@@ -39,7 +39,12 @@
                             </span>
                         {% endif %}
                     </div>
-       
+                    <a href="{% url 'main_store_value' %}" class="w-full md:w-auto">
+                        <div class="bg-green-600 hover:bg-white hover:text-green-700 hover:border hover:border-green-600 text-white py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
+                            <i class="fa fa-solid fa-calculator fa-2x mr-2"></i>
+                            <span>Stock Value</span>
+                        </div>
+                    </a> 
             </div>
         </div>
         </div>

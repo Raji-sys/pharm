@@ -46,7 +46,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {% for r in dispensary_drugs %}
+                        {% for r in page_obj %}
                         <tr class="{% cycle 'bg-white' 'bg-fuchsia-50' %} text-xs text-center">
                             <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
@@ -64,32 +64,31 @@
 
 
 
-        <!-- Pagination and Back Button -->
-        <div class="mt-4 flex items-center justify-between">
-            <div>
-                <p class="text-sm text-gray-600">
-                    Showing page <span class="font-medium">{{ po.number }}</span> of <span class="font-medium">{{ po.paginator.num_pages }}</span>
-                </p>
-            </div>
-            <div class="flex space-x-2">
-                {% if po.has_previous %}
-                <a href="?page=1" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700">
-                    <i class="fas fa-angle-double-left"></i>
-                </a>
-                <a href="?page={{ po.previous_page_number }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700">
-                    <i class="fas fa-angle-left"></i>
-                </a>
-                {% endif %}
-
-                {% if po.has_next %}
-                <a href="?page={{ po.next_page_number }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700">
-                    <i class="fas fa-angle-right"></i>
-                </a>
-                <a href="?page={{ po.paginator.num_pages }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700">
-                    <i class="fas fa-angle-double-right"></i>
-                </a>
-                {% endif %}
-            </div>
-        </div>
+<!-- Pagination and Back Button -->
+<div class="mt-4 flex items-center justify-between">
+    <div>
+        <p class="text-sm text-gray-600">
+            Showing page <span class="font-medium">{{ page_obj.number }}</span> of <span class="font-medium">{{ page_obj.paginator.num_pages }}</span>
+        </p>
+    </div>
+    <div class="flex space-x-2">
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700">
+                <i class="fas fa-angle-left"></i>
+            </a>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+        {% endif %}
+    </div>
+</div>
     </div>
 {% endblock %}

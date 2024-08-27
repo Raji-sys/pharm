@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+{% block title %}Store Inventory Worth{% endblock %}
+{% block content %}
+<span class="flex justify-center p-4 gap-4 text-xl">
+    <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>
+<h1 class="text-xl md:text-2xl text-cyan-800 text-center uppercase">MAIN STORE VALUE</h1>
+</span>
+<div class="w-fit mx-auto px-4 sm:px-6 lg:px-16 py-8 uppercase">
+        <div class="bg-gradient-to-r from-cyan-600 to-emerald-700 p-8 border-b-2 rounded-2xl">
+            <p class="text-emerald-100 text-xs mt-2 text-center">
+                <span class="bg-white text-emerald-700 text-xs px-2 py-1 rounded-full"> As of: {{ today }}</span>
+            </p>
+            <p class="md:text-6xl text-xl font-bold text-white mt-6 flex justify-center">
+                &#x20A6;{{ total_store_value|floatformat:2|intcomma }}
+            </p>
+            <p class="text-xs text-white text-center p-2 mt-2">
+                These values are updated in real-time based on current inventory levels and prices
+            </p>
+
+
+        </div>
+</div>
+{% endblock %}

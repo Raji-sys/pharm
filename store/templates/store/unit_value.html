@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load static %}
+{% block title %}{{ unit.name }} Inventory Worth{% endblock %}
+{% block content %}
+<span class="flex justify-center p-4 gap-4 text-xl">
+    <a href="{% url 'unit_dashboard' unit.pk %}" ><i class="fa-solid fa-arrow-left"></i></a>
+<h2 class="text-center text-xl md:text-2xl text-cyan-700 uppercase">{{ unit.name }} value</h2>
+</span>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-6 py-8 uppercase">
+<div class=" text-center bg-gradient-to-br from-cyan-500 to-cyan-700 p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+            <p class="text-emerald-100 text-xs mt-2 text-center">
+                <span class="bg-white text-emerald-700 text-xs px-2 py-1 rounded-full"> As of: {{ today }}</span>
+            </p>
+                    <div class="flex justify-around border-b border-cyan-400 pb-2 mb-2 mt-4">
+                        <p class="text-xl text-white">bulk locker: <br> &#x20A6;{{ unit_worth.store_value|floatformat:2|intcomma }}</p>
+                        <p class="text-xl text-white">dispensary locker: <br> &#x20A6;{{ unit_worth.locker_value|floatformat:2|intcomma }}</p>
+                    </div>
+                    <p class="text-4xl font-bold text-white mt-2">Total: &#x20A6;{{ unit_worth.total_value|floatformat:2|intcomma }}</p>
+        </div>
+        </div>
+{% endblock %}
