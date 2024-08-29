@@ -33,7 +33,6 @@ urlpatterns=[
 
     path('stores/drug-transfer/<int:pk>/', UnitTransferView.as_view(), name='unit_transfer'),
     
-    path('unit-issue-record/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),
 
     path('store/locker/<int:unit_id>/', views.dispensaryissuerecord, name='dispensary_record'),
     path('expiry-date-notification/', ExpiryNotificationView.as_view(), name='expiry_notification'),
@@ -42,7 +41,10 @@ urlpatterns=[
     path('unit-issue-records/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),
     path('unit-issue-report/<int:pk>/', views.unitissue_report, name='unitissue_report'),
     path('unitissue-pdf/', views.unitissue_pdf, name='unitissue_pdf'),
+
     path('unit-issue-record/update/<int:pk>/', TransferUpdateView.as_view(), name='transfer_update'),
+    path('transfer-report/<int:pk>/', views.transfer_report, name='transfer_report'),
+    path('transfer-pdf/', views.transfer_pdf, name='transfer_pdf'),
 
 
     # path('worth/', views.worth, name='worth'),

@@ -169,7 +169,7 @@ class Record(models.Model):
         if not self.drug:
             raise ValidationError(_("A drug must be specified."), code='invalid_drug')
 
-        if self.pk:  # This is an update
+        if self.pk:
             original_record = Record.objects.get(pk=self.pk)
             original_quantity = original_record.quantity
             quantity_difference = self.quantity - original_quantity

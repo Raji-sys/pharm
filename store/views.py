@@ -895,10 +895,17 @@ def dispensaryissuerecord(request, unit_id):
 def unitissue_report(request, pk):
     unit = get_object_or_404(Unit, id=pk)
     
-    # Initialize the filter with the queryset and manually set the initial value
-    unitissuefilter = UnitIssueFilter(request.GET, queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'))
+    # Get the current dispensary locker (you might need to adjust this based on your logic)
+    current_dispensary_locker = DispensaryLocker.objects.filter(unit=unit).first()
     
-    # Set initial value for the dispensary filter
+    # Initialize the filter with the queryset and manually set the initial value
+    unitissuefilter = UnitIssueFilter(
+        request.GET, 
+        queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'),
+        dispensary_locker=current_dispensary_locker
+    )
+    
+    # Set initial value for the unit filter
     unitissuefilter.form.initial['unit'] = pk
     
     filtered_queryset = unitissuefilter.qs
@@ -916,12 +923,13 @@ def unitissue_report(request, pk):
     po = pgn.get_page(pn)
 
     context = {
-        'unit':unit,
+        'unit': unit,
         'unitissuefilter': unitissuefilter,
         'total_appearance': total_appearance,
         'total_price': total_price,
         'total_quantity': total_quantity,
-        'po': po
+        'po': po,
+        'current_dispensary_locker': current_dispensary_locker,
     }
     return render(request, 'store/unitissue_report.html', context)
 
@@ -962,6 +970,83 @@ def unitissue_pdf(request):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
+
+
+@login_required
+def transfer_report(request, pk):
+    unit = get_object_or_404(Unit, id=pk)
+    
+    transferfilter = TransferFilter(
+        request.GET, 
+        queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'),
+        current_unit=unit
+    )
+    
+    transferfilter.form.initial['unit'] = pk
+    
+    filtered_queryset = transferfilter.qs
+    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    if filtered_queryset.exists() and filtered_queryset.first().drug.selling_price:
+        first_drug = filtered_queryset.first().drug.selling_price
+    else:
+        first_drug = 0
+
+    total_price = total_quantity * first_drug
+    total_appearance = filtered_queryset.count()
+
+    pgn = Paginator(filtered_queryset, 10)
+    pn = request.GET.get('page')
+    po = pgn.get_page(pn)
+
+    context = {
+        'unit': unit,
+        'transferfilter': transferfilter,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+        'po': po
+    }
+    return render(request, 'store/transfer_report.html', context)
+
+
+@login_required
+def transfer_pdf(request):
+    ndate = datetime.datetime.now()
+    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
+    f = TransferFilter(request.GET, queryset=UnitIssueRecord.objects.all()).qs
+    total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    
+    if f.exists() and f.first().drug.selling_price:
+        first_drug = f.first().drug.selling_price
+    else:
+        first_drug = 0
+    
+    total_price = total_quantity * first_drug
+    total_appearance = f.count()
+    keys = [key for key, value in request.GET.items() if value]
+    result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
+    
+    context = {
+        'f': f,
+        'pagesize': 'A4',
+        'orientation': 'Portrait',
+        'result': result,
+        'keys': keys,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+    }
+    
+    pdf_buffer = generate_pdf(context, 'store/transfer_pdf.html')
+    
+    if pdf_buffer is None:
+        return HttpResponse('Error generating PDF', status=500)
+    
+    response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
+    return response
+
+
 class UnitIssueRecordListView(LoginRequiredMixin,UnitGroupRequiredMixin,ListView):
     model = UnitIssueRecord
     template_name = 'store/unitissuerecord_list.html'
