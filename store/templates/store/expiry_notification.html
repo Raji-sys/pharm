@@ -2,15 +2,15 @@
 {% load static %}
 {% block title %}Expiry Date Notification{% endblock %}
 {% block content %}
-<div class="container mx-auto px-4 py-2 uppercase">
+<div class="md:container md:mx-auto mx-1">
     <span class="flex justify-center p-2 gap-4 text-xl">
         <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
-        <h1 class="text-lg font-medium text-blue-700">Drug Expiry Notifications</h1>
+        <h1 class="text-lg font-medium text-yellow-600 uppercase">Drug Expiry Notifications</h1>
     </span>
     <div class="flex justify-center gap-4">
         <!-- Notification Box -->
-        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 mb-2 text-xs w-fit " role="alert">
-            <div class="flex items-center space-x-4">
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 mb-2 text-xs w-fit" role="alert">
+            <div class="md:flex md:items-center md:space-x-4 grid grid-cols-2 gap-4">
                 <div class="flex items-center">
                     <span class="bg-blue-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">{{ total_expiring_in_6_months }}</span>
                     <span>&nbsp;Expiring within 6 months</span>
@@ -33,27 +33,27 @@
     </div>
     
     <!-- Table -->
-    <div class="overflow-hidden border rounded-lg shadow-lg">
+    <div class="overflow-x-auto max-h-[65vh] border rounded-lg shadow-lg">
         <table class="min-w-full divide-y divide-blue-200">
             <thead class="bg-yellow-300">
                 <tr class="text-xs">
-                    <th class="p-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">#</th>
-                    <th class="p-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Generic Name</th>
-                    <th class="p-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Trade Name</th>
-                    <th class="p-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Strength</th>
-                    <th class="p-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Expiration Date</th>
-                    <th class="p-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
+                    <th class="p-1 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">#</th>
+                    <th class="p-1 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Generic Name</th>
+                    <th class="p-1 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Trade Name</th>
+                    <th class="p-1 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Strength</th>
+                    <th class="p-1 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Expiration Date</th>
+                    <th class="p-1 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-blue-200">
                 {% for drug in drugs %}
                 <tr class="hover:bg-yellow-50 transition ease-in-out duration-150 text-xs text-center">
-                    <td class="p-3 whitespace-nowrap  font-medium text-gray-900">{{ forloop.counter }}</td>
-                    <td class="p-3 whitespace-nowrap  text-gray-600">{{ drug.generic_name }}</td>
-                    <td class="p-3 whitespace-nowrap  text-gray-600">{{ drug.trade_name }}</td>
-                    <td class="p-3 whitespace-nowrap  text-gray-600">{{ drug.strength }}</td>
-                    <td class="p-3 whitespace-nowrap  text-gray-600">{{ drug.expiration_date }}</td>
-                    <td class="p-3 whitespace-nowrap">
+                    <td class="p-2 whitespace-nowrap  font-medium text-gray-900">{{ forloop.counter }}</td>
+                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.generic_name }}</td>
+                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.trade_name }}</td>
+                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.strength }}</td>
+                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.expiration_date }}</td>
+                    <td class="p-2 whitespace-nowrap">
                         {% if drug.status == 'expired' %}
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-rose-50 text-red-600">
                             <i class="fas fa-exclamation-triangle mr-2"></i>Expired!
@@ -85,7 +85,7 @@
 
     <!-- Pagination Controls -->
     {% if is_paginated %}
-    <div class="mt-6 flex items-center justify-between">
+    <div class="mt-2 flex items-center justify-between">
         <p class="text-sm text-gray-600">
             Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
         </p>

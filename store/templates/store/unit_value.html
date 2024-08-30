@@ -13,8 +13,8 @@
                 <span class="bg-white text-emerald-700 text-xs px-2 py-1 rounded-full"> As of: {{ today }}</span>
             </p>
                     <div class="flex justify-around border-b border-cyan-400 pb-2 mb-2 mt-4">
-                        <p class="text-lg text-white">bulk locker: <br> &#x20A6;{{ unit_worth.store_value|floatformat:2|intcomma }}</p>
-                        <p class="text-lg text-white">dispensary locker: <br> &#x20A6;{{ unit_worth.locker_value|floatformat:2|intcomma }}</p>
+                        <p class="text-sm md:text-lg text-white">bulk locker: <br> &#x20A6;{{ unit_worth.store_value|floatformat:2|intcomma }}</p>
+                        <p class="text-sm md:text-lg text-white">dispensary locker: <br> &#x20A6;{{ unit_worth.locker_value|floatformat:2|intcomma }}</p>
                     </div>
                     <p class="text-xl font-bold text-white mt-2">Total: &#x20A6;{{ unit_worth.total_value|floatformat:2|intcomma }}</p>
         </div>

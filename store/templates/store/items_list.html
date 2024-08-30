@@ -41,8 +41,8 @@
                     <tr class="text-xs text-center">
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Supply Date</th>
-                        <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Added by</th>
-                        <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
+                        <!-- <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Added by</th> -->
+                        <!-- <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th> -->
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Generic Name</th>
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Trade Name</th>
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">strength</th>
@@ -53,7 +53,7 @@
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Expiry Date</th>
                         <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Value</th>
-                        <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Update</th>
+                        <th scope="col" class="px-3   text-center text-xs font-medium text-gray-900 uppercase tracking-wider">edit</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -61,8 +61,8 @@
                     <tr class="{% cycle 'bg-white' 'bg-cyan-50' %} text-xs text-center">
                         <td class="p-3 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="p-3 whitespace-nowrap  text-gray-500">{{ i.supply_date|default_if_none:'N/A' }}</td>
-                        <td class="p-3 whitespace-nowrap  text-gray-500"> {{ i.added_by|upper }}</td>
-                        <td class="p-3 whitespace-nowrap  text-gray-500">{{ i.category|default_if_none:'N/A' }}</td>
+                        <!-- <td class="p-3 whitespace-nowrap  text-gray-500"> {{ i.added_by|upper }}</td> -->
+                        <!-- <td class="p-3 whitespace-nowrap  text-gray-500">{{ i.category|default_if_none:'N/A' }}</td> -->
                         <td class="p-3 whitespace-nowrap  font-medium text-gray-900">{{ i.generic_name|default_if_none:'N/A'|upper }}</td>
                         <td class="p-3 whitespace-nowrap  text-gray-500">{{ i.trade_name|default_if_none:'N/A'|upper }}</td>
                         <td class="p-3 whitespace-nowrap  font-medium text-gray-900">{{ i.strength|default_if_none:''|upper }}</td>
