@@ -658,7 +658,7 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug')
+        unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug').order_by('-updated_at')
         
         # Pagination
         paginator = Paginator(unit_store_drugs, self.paginate_by)
@@ -708,7 +708,7 @@ class UnitDispensaryLockerView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        dispensary_drugs = LockerInventory.objects.filter(locker__unit=self.object).select_related('drug')
+        dispensary_drugs = LockerInventory.objects.filter(locker__unit=self.object).select_related('drug').order_by('-updated')
 
         # Calculate total worth
         total_worth = dispensary_drugs.aggregate(
