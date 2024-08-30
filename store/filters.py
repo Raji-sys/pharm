@@ -1,10 +1,8 @@
-from tabnanny import verbose
 import django_filters
 from .models import *
 from django import forms
 from django_filters import rest_framework as filters
-from django.forms.widgets import SelectDateWidget
-import datetime
+
 
 class DrugFilter(filters.FilterSet):
     category = filters.ChoiceFilter(label="CLASS", field_name='category__name', lookup_expr='iexact', choices=Category.DRUG_CLASSES,
@@ -57,7 +55,7 @@ class RecordFilter(django_filters.FilterSet):
     # Date Issued Filters
     date_issued_exact = django_filters.DateFilter(
         label="EXACT DATE ISSUED",
-        field_name='updated_at',
+        field_name='date_issued',
         lookup_expr='exact',
         widget=forms.DateInput(attrs={'type':'date'})
     )

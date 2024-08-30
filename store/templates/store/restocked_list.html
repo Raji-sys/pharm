@@ -32,7 +32,8 @@
                         <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">TRADE NAME</th>
                         <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
                         <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Update</th>
+                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Expiry Date</th>
+                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">edit</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -46,6 +47,7 @@
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.supplier|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.expiration_date|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500 text-center"><a href="{% url 'update_restock' r.id %}"><i class="fa fa-solid fa-edit fa-lg text-blue-600"></i></a></td>
                     </tr>
                     {% endfor %}

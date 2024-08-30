@@ -28,7 +28,7 @@
                 {{ form.non_field_errors.0 }}
               </div>
             {% endif %}
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-5">
               <div class="space-y-1">
                 <label class="block text-xs font-medium text-gray-700">Class</label>
                 <div class="mt-1">
@@ -63,6 +63,15 @@
                 </div>
                 {% if form.quantity.errors %}
                   <p class="text-red-600 text-xs mt-1">{{ form.quantity.errors.0 }}</p>
+                {% endif %}
+              </div>
+              <div class="space-y-1">
+                <label class="block text-xs font-medium text-gray-700">Date Issued</label>
+                <div class="mt-1">
+                  {{ form.date_issued }}
+                </div>
+                {% if form.date_issued.errors %}
+                  <p class="text-red-600 text-xs mt-1">{{ form.date_issued.errors.0 }}</p>
                 {% endif %}
               </div>
           </div>
