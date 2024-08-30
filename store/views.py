@@ -17,11 +17,11 @@ from django.http import JsonResponse
 from django.forms import modelformset_factory, BaseModelFormSet
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.views.generic import UpdateView, ListView, DetailView, CreateView, TemplateView
+from django.views.generic import UpdateView, ListView, DetailView, TemplateView
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import render, get_object_or_404, redirect, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Case, When, Value, CharField, Q
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required, user_passes_test

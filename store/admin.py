@@ -1,11 +1,8 @@
 from django import forms
 from django.contrib import admin
 from .models import *
-from django.contrib import admin, messages
-from django.core.exceptions import ValidationError
 from import_export.admin import ImportMixin
 from import_export import resources
-from import_export.fields import Field
 from datetime import datetime
 from django.utils.dateparse import parse_date
 from datetime import datetime
@@ -29,25 +26,6 @@ class CategoryAdmin(admin.ModelAdmin):
     list_display = ['id','name']
     list_filter = ['name']
     search_fields = ['name']
-
-
-# class DrugResource(resources.ModelResource):
-#     expiration_date = Field(attribute='expiration_date', column_name='expiration_date')
-
-#     class Meta:
-#         model = Drug
-#         import_id_fields = ('id',)
-#         fields = ('id', 'date_added', 'supply_date', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'expiration_date', 'added_by', 'entered_expiry_period', 'updated_at')
-
-#     def before_import_row(self, row, **kwargs):
-#         if 'expiration_date' in row and row['expiration_date']:
-#             if isinstance(row['expiration_date'], datetime):
-#                 # If it's already a datetime object, just get the date
-#                 row['expiration_date'] = row['expiration_date'].date()
-#             elif isinstance(row['expiration_date'], str):
-#                 # If it's a string, parse it to datetime then get the date
-#                 expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
-#                 row['expiration_date'] = expiration_datetime.date()
 
 
 class DrugResource(resources.ModelResource):
@@ -121,48 +99,9 @@ class DrugAdmin(ImportMixin, admin.ModelAdmin):
 
 #     issued_by_username.short_description = "Issued By"
 
+
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'update', 'total_unit_value')
     search_fields = ('name',)
     list_filter = ('update',)
-
-# @admin.register(DispensaryLocker)
-# class DispensaryLockerAdmin(admin.ModelAdmin):
-#     list_display = ('name', 'unit')
-#     search_fields = ('name','unit')
-#     list_filter = ('name','unit')
-
-# @admin.register(UnitStore)
-# class UnitStoreAdmin(admin.ModelAdmin):
-#     list_display = ('unit', 'drug', 'quantity', 'total_value', 'updated_at')
-#     search_fields = ('unit__name', 'drug__generic_name')
-#     list_filter = ('unit', 'drug', 'updated_at')
-
-
-# @admin.register(UnitIssueRecord)
-# class UnitIssueRecordAdmin(admin.ModelAdmin):
-#     list_display = ('unit', 'drug', 'quantity', 'date_issued', 'issued_to', 'issued_by', 'updated_at')
-#     search_fields = ('unit__name', 'drug__generic_name', 'issued_to__name', 'issued_by__username')
-#     list_filter = ('date_issued', 'issued_to', 'issued_by', 'unit')
-
-
-# @admin.register(DispensaryLocker)
-# class LockerAdmin(admin.ModelAdmin):
-#     list_display = ('unit', 'name')
-#     list_filter = ('unit', 'name')
-#     search_fields = ('name',)
-
-
-# @admin.register(LockerInventory)
-# class LockerInventoryAdmin(admin.ModelAdmin):
-#     list_display = ('locker', 'drug','quantity')
-#     list_filter = ('locker', 'drug')
-#     search_fields = ('locker',)
-
-
-# @admin.register(DispenseRecord)
-# class DispenseRecordAdmin(admin.ModelAdmin):
-#     list_display = ('dispensary', 'patient_info','drug', 'quantity', 'dispensed_by', 'updated')
-#     search_fields = ('dispense__name', 'drug__generic_name', 'patient_info', 'issued_by__username')
-#     list_filter = ('updated','dispensed_by', 'dispensary')

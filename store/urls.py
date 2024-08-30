@@ -47,7 +47,6 @@ urlpatterns=[
     path('transfer-pdf/', views.transfer_pdf, name='transfer_pdf'),
 
 
-    # path('worth/', views.worth, name='worth'),
     path('worth/', InventoryWorthView.as_view(), name='worth'),
     path('main-store-worth/', StoreWorthView.as_view(), name='main_store_value'),
     path('unit-worth/<int:pk>', UnitWorthView.as_view(), name='unit_value'),
