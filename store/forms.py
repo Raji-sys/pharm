@@ -23,7 +23,7 @@ class DrugForm(forms.ModelForm):
 class RecordForm(forms.ModelForm):
     class Meta:
         model = Record
-        fields = ['category', 'drug', 'unit_issued_to', 'quantity','date_issued']
+        fields = ['category', 'drug', 'unit_issued_to', 'quantity', 'date_issued']
         widgets = {
             'date_issued': forms.DateInput(attrs={'type': 'date'})
         }
@@ -32,23 +32,32 @@ class RecordForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
         for field in self.fields.values():
-            field.required = True
+            field.required = False
             field.widget.attrs.update({'class': 'text-center text-xs focus:outline-none border border-blue-300 p-3 rounded shadow-lg hover:shadow-xl'})
 
     def clean(self):
         cleaned_data = super().clean()
         quantity = cleaned_data.get('quantity')
         drug = cleaned_data.get('drug')
-        if drug and quantity is not None:
-            available_quantity = drug.current_balance
-            # If this is an update, add back the original quantity
-            if self.instance.pk:
-                available_quantity += self.instance.quantity
-            if quantity > available_quantity:
-                if available_quantity > 0:
-                    self.add_error('quantity', f"Warning: Only {available_quantity} units available. Please adjust the issued quantity.")
+        unit_issued_to = cleaned_data.get('unit_issued_to')
+
+        if drug and quantity is not None and unit_issued_to:
+            with transaction.atomic():
+                drug.refresh_from_db()
+                available_quantity = drug.current_balance
+
+                if self.instance.pk:
+                    # This is an update
+                    original_record = Record.objects.get(pk=self.instance.pk)
+                    net_quantity_change = quantity - original_record.quantity
+                    
+                    if net_quantity_change > available_quantity:
+                        self.add_error('quantity', f"Warning: Only {available_quantity} additional units available. Please adjust the issued quantity.")
                 else:
-                    self.add_error('quantity', "Not enough available in the store.")
+                    # This is a new record
+                    if quantity > available_quantity:
+                        self.add_error('quantity', f"Warning: Only {available_quantity} units available. Please adjust the issued quantity.")
+
         return cleaned_data
 
 class RestockForm(forms.ModelForm):

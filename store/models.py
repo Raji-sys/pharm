@@ -5,6 +5,9 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum, F
 from django.utils import timezone
 from datetime import timedelta
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Unit(models.Model):
     name=models.CharField(max_length=200, null=True, blank=True)
@@ -152,6 +155,7 @@ class Drug(models.Model):
     class Meta:
         verbose_name_plural = 'drugs'
 
+
 class Record(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name="drug_records")
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, null=True, blank=True, related_name="drug_records")
@@ -164,39 +168,51 @@ class Record(models.Model):
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_records')
     remark = models.CharField('REMARKS', max_length=200, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def save(self, *args, **kwargs):
-        if not self.drug:
-            raise ValidationError(_("A drug must be specified."), code='invalid_drug')
+        with transaction.atomic():
+            if self.pk:
+                original_record = Record.objects.select_for_update().get(pk=self.pk)
+                net_quantity_change = self.quantity - original_record.quantity
 
-        if self.pk:
-            original_record = Record.objects.get(pk=self.pk)
-            original_quantity = original_record.quantity
-            quantity_difference = self.quantity - original_quantity
-            available_quantity = self.drug.current_balance + original_quantity
-        else:  # This is a new record
-            quantity_difference = self.quantity
-            available_quantity = self.drug.current_balance
+                # Handle unit store updates
+                if original_record.unit_issued_to != self.unit_issued_to:
+                    # Remove quantity from old unit
+                    UnitStore.objects.filter(
+                        unit=original_record.unit_issued_to,
+                        drug=original_record.drug
+                    ).update(quantity=F('quantity') - original_record.quantity)
 
-        if quantity_difference > available_quantity:
-            if available_quantity > 0:
-                self.quantity = original_quantity + available_quantity
-            else:
-                raise ValidationError(_("No drugs available in the store."), code='invalid_quantity')
+                    # Add quantity to new unit
+                    new_unit_store, created = UnitStore.objects.get_or_create(
+                        unit=self.unit_issued_to,
+                        drug=self.drug,
+                        defaults={'quantity': 0}
+                    )
+                    new_unit_store.quantity = F('quantity') + self.quantity
+                    new_unit_store.save()
+                else:
+                    # Update quantity in the same unit
+                    UnitStore.objects.filter(
+                        unit=self.unit_issued_to,
+                        drug=self.drug
+                    ).update(quantity=F('quantity') + net_quantity_change)
 
-        # Deduct from the main store
-        self.drug.total_purchased_quantity -= quantity_difference
-        self.drug.save()
+            else:  # New record
+                # Add quantity to the unit store
+                unit_store, created = UnitStore.objects.get_or_create(
+                    unit=self.unit_issued_to,
+                    drug=self.drug,
+                    defaults={'quantity': 0}
+                )
+                unit_store.quantity = F('quantity') + self.quantity
+                unit_store.save()
 
-        # Update the unit's store
-        unit_store, created = UnitStore.objects.get_or_create(unit=self.unit_issued_to, drug=self.drug)
-        unit_store.quantity += quantity_difference
-        unit_store.save()
-
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural = 'drugs issued record'
+
 
 class Restock(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='restock_category')

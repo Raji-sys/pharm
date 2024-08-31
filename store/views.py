@@ -260,6 +260,18 @@ def drug_report(request):
     return render(request, 'store/item_report.html', context)
 
 
+
+@group_required('STORE')
+def records(request):
+    records = Record.objects.all().order_by('-updated_at')
+    pgn=Paginator(records,10)
+    pn=request.GET.get('page')
+    po=pgn.get_page(pn)
+
+    context = {'records': records, 'po':po}
+    return render(request, 'store/record.html', context)
+
+
 @group_required('STORE')
 def create_record(request):
     RecordFormSet = modelformset_factory(Record, form=RecordForm, extra=5)
@@ -275,31 +287,23 @@ def create_record(request):
                             instance.issued_by = request.user
                             instance.save()
                             any_saved = True
+                    
                     if any_saved:
                         messages.success(request, 'Drugs issued successfully.')
                         return redirect('record')
                     else:
                         messages.warning(request, 'No drugs were issued. Please fill in at least one form.')
-            except Exception as e:
+            except ValidationError as e:
                 messages.error(request, f"An error occurred: {str(e)}")
+        else:
+            messages.error(request, "There were errors in the form. Please check and try again.")
     else:
         formset = RecordFormSet(queryset=Record.objects.none())
-    
     return render(request, 'store/create_record.html', {'formset': formset})
 
 
-@group_required('STORE')
-def records(request):
-    records = Record.objects.all().order_by('-date_issued')
-    pgn=Paginator(records,10)
-    pn=request.GET.get('page')
-    po=pgn.get_page(pn)
 
-    context = {'records': records, 'po':po}
-    return render(request, 'store/record.html', context)
-
-
-class RecordUpdateView(LoginRequiredMixin, StoreGroupRequiredMixin, UpdateView):
+class RecordUpdateView(LoginRequiredMixin, UpdateView):
     model = Record
     form_class = RecordForm
     template_name = 'store/update_record.html'
@@ -307,17 +311,19 @@ class RecordUpdateView(LoginRequiredMixin, StoreGroupRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         try:
-            form.instance.issued_by = self.request.user
-            response = super().form_valid(form)
-            messages.success(self.request, "Record updated successfully.")
-            return response
+            with transaction.atomic():
+                form.instance.issued_by = self.request.user
+                self.object = form.save()
+                messages.success(self.request, "Record updated successfully.")
+                return super().form_valid(form)
         except ValidationError as e:
-            form.add_error(None, str(e))
+            messages.error(self.request, str(e))
             return self.form_invalid(form)
 
     def form_invalid(self, form):
         messages.error(self.request, "There was an error updating the record. Please check the form.")
         return super().form_invalid(form)
+    
 
 def get_drugs_by_category(request, category_id):
     drugs = Drug.objects.filter(category_id=category_id)
