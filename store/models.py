@@ -154,7 +154,7 @@ class Drug(models.Model):
 
     class Meta:
         verbose_name_plural = 'drugs'
-
+    
 
 class Record(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name="drug_records")
