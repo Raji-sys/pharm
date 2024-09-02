@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from .models import *
-from import_export.admin import ImportMixin
+from import_export.admin import ImportMixin, ExportMixin
 from import_export import resources
 from datetime import datetime
 from django.utils.dateparse import parse_date
@@ -56,7 +56,7 @@ class DrugResource(resources.ModelResource):
                         row['expiration_date'] = None
                         
 @admin.register(Drug)
-class DrugAdmin(ImportMixin, admin.ModelAdmin):
+class DrugAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
     resource_class = DrugResource
     form = DrugAdminForm
     exclude = ('added_by', 'balance', 'total_value')
