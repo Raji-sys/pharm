@@ -221,7 +221,7 @@ class Restock(models.Model):
     date = models.DateField(null=True)
     expiration_date = models.DateField(null=True, blank=True)
     restocked_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_restocking')
-    updated = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

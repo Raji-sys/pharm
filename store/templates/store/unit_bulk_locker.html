@@ -97,7 +97,7 @@
                             {% else %}text-gray-800{% endif %}">
                             
                             {% if i.restock_info and i.restock_info.expiration_date %}
-                                {{ i.restock_info.expiration_date|date:"M d, Y" }}
+                                {{ i.restock_info.expiration_date|date:"M-Y" }}
                                 {% if i.restock_info.expiration_date <= today %}
                                     <br><small class="text-rose-700">(Expired!)</small>
                                 {% elif i.restock_info.expiration_date <= one_month_later %}

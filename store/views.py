@@ -28,7 +28,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 from .models import Unit
 from decimal import Decimal
-
+from django.db.models import Sum, F
 
 def group_required(group_name):
     def decorator(view_func):
@@ -655,7 +655,6 @@ class UnitDashboardView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     context_object_name = 'store'
 
 
-
 class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
     template_name = 'store/unit_bulk_locker.html'
@@ -797,7 +796,7 @@ def unitissuerecord(request, unit_id):
                             )
                             locker_inventory.quantity += instance.quantity
                             locker_inventory.save()
-                    messages.success(request, 'Drugs restocked')
+                    messages.success(request, 'Successfully Transfered')
                     return redirect('unit_transfer', pk=unit_id)
             except Exception as e:
                 messages.error(request, f"An error occurred: {str(e)}")
@@ -807,7 +806,6 @@ def unitissuerecord(request, unit_id):
             issuing_unit=unit,
             initial=[{'unit': unit}] * 2
         )
-
     return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})    
 
 class TransferUpdateView(LoginRequiredMixin,UnitGroupRequiredMixin,UpdateView):
@@ -878,7 +876,7 @@ def dispensaryissuerecord(request, unit_id):
                             )
                             locker_inventory.quantity += instance.quantity
                             locker_inventory.save()
-                    messages.success(request, 'Drugs restocked')
+                    messages.success(request, 'Dispensary Locker Restocked Successfully')
                     return redirect('unit_bulk_locker', pk=unit_id)
             except Exception as e:
                 messages.error(request, f"An error occurred: {str(e)}")
@@ -1092,20 +1090,46 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
     model = DispenseRecord
     template_name = 'store/dispensed_list.html'
     context_object_name = 'dispensed_list'
-    paginate_by = 10
+    paginate_by = 5
 
-    def dispatch(self, request, *args, **kwargs):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
         self.dispensary_locker = get_object_or_404(DispensaryLocker, pk=kwargs['pk'])
-        self.unit = self.dispensary_locker.unit  # Assuming DispensaryLocker has a relation to Unit
-        return super().dispatch(request, *args, **kwargs)
+        self.unit = self.dispensary_locker.unit
 
     def get_queryset(self):
-        return DispenseRecord.objects.filter(dispensary=self.dispensary_locker).order_by('-updated')
+        queryset = DispenseRecord.objects.filter(dispensary=self.dispensary_locker).order_by('-updated')
+        self.filterset = DispenseFilter(self.request.GET, queryset=queryset)
+        self.filterset.form.initial['dispensary'] = self.dispensary_locker.pk
+        return self.filterset.qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_dispensed'] = self.get_queryset().count()
+        filtered_queryset = self.get_queryset()
+        
+        context['total_dispensed'] = filtered_queryset.count()
+                
+        price_totals = filtered_queryset.aggregate(
+            total_cost=Sum(F('quantity') * F('drug__cost_price')),
+            total_selling=Sum(F('quantity') * F('drug__selling_price')),
+            total_quantity=Sum('quantity')
+        )
+
+        context['total_cost_price'] = price_totals['total_cost'] or Decimal('0.00')
+        context['total_selling_price'] = price_totals['total_selling'] or Decimal('0.00')
+        context['total_profit'] = context['total_selling_price'] - context['total_cost_price']
+
+        context['percentage'] = (
+            (context['total_profit'] / context['total_cost_price']) * 100
+        ) if context['total_cost_price'] > 0 else Decimal('0.00')
+
+        context['total_quantity'] = price_totals['total_quantity'] or 0
+
+        context['total_price'] = context['total_selling_price']
+        
         context['dispensary_locker'] = self.dispensary_locker
+        context['dispensefilter'] = self.filterset
+        
         return context
 
     def get_unit_for_mixin(self):
@@ -1183,3 +1207,69 @@ def dispense_pdf(request):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
+
+
+# class SalesStatsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+#     template_name = 'store/sales.html'
+
+#     def test_func(self):
+#         return self.request.user.is_superuser
+
+#     def handle_no_permission(self):
+#         return super().handle_no_permission()
+
+#     def get_sales_data(self, queryset):
+#         total_cost_price = queryset.aggregate(
+#             total_cost=Sum(F('quantity') * F('drug__cost_price'))
+#         )['total_cost'] or Decimal('0.00')
+
+#         total_selling_price = queryset.aggregate(
+#             total_selling=Sum(F('quantity') * F('drug__selling_price'))
+#         )['total_selling'] or Decimal('0.00')
+
+#         total_profit = total_selling_price - total_cost_price
+#         profit_percentage = (total_profit / total_cost_price * 100) if total_cost_price > 0 else Decimal('0.00')
+
+#         return {
+#             'total_sales': total_selling_price,
+#             'total_profit': total_profit,
+#             'profit_percentage': profit_percentage,
+#         }
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         now = timezone.now()
+#         context['today'] = now
+
+#         # Time ranges
+#         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+#         week_start = day_start - timedelta(days=now.weekday())
+#         month_start = day_start.replace(day=1)
+#         year_start = month_start.replace(month=1)
+
+#         time_ranges = {
+#             'day': (day_start, now),
+#             'week': (week_start, now),
+#             'month': (month_start, now),
+#             'year': (year_start, now),
+#             'all_time': (None, now),
+#         }
+
+#         units = Unit.objects.all().order_by('name')
+#         context['units'] = units
+
+#         for range_name, (start_date, end_date) in time_ranges.items():
+#             context[f'{range_name}_data'] = {}
+#             for unit in units:
+#                 queryset = DispenseRecord.objects.filter(dispensary__unit=unit)
+#                 if start_date:
+#                     queryset = queryset.filter(updated__range=(start_date, end_date))
+#                 context[f'{range_name}_data'][unit.name] = self.get_sales_data(queryset)
+
+#             # Calculate combined data for all units
+#             all_units_queryset = DispenseRecord.objects.all()
+#             if start_date:
+#                 all_units_queryset = all_units_queryset.filter(updated__range=(start_date, end_date))
+#             context[f'{range_name}_data']['All Units'] = self.get_sales_data(all_units_queryset)
+
+#         return context

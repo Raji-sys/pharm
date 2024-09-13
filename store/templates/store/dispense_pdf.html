@@ -133,13 +133,13 @@ h1 {
         <thead>
             <tr>
                 <th class="small-column">#</th>
-                <th class="">DISPENSARY</th>
-                <th class="">DATE ISSUED</th>
+                <!-- <th class="">DISPENSARY</th> -->
+                <th class="">DATE DISPENSED</th>
                 <th class="">PATIENT</th>
                 <th class="">DRUG INFO</th>
                 <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
-                <th class="">QUANITITY ISSUED</th>
+                <th class="">QUANITITY</th>
                 <th class="">DISPENSED BY</th>
             </tr>
               {% for r in f %}        
@@ -147,11 +147,11 @@ h1 {
             <td class="small-column text-center">
                 {{forloop.counter}}
             </td>    
-            <td class="text-center">
+            <!-- <td class="text-center">
                 {{ r.dispensed_by.groups.all|first|default_if_none:'' }}
-            </td>    
+            </td>     -->
             <td class="text-center">
-                {{r.updated|default_if_none:''}}<br>
+                {{r.dispense_date|default_if_none:''}}<br>
             </td>    
             <td class="text-center">
                 {{r.patient_info|default_if_none:''|upper}}<br>
