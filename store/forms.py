@@ -135,6 +135,54 @@ class UnitIssueRecordForm(forms.ModelForm):
         return cleaned_data
 
 
+class BoxRecordForm(forms.ModelForm):
+    class Meta:
+        model = UnitIssueRecord
+        fields = ['unit', 'category', 'drug', 'quantity', 'moved_to']
+        # widgets = {
+        #     'date_issued': forms.DateInput(attrs={'type': 'date'}),
+        # }
+
+    def __init__(self, *args, **kwargs):
+        self.issuing_unit = kwargs.pop('issuing_unit', None)
+        super(BoxRecordForm, self).__init__(*args, **kwargs)
+        self.fields['unit'].widget.attrs['readonly'] = True
+        self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
+        if self.issuing_unit:
+            self.fields['moved_to'].queryset = Box.objects.exclude(id=self.issuing_unit.id)
+        for field in self.fields.values():
+            field.required = False
+            field.widget.attrs.update({'class':'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
+
+    def clean_quantity(self):
+        quantity = self.cleaned_data.get('quantity')
+        if quantity is None:
+            raise forms.ValidationError("Quantity is required.")
+        if quantity <= 0:
+            raise forms.ValidationError("Quantity must be greater than zero.")
+        return quantity
+
+    def clean(self):
+        cleaned_data = super().clean()
+        unit = cleaned_data.get('unit')
+        moved_to = cleaned_data.get('issued_to')
+        drug = cleaned_data.get('drug')
+        quantity = cleaned_data.get('quantity')
+
+        # Skip validation if any required field is missing
+        if not all([unit, drug, quantity]):
+            return cleaned_data
+
+        # Validate that the unit has enough of the drug available
+        unit_store = UnitStore.objects.filter(unit=unit, drug=drug).first()
+        if not unit_store:
+            self.add_error('drug', f"{drug.generic_name} is not available in {unit.name}'s store.")
+        elif unit_store.quantity < quantity:
+            self.add_error('quantity', f"Not enough {drug.generic_name} in {unit.name}'s store. Available: {unit_store.quantity}")
+
+        return cleaned_data
+
+
 class DispensaryIssueRecordForm(forms.ModelForm):
     class Meta:
         model = UnitIssueRecord

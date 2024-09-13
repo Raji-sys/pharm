@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}{{ store.name }} - EXPIRED AND DAMAGED DRUGS {% endblock %}
+{% block content %}
+    <div class="container mx-auto p-4">
+        <span class="flex justify-center p-4 gap-4 text-xl">
+            <a href="{% url 'unit_dashboard' store.pk %}" ><i class="fa-solid fa-arrow-left"></i></a>
+        <h2 class="text-center text-teal-700 uppercase">{{ store.name }} EXPIRED AND DAMAGED Records</h2>
+        </span>
+        <div class="flex justify-end items-center m-2 space-x-2">
+            <a href="{% url 'box_record_create' store.id %}"
+           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-stone-600 hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-500">
+            <i class="fas fa-plus mr-2"></i> Move drugs to box
+            </a>
+            <a href="{% url 'box_report' store.pk %}"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <i class="fas fa-file-pdf mr-2 fa-2xl"></i> Box Report
+                </a>
+    
+            </div>
+        <!-- Unit Issue Records Table -->
+        <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="overflow-x-auto max-h-[65vh]">
+                <table class="min-w-full divide-y divide-gray-300">
+                    <thead class="bg-stone-500">
+                        <tr class="text-xs text-center text-white uppercase">
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">#</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Generic Drug</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade Drug</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Quantity</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Move To</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Date Issued</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Update</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for r in page_obj %}
+                        <tr class="{% cycle 'bg-white' 'bg-stone-50' %} text-xs text-center">
+                            <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
+                            <td class="px-4 py-2 text-gray-700">{{ r.moved_to.name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 text-gray-700">{{ r.date_issued|date:"d-M-Y" }}</td>
+                            <td class="px-4 py-2 text-center">
+                                <a href="{% url 'transfer_update' r.id %}" class="text-stone-700 hover:text-stone-900">
+                                    <i class="fas fa-edit fa-lg"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <!-- Pagination and Back Button -->
+<!-- Pagination and Back Button -->
+<div class="mt-4 flex items-center justify-between">
+    <div>
+        <p class="text-sm text-gray-600">
+            Showing page <span class="font-medium">{{ page_obj.number }}</span> of <span class="font-medium">{{ page_obj.paginator.num_pages }}</span>
+        </p>
+    </div>
+    <div class="flex space-x-2">
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-stone-600 hover:bg-stone-700">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-stone-600 hover:bg-stone-700">
+                <i class="fas fa-angle-left"></i>
+            </a>
+        {% endif %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-stone-600 hover:bg-stone-700">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-white bg-stone-600 hover:bg-stone-700">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+        {% endif %}
+    </div>
+</div>
+    </div>
+{% endblock %}

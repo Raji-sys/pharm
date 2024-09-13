@@ -806,7 +806,8 @@ def unitissuerecord(request, unit_id):
             issuing_unit=unit,
             initial=[{'unit': unit}] * 2
         )
-    return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})    
+    return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})
+
 
 class TransferUpdateView(LoginRequiredMixin,UnitGroupRequiredMixin,UpdateView):
     model = UnitIssueRecord
@@ -834,6 +835,8 @@ class TransferUpdateView(LoginRequiredMixin,UnitGroupRequiredMixin,UpdateView):
     def form_invalid(self, form):
         messages.error(self.request, "There was an error updating the record. Please check the form.")
         return super().form_invalid(form)
+
+
 
 
 @unit_group_required
@@ -1136,6 +1139,7 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
         return self.unit
     
     
+
 @login_required
 def dispense_report(request, pk):
     dispensary = get_object_or_404(DispensaryLocker, id=pk)
@@ -1208,68 +1212,180 @@ def dispense_pdf(request):
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
 
+class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
+    model = Unit
+    template_name = 'store/unit_box.html'
+    context_object_name = 'store'
+    paginate_by = 10
 
-# class SalesStatsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-#     template_name = 'store/sales.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Fetch unit issue records where this unit is the issuing unit
+        unit_issue_records = UnitIssueRecord.objects.filter(
+            unit=self.object,
+            moved_to__isnull=False, 
+            issued_to_locker__isnull=True
+        ).order_by('-date_issued')
 
-#     def test_func(self):
-#         return self.request.user.is_superuser
+        # Paginate the results
+        paginator = Paginator(unit_issue_records, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
-#     def handle_no_permission(self):
-#         return super().handle_no_permission()
+        context['unit_issue_records'] = page_obj
+        context['page_obj'] = page_obj
+        return context
 
-#     def get_sales_data(self, queryset):
-#         total_cost_price = queryset.aggregate(
-#             total_cost=Sum(F('quantity') * F('drug__cost_price'))
-#         )['total_cost'] or Decimal('0.00')
+@unit_group_required
+def boxrecord(request, unit_id):
+    unit = get_object_or_404(Unit, id=unit_id)
+    
+    # Create a custom formset that passes the issuing_unit to each form
+    class CustomUnitIssueFormSet(BaseModelFormSet):
+        def __init__(self, *args, **kwargs):
+            self.issuing_unit = kwargs.pop('issuing_unit', None)
+            super().__init__(*args, **kwargs)
 
-#         total_selling_price = queryset.aggregate(
-#             total_selling=Sum(F('quantity') * F('drug__selling_price'))
-#         )['total_selling'] or Decimal('0.00')
+        def _construct_form(self, i, **kwargs):
+            kwargs['issuing_unit'] = self.issuing_unit
+            return super()._construct_form(i, **kwargs)
+    
+    UnitIssueFormSet = modelformset_factory(
+        UnitIssueRecord,
+        form=BoxRecordForm,
+        formset=CustomUnitIssueFormSet,
+        extra=2
+        )
 
-#         total_profit = total_selling_price - total_cost_price
-#         profit_percentage = (total_profit / total_cost_price * 100) if total_cost_price > 0 else Decimal('0.00')
+    if request.method == 'POST':
+        formset = UnitIssueFormSet(request.POST, issuing_unit=unit)
+        if formset.is_valid():
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        instance.issued_by = request.user
+                        instance.unit = unit
+                        instance.save()
+                        if instance.issued_to_locker:
+                            locker_inventory, created = LockerInventory.objects.get_or_create(
+                                locker=instance.issued_to_locker,
+                                drug=instance.drug,
+                                defaults={'quantity': 0}
+                            )
+                            locker_inventory.quantity += instance.quantity
+                            locker_inventory.save()
+                    messages.success(request, 'DRUGS MOVED TO DAMAGE AND EXPIRY BOX')
+                    return redirect('unit_box', pk=unit_id)
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+    else:
+        formset = UnitIssueFormSet(
+            queryset=UnitIssueRecord.objects.none(),
+            issuing_unit=unit,
+            initial=[{'unit': unit}] * 2
+        )
+    return render(request, 'store/boxrecord_form.html', {'formset': formset, 'unit': unit})
 
-#         return {
-#             'total_sales': total_selling_price,
-#             'total_profit': total_profit,
-#             'profit_percentage': profit_percentage,
-#         }
 
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         now = timezone.now()
-#         context['today'] = now
+class BoxUpdateView(LoginRequiredMixin,UnitGroupRequiredMixin,UpdateView):
+    model = UnitIssueRecord
+    form_class = BoxRecordForm
+    template_name = 'store/box_update.html'
 
-#         # Time ranges
-#         day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-#         week_start = day_start - timedelta(days=now.weekday())
-#         month_start = day_start.replace(day=1)
-#         year_start = month_start.replace(month=1)
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['issuing_unit'] = self.object.unit
+        return kwargs
 
-#         time_ranges = {
-#             'day': (day_start, now),
-#             'week': (week_start, now),
-#             'month': (month_start, now),
-#             'year': (year_start, now),
-#             'all_time': (None, now),
-#         }
+    def get_success_url(self):
+        return reverse_lazy('unit_box', kwargs={'pk': self.object.unit.pk})
 
-#         units = Unit.objects.all().order_by('name')
-#         context['units'] = units
+    def form_valid(self, form):
+        try:
+            form.instance.issued_by = self.request.user
+            response = super().form_valid(form)
+            messages.success(self.request, "Record updated successfully.")
+            return response
+        except ValidationError as e:
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
 
-#         for range_name, (start_date, end_date) in time_ranges.items():
-#             context[f'{range_name}_data'] = {}
-#             for unit in units:
-#                 queryset = DispenseRecord.objects.filter(dispensary__unit=unit)
-#                 if start_date:
-#                     queryset = queryset.filter(updated__range=(start_date, end_date))
-#                 context[f'{range_name}_data'][unit.name] = self.get_sales_data(queryset)
+    def form_invalid(self, form):
+        messages.error(self.request, "There was an error updating the record. Please check the form.")
+        return super().form_invalid(form)
 
-#             # Calculate combined data for all units
-#             all_units_queryset = DispenseRecord.objects.all()
-#             if start_date:
-#                 all_units_queryset = all_units_queryset.filter(updated__range=(start_date, end_date))
-#             context[f'{range_name}_data']['All Units'] = self.get_sales_data(all_units_queryset)
 
-#         return context
+@login_required
+def box_report(request, pk):
+    unit = get_object_or_404(Unit, id=pk)
+    
+    boxfilter = BoxFilter(
+        request.GET, 
+        queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'),
+    )
+    
+    boxfilter.form.initial['unit'] = pk
+    
+    filtered_queryset = boxfilter.qs
+    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    if filtered_queryset.exists() and filtered_queryset.first().drug.selling_price:
+        first_drug = filtered_queryset.first().drug.selling_price
+    else:
+        first_drug = 0
+
+    total_price = total_quantity * first_drug
+    total_appearance = filtered_queryset.count()
+
+    pgn = Paginator(filtered_queryset, 10)
+    pn = request.GET.get('page')
+    po = pgn.get_page(pn)
+
+    context = {
+        'unit': unit,
+        'boxfilter': boxfilter,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+        'po': po
+    }
+    return render(request, 'store/box_report.html', context)
+
+
+@login_required
+def box_pdf(request):
+    ndate = datetime.datetime.now()
+    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
+    f = BoxFilter(request.GET, queryset=UnitIssueRecord.objects.all()).qs
+    total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    
+    if f.exists() and f.first().drug.selling_price:
+        first_drug = f.first().drug.selling_price
+    else:
+        first_drug = 0
+    
+    total_price = total_quantity * first_drug
+    total_appearance = f.count()
+    keys = [key for key, value in request.GET.items() if value]
+    result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
+    
+    context = {
+        'f': f,
+        'pagesize': 'A4',
+        'orientation': 'Portrait',
+        'result': result,
+        'keys': keys,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+    }
+    
+    pdf_buffer = generate_pdf(context, 'store/box_pdf.html')
+    
+    if pdf_buffer is None:
+        return HttpResponse('Error generating PDF', status=500)
+    
+    response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
+    return response

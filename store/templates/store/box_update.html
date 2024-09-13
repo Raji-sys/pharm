@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Update Drug EXPIRED AND DAMAGED{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <h1 class="text-sm font-bold text-white uppercase tracking-wider text-center">
+            Update EXPIRED AND DAMAGED RECORD
+        </h1>
+        <form method="post" class="bg-white p-6 rounded-lg shadow-md">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="text-red-600 text-xs mb-4">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-3 border-t p-2">
+                {% for field in form.visible_fields %}
+                <div class="space-y-1">
+                    <label class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
+                    <div class="mt-1">
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+                    <p class="text-red-600 text-xs mt-1">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-8 flex justify-center">
+                <button type="submit" class="bg-fuchsia-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 text-xs inline-flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i> Update
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function initializePage() {
+        function load_drugs() {
+            const categoryId = document.getElementById('id_category').value;
+            const url = `/get_drugs_by_category/${categoryId}/`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const drugSelect = document.getElementById('id_drug');
+                    drugSelect.innerHTML = ''; // Clear existing options
+                    data.drugs.forEach(drug => {
+                        const option = document.createElement('option');
+                        option.value = drug.id;
+                        option.text = drug.name;
+                        drugSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        document.getElementById('id_category').addEventListener('change', load_drugs);
+    }
+    window.addEventListener('load', initializePage);
+</script>
+{% endblock %}

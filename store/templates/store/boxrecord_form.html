@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ unit }} | DAMAGE AND EXPIRED DRUGS{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <span class="flex justify-center p-4 gap-4 text-xl">
+            {% if unit %}
+            <a href="{% url 'unit_box' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2 class="text-center text-teal-700 uppercase">{{ unit }} BULK LOCKER TO EXPIRED AND DAMAGED BOX</h2>
+        {% endif %}
+        </span>
+        {% if messages %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            {% for message in messages %}
+            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post" class="bg-white p-6 rounded-lg shadow-md uppercase">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            {% for form in formset %}
+            <div class="mb-4 last:mb-0">
+                {% if form.non_field_errors %}
+                <div class="text-red-600 text-xs mb-4">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                <div class="grid grid-cols-1 gap-10 md:grid-cols-5 border-t p-2">
+                    {% for field in form.visible_fields %}
+                    <div class="space-y-1">
+                        <label class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
+                        <div class="mt-1">
+                            {{ field }}
+                        </div>
+                        {% if field.errors %}
+                        <p class="text-red-600 text-xs mt-1">{{ field.errors }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            <div class="mt-8 flex justify-center">
+                <button type="submit" class="bg-fuchsia-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 text-xs inline-flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i> Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function initializePage() {
+      function load_drugs(index) {
+        const categoryId = document.getElementsByName(`form-${index}-category`)[0].value;
+        const url = `/get_drugs_by_category/${categoryId}/`;
+    
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            const drugSelect = document.getElementsByName(`form-${index}-drug`)[0];
+            drugSelect.innerHTML = '';  // Clear existing options
+    
+            data.drugs.forEach(drug => {
+              const option = document.createElement('option');
+              option.value = drug.id;
+              option.text = drug.name;
+              drugSelect.add(option);
+            });
+          })
+          .catch(error => console.error('Error:', error));
+      }
+    
+      {% for form in formset %}
+      document.getElementsByName('{{ form.category.html_name }}')[0].addEventListener('change', function() {
+        load_drugs('{{ forloop.counter0 }}');
+      });
+      {% endfor %}
+    }
+    
+    window.addEventListener('load', initializePage);
+    </script>
+{% endblock %}

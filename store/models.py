@@ -229,7 +229,7 @@ class Restock(models.Model):
         self.drug.save()
 
     def __str__(self):
-        return f"{self.quantity} of {self.drug} restockd on {self.date}"
+        return f"{self.quantity} of {self.drug} restocked on {self.date}"
 
     class Meta:
         verbose_name_plural = 'restocking record'
@@ -266,6 +266,13 @@ class LockerInventory(models.Model):
     def __str__(self):
         return f"{self.drug} in {self.locker}"
 
+class Box(models.Model):
+    name=models.CharField(max_length=200, null=True, blank=True)
+    update=models.DateField(auto_now_add=True,null=True)
+    
+    def __str__(self):
+        return self.name
+
 class UnitIssueRecord(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='issuing_unit')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='unitissue_category')
@@ -273,15 +280,16 @@ class UnitIssueRecord(models.Model):
     quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
     date_issued = models.DateTimeField(auto_now_add=True,null=True)
     issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
+    moved_to = models.ForeignKey(Box, on_delete=models.CASCADE, related_name='box_moved', null=True, blank=True)
     issued_to_locker = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, null=True, blank=True)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     updated_at = models.DateField(auto_now=True)
     
-    def clean(self):
-        if self.issued_to and self.issued_to_locker:
-            raise ValidationError("Cannot issue to both a unit and a locker at the same time.")
-        if not self.issued_to and not self.issued_to_locker:
-            raise ValidationError("Must issue to either a unit or a locker.")
+    # def clean(self):
+    #     if self.issued_to and self.issued_to_locker:
+    #         raise ValidationError("Cannot issue to both a unit and a locker at the same time.")
+    #     if not self.issued_to and not self.issued_to_locker:
+    #         raise ValidationError("Must issue to either a unit or a locker.")
     
     def save(self, *args, **kwargs):
         unit_store = UnitStore.objects.get(unit=self.unit, drug=self.drug)
@@ -322,3 +330,23 @@ class DispenseRecord(models.Model):
         dispense_locker.quantity -= self.quantity
         dispense_locker.save()
         super().save(*args, **kwargs)
+
+
+class ReturnedDrugs(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='returned_category')
+    drug = models.ForeignKey(Drug, on_delete=models.CASCADE, null=True)
+    quantity = models.IntegerField()
+    date = models.DateField(null=True)
+    received_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_returning')
+    updated = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.drug.total_purchased_quantity += self.quantity
+        self.drug.save()
+
+    def __str__(self):
+        return f"{self.quantity} of {self.drug} returned on {self.date}"
+
+    class Meta:
+        verbose_name_plural = 'returned drugs record'

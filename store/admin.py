@@ -105,3 +105,10 @@ class UnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'update', 'total_unit_value')
     search_fields = ('name',)
     list_filter = ('update',)
+
+
+@admin.register(Box)
+class BoxAdmin(admin.ModelAdmin):
+    list_display = ('name', 'update',)
+    search_fields = ('name',)
+    list_filter = ('update',)
