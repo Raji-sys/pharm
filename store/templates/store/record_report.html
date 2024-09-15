@@ -61,14 +61,15 @@
         <div class="overflow-x-auto max-h-[70vh]">
             <div class="bg-white">
                 <p class="p-2 whitespace-nowrap text-xs text-green-700 text-center uppercase">
-                    Issued: {{ total_appearance }} times - Quantity: {{ total_quantity }} - Worth: &#x20A6;{{ total_price }}
+                    Issued: {{ total_appearance }} times - Quantity: {{ total_quantity }} - Value: &#x20A6;{{ total_price }}
                 </p>
             </div>
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-amber-400">
                     <tr class="text-xs">
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Date Issued</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Physical Date</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">System Date</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Issued By</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">GENERIC NAME</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Trade Name</th>
@@ -84,6 +85,7 @@
                     <tr class="{% cycle 'bg-white' 'bg-amber-50' %} hover:bg-amber-100 transition duration-150 ease-in-out text-xs text-center">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{r.date_issued }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{r.updated_at }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.issued_by|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>

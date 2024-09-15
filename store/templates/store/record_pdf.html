@@ -127,6 +127,7 @@ h1 {
     <hr>
     <div class="summary">
         <b>FILTERED BY:</b> {% for key in keys %}{{ key|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        <br>
         <b>ISSUED: {{ total_appearance }}</b>
         <b>QUANTITY: {{ total_quantity }}</b>
         <b>WORTH: N{{ total_price }}</b>
@@ -136,7 +137,8 @@ h1 {
         <thead>
             <tr>
                 <th class="small-column">#</th>
-                <th class="">DATE ISSUED</th>
+                <th class="">PHYSICAL DATE</th>
+                <th class="">SYSTEM DATE</th>
                 <th class="">GENERIC DRUG </th>
                 <th class="">TRADE NAME</th>
                 <th class="">STRENGTH</th>
@@ -155,6 +157,9 @@ h1 {
                     issued by: {{r.issued_by|default_if_none:''|upper}}
                 </small>
             </td>    
+            <td>
+                {{r.updated_at|default_if_none:''}}
+            </td>
             <td>
                 {{r.drug.generic_name|default_if_none:''|upper}}
             </td>
