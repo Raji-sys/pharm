@@ -105,6 +105,7 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = 'categories'
 
+
 class Drug(models.Model):
     date_added = models.DateField(auto_now_add=True,null=True)
     supply_date = models.DateField(null=True)
@@ -168,6 +169,7 @@ class Record(models.Model):
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_records')
     remark = models.CharField('REMARKS', max_length=200, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
+    updated = models.DateField(auto_now=True)
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
@@ -333,9 +335,10 @@ class DispenseRecord(models.Model):
 
 
 class ReturnedDrugs(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='returned_category')
-    drug = models.ForeignKey(Drug, on_delete=models.CASCADE, null=True)
-    quantity = models.IntegerField()
+    category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True, blank=True, related_name='returned_category')
+    drug = models.ForeignKey('Drug', on_delete=models.CASCADE, null=True)
+    unit = models.ForeignKey('Unit', on_delete=models.CASCADE, related_name='returned_drugs',null=True)  # New field
+    quantity = models.IntegerField(null=True)
     date = models.DateField(null=True)
     received_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_returning')
     updated = models.DateTimeField(auto_now=True)
@@ -346,7 +349,7 @@ class ReturnedDrugs(models.Model):
         self.drug.save()
 
     def __str__(self):
-        return f"{self.quantity} of {self.drug} returned on {self.date}"
+        return f"{self.quantity} of {self.drug} returned to {self.unit} on {self.date}"
 
     class Meta:
         verbose_name_plural = 'returned drugs record'

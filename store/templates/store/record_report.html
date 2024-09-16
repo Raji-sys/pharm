@@ -78,6 +78,7 @@
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">QTy</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Value</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -94,6 +95,7 @@
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.unit_issued_to|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.total_value|default_if_none:'N/A' }}</td>
                     </tr>
                     {% empty %}
                     <tr>

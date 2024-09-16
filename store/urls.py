@@ -53,6 +53,8 @@ urlpatterns=[
 
 
     path('worth/', InventoryWorthView.as_view(), name='worth'),
+    path('drug-report-view/', DrugReportView.as_view(), name='drug_report_view'),
+    
     path('main-store-worth/', StoreWorthView.as_view(), name='main_store_value'),
     path('unit-worth/<int:pk>', UnitWorthView.as_view(), name='unit_value'),
 

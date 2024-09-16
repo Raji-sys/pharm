@@ -64,7 +64,7 @@
         <div class="overflow-x-auto max-h-[70vh]">
             <div class="bg-white">
                 <p class="p-2 whitespace-nowrap text-xs text-green-700 text-center uppercase">
-                    {{ total_appearance }}: {%if total_appearance > 1 %}times{%else%} time {%endif%} - Quantity: {{ total_quantity }} - Value: &#x20A6;{{ total_price }}
+                    {{ total_appearance }}: {%if total_appearance > 1 %}times{%else%} time {%endif%} - Quantity: {{ total_quantity }} - Value: &#x20A6;{{ total_value }}
                 </p>
             </div>
             <table class="min-w-full divide-y divide-gray-200">
@@ -82,7 +82,7 @@
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Cost Price</th>
                         <!-- <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Total Drugs</th> -->
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Balance</th>
-                        <!-- <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Total Value</th> -->
+                        <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Value</th>
                         <th scope="col" class="px-6  text-left text-xs font-medium text-white uppercase tracking-wider">Expiry Date</th>
                     </tr>
                 </thead>
@@ -101,7 +101,7 @@
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.cost_price|default_if_none:'N/A'|upper }}</td>
                         <!-- <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_purchased_quantity|default_if_none:'N/A' }}</td> -->
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{%if i.current_balance <= 0 %} <span class="text-rose-700 font-semibold">O/S</span>{%else%}{{ i.current_balance|default_if_none:'O/S' }}{%endif%}</td>
-                        <!-- <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_value|default_if_none:'N/A' }}</td> -->
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.total_value|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.expiration_date|date:'M-Y'|default_if_none:'N/A' }}</td>
                     </tr>
                     {% empty %}

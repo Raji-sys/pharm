@@ -222,43 +222,38 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
         return context
 
 
+from django.db.models import Sum
+from django.core.paginator import Paginator
 
 @group_required('STORE')
 def drug_report(request):
-    drugfilter=DrugFilter(request.GET, queryset=Drug.objects.all().order_by('generic_name'))    
+    # Initialize filter and get filtered queryset
+    drugfilter = DrugFilter(request.GET, queryset=Drug.objects.all().order_by('generic_name'))    
     filtered_queryset = drugfilter.qs
-
-    # Calculate total quantity across all filtered records
-    total_quantity = filtered_queryset.aggregate(models.Sum('total_purchased_quantity'))['total_purchased_quantity__sum'] or 0
-    
-        # Attempt to get the cost price of the first drug in the filtered queryset
-    first_drug_cost = Decimal('0')
-    if filtered_queryset.exists():
-        first_drug = filtered_queryset.first()
-        if first_drug and first_drug.cost_price is not None:
-            first_drug_cost = first_drug.cost_price
-
-    # Calculate total price (assuming all drugs have the same price as the first one)
-    total_price = total_quantity * first_drug_cost
 
     # Count the number of records in the filtered queryset
     total_appearance = filtered_queryset.count()
 
-    pgtn=drugfilter.qs
-    pgn=Paginator(pgtn,10)
-    pn=request.GET.get('page')
-    po=pgn.get_page(pn)
+    # Pagination
+    pgn = Paginator(filtered_queryset, 10)
+    pn = request.GET.get('page')
+    po = pgn.get_page(pn)
+
+    # Calculate totals using model properties
+    total_purchased_quantity = filtered_queryset.aggregate(Sum('total_purchased_quantity'))['total_purchased_quantity__sum'] or 0
+    total_issued = sum(drug.total_issued for drug in filtered_queryset)
+    total_quantity = sum(drug.current_balance for drug in filtered_queryset)
+    total_value = sum(drug.total_value for drug in filtered_queryset)
 
     context = {
         'drugfilter': drugfilter,
-        'po':po,
+        'po': po,
         'total_appearance': total_appearance,
-        'total_price': total_price,
         'total_quantity': total_quantity,
-
-               }
+        'total_value': total_value,
+    }
+    
     return render(request, 'store/item_report.html', context)
-
 
 
 @group_required('STORE')
@@ -655,6 +650,10 @@ class UnitDashboardView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     context_object_name = 'store'
 
 
+from django.urls import reverse
+from django.utils.http import urlencode
+
+
 class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
     template_name = 'store/unit_bulk_locker.html'
@@ -701,7 +700,12 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
         context['one_month_later'] = one_month_later
         context['three_months_later'] = three_months_later
         context['six_months_later'] = six_months_later
-        
+
+         # Add the drug report URL to the context
+        report_url = reverse('drug_report_view')  # Assuming 'drug_report' is the name of the URL pattern
+        report_url += '?' + urlencode({'filter_type': 'month', 'unit_id': self.object.id})
+        context['drug_report_url'] = report_url
+
         return context
 
 
@@ -1389,3 +1393,34 @@ def box_pdf(request):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
+
+
+
+
+from django.http import Http404
+
+class DrugReportView(ListView):
+    model = Drug
+    template_name = 'store/drugs_report.html'
+    context_object_name = 'report_data'
+
+    def get_queryset(self):
+        unit_id = self.request.GET.get('unit_id')
+        if not unit_id:
+            raise Http404("Unit not specified")
+
+        queryset = Drug.objects.filter(unit_store_drugs__unit_id=unit_id).distinct()
+        self.filterset = DrugReportFilter(self.request.GET, queryset=queryset, request=self.request)
+        
+        # Calculate total_value for each drug
+        filtered_queryset = self.filterset.qs
+        # for drug in filtered_queryset:
+        #     drug.total_value = drug.closing_stock * drug.cost_price
+        
+        return filtered_queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['filter'] = self.filterset
+        context['unit'] = Unit.objects.get(id=self.request.GET.get('unit_id'))
+        return context

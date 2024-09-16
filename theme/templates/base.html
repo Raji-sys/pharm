@@ -65,7 +65,7 @@
                     <a href="{% url 'store_list' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white"><span class="">UNITS</span></a>
                     {%if request.user.is_superuser%}
                     <a href="{% url 'worth' %}" class="text-white hover:text-green-200 transition duration-300 border-b-2 border-transparent hover:border-white">
-                        <span class="">Worth</span></a> {%endif%}
+                        <span class="">value</span></a> {%endif%}
                     {% endif %}
                     {% if request.user.is_authenticated %}
                     <form method="POST" action="{% url 'logout' %}" >
@@ -92,7 +92,7 @@
                 </span>
                 </a>
                 <a href="{% url 'worth' %}" class="block py-2 text-white hover:text-green-200 transition duration-300"><span class="">
-                    Worth
+                    value
                 </span>
                 </a>
                 {% endif %}
