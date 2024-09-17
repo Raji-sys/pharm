@@ -61,7 +61,10 @@ urlpatterns=[
     path('unit/dispensary/dispensed-list/<int:pk>/', DispenseRecordView.as_view(), name='dispensed_list'),
     path('dispense-report/<int:pk>/', views.dispense_report, name='dispense_report'),
     path('dispense-pdf/', views.dispense_pdf, name='dispense_pdf'),
-    # path('sales-stats/', SalesStatsView.as_view(), name='sales_stats'),
+    path('unit/<int:unit_id>/return-drug/', return_drug, name='return_drug'),
+    path('returned-drugs/<int:unit_id>/', ReturnedDrugsListView.as_view(), name='return_drugs_list'),
+    path('return-report/<int:unit_id>/', views.return_report, name='return_report'),
+          # path('sales-stats/', SalesStatsView.as_view(), name='sales_stats'),
     path('get_drugs_by_category/<int:category_id>/', views.get_drugs_by_category, name='get_drugs_by_category'),
     path('',include('django.contrib.auth.urls')),
 ]

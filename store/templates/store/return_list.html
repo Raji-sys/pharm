@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ unit.name }} | RETURNED DRUGS {% endblock %}
+{% block content %}
+<div class="container mx-auto p-4">
+    <span class="flex justify-center p-4 gap-4 text-xl">
+        <a href="{% url 'unit_dashboard' unit.id %}">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <h2 class="text-center text-teal-700 uppercase">{{ unit.name }} RETURNED DRUGS</h2>
+    </span>
+    <div class="flex justify-end items-center m-2 space-x-2">
+        <a href="{% url 'return_drug' unit.id %}"
+       class="inline-flex items-center px-4 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+        <i class="fas fa-plus mr-2"></i> RETURN
+        </a>
+        <a href="{% url 'return_report' unit.id %}"
+        class="inline-flex items-center px-4 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-file-pdf mr-2 fa-2xl"></i>RETURN DRUGS REPORT
+            </a>
+
+        </div>
+
+    <div class="rounded-xl shadow-lg bg-white uppercase">
+        <div class="overflow-x-auto rounded-lg">
+            <table class="min-w-full divide-y divide-purple-200">
+                <thead class="bg-purple-500">
+                    <tr class="text-center text-xs text-white">
+                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">#</th>
+                        <th class="px-4 py-2">Patient Info</th>
+                        <th class="px-4 py-2">Category</th>
+                        <th class="px-4 py-2">Drug</th>
+                        <th class="px-4 py-2">Quantity</th>
+                        <th class="px-4 py-2">Date</th>
+                        <th class="px-4 py-2">Received By</th>
+                                        </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-purple-100">
+                    {% for drug in returned_drugs %}
+                    <tr class="hover:bg-purple-50 transition-colors duration-300 text-xs text-center">
+                        <td class="p-3 whitespace-nowrap text-gray-700">{{ forloop.counter }}</td>
+                        <td class=" px-4 py-2">{{ drug.patient_info }}</td>
+                        <td class=" px-4 py-2">{{ drug.category.name }}</td>
+                        <td class=" px-4 py-2">{{ drug.drug.generic_name }}</td>
+                        <td class=" px-4 py-2">{{ drug.quantity }}</td>
+                        <td class=" px-4 py-2">{{ drug.date }}</td>
+                        <td class=" px-4 py-2">{{ drug.received_by.username }}</td>
+                                        </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="p-3 text-center text-gray-500">No records found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-4 flex items-center justify-between">
+        <div>
+            <p class="text-sm text-gray-700">
+                Showing page <span class="font-medium">{{ page_obj.number }}</span> of <span class="font-medium">{{ page_obj.paginator.num_pages }}</span>
+            </p>
+        </div>
+        {% if is_paginated %}
+        <div class="flex-1 flex justify-end">
+            {% if page_obj.has_previous %}
+            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" 
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-3">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" 
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-3">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% endif %}
+    
+            {% if page_obj.has_next %}
+            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" 
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
+               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 ml-3">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

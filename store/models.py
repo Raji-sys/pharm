@@ -342,7 +342,7 @@ class UnitIssueRecord(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='issuing_unit')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='unitissue_category')
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='issued_drugs')
-    quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
+    quantity = models.PositiveIntegerField(null=True, blank=True)
     date_issued = models.DateTimeField(auto_now_add=True,null=True)
     issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
     moved_to = models.ForeignKey(Box, on_delete=models.CASCADE, related_name='box_moved', null=True, blank=True)
@@ -398,9 +398,10 @@ class DispenseRecord(models.Model):
 
 
 class ReturnedDrugs(models.Model):
+    unit = models.ForeignKey('Unit', on_delete=models.CASCADE, related_name='returned_drugs',null=True)  # New field
+    patient_info = models.CharField(max_length=100,null=True)
     category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True, blank=True, related_name='returned_category')
     drug = models.ForeignKey('Drug', on_delete=models.CASCADE, null=True)
-    unit = models.ForeignKey('Unit', on_delete=models.CASCADE, related_name='returned_drugs',null=True)  # New field
     quantity = models.IntegerField(null=True)
     date = models.DateField(null=True)
     received_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_returning')

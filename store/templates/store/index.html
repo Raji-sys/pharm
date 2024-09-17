@@ -9,15 +9,15 @@
           <i class="fas fa-prescription text-9xl text-white "></i>
         </div>
         <div class="p-4 md:p-16 md:w-2/3">
-          <div class="uppercase tracking-wide text-center text-3xl text-blue-500 font-bold mb-2">
+          <div class="uppercase tracking-wide text-center text-3xl text-blue-500 font-medium mb-2">
             NOHD Pharmacy
           </div>
           <p class="text-gray-500 text-sm mb-6 text-center border-b-2 border-gray-200 pb-2">
             Inventory Management System
           </p>
-          <div class="grid md:grid-cols-2 gap-4 text-sm uppercase font-semibold">
+          <div class="grid md:grid-cols-2 gap-4 text-sm uppercase font-medium">
             <a href="{% url 'main_store' %}" class="group">
-              <div class="bg-sky-600 group-hover:bg-white text-white group-hover:text-sky-600 border border-transparent group-hover:border-sky-500 py-3 px-6 rounded-lg shadow-md group-hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
+              <div class="bg-gradient-to-r from-cyan-600 to-emerald-600 group-hover:bg-white text-white group-hover:text-sky-600 border border-transparent group-hover:border-sky-500 py-3 px-6 rounded-lg shadow-md group-hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center">
                 <i class="fas fa-warehouse mr-3 text-2xl group-hover:scale-110 transition-transform"></i>
                 <span>Main Store</span>
               </div>
@@ -32,7 +32,7 @@
           {% if request.user.is_superuser %}
           <div class="mt-6">
             <a href="{% url 'worth' %}" class="group block">
-              <div class="bg-amber-600 group-hover:bg-white text-white group-hover:text-amber-600 border border-transparent group-hover:border-amber-500 py-3 px-6 rounded-lg shadow-md group-hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center uppercase text-sm font-semibold">
+              <div class="bg-amber-600 group-hover:bg-white text-white group-hover:text-amber-600 border border-transparent group-hover:border-amber-500 py-3 px-6 rounded-lg shadow-md group-hover:shadow-lg transition duration-300 ease-in-out flex items-center justify-center uppercase text-sm font-medium">
                 <span class="mr-3 text-2xl group-hover:scale-110 transition-transform">&#x20A6;</span>
                 <span>Pharmacy Value</span>
               </div>

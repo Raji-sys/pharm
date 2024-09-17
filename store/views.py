@@ -682,9 +682,6 @@ class UnitDashboardView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     context_object_name = 'store'
 
 
-from django.urls import reverse
-from django.utils.http import urlencode
-
 
 class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
@@ -732,11 +729,6 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
         context['one_month_later'] = one_month_later
         context['three_months_later'] = three_months_later
         context['six_months_later'] = six_months_later
-
-         # Add the drug report URL to the context
-        report_url = reverse('drug_report_view')  # Assuming 'drug_report' is the name of the URL pattern
-        report_url += '?' + urlencode({'filter_type': 'month', 'unit_id': self.object.id})
-        context['drug_report_url'] = report_url
 
         return context
 
@@ -1175,7 +1167,6 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
         return self.unit
     
     
-
 @login_required
 def dispense_report(request, pk):
     dispensary = get_object_or_404(DispensaryLocker, id=pk)
@@ -1425,3 +1416,75 @@ def box_pdf(request):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
+
+
+@login_required
+def return_drug(request, unit_id):
+    unit = get_object_or_404(Unit, id=unit_id)
+    ReturnDrugFormSet = modelformset_factory(ReturnedDrugs, form=ReturnDrugForm, extra=2)
+    
+    if request.method == 'POST':
+        formset = ReturnDrugFormSet(request.POST, queryset=ReturnedDrugs.objects.none(), form_kwargs={'unit': unit})
+        if formset.is_valid():
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        if instance.drug and instance.quantity:
+                            instance.unit = unit
+                            instance.received_by = request.user
+                            instance.save()
+
+                            # Update UnitStore
+                            unit_store, created = UnitStore.objects.get_or_create(unit=unit, drug=instance.drug)
+                            unit_store.quantity += instance.quantity
+                            unit_store.save()
+
+                    messages.success(request, 'Drugs returned successfully')
+                    return redirect('return_drugs_list', unit_id=unit.id)
+
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+    else:
+        formset = ReturnDrugFormSet(queryset=ReturnedDrugs.objects.none(), form_kwargs={'unit': unit})
+    
+    return render(request, 'store/return_drugs.html', {'formset': formset, 'unit': unit})
+
+
+class ReturnedDrugsListView(ListView):
+    model = ReturnedDrugs
+    template_name = 'store/return_list.html'
+    context_object_name = 'returned_drugs'
+    paginate_by = 10
+
+    def get_queryset(self):
+        unit_id = self.kwargs.get('unit_id')
+        self.unit = get_object_or_404(Unit, id=unit_id)
+        return ReturnedDrugs.objects.filter(unit=self.unit).order_by('-updated')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['unit'] = self.unit  # Pass the unit to the template
+        return context
+
+@login_required
+def return_report(request, unit_id):
+    unit = get_object_or_404(Unit, id=unit_id)
+    returnfilter = ReturnDrugFilter(request.GET, queryset=ReturnedDrugs.objects.filter(unit=unit).order_by('-updated'))
+
+    filtered_queryset = returnfilter.qs
+    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    total_appearance = filtered_queryset.count()
+
+    pgn = Paginator(filtered_queryset, 10)
+    pn = request.GET.get('page')
+    po = pgn.get_page(pn)
+
+    context = {
+        'unit': unit,
+        'returnfilter': returnfilter,
+        'total_appearance': total_appearance,
+        'total_quantity': total_quantity,
+        'po': po
+    }
+    return render(request, 'store/return_drugs_report.html', context)

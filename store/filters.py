@@ -76,7 +76,7 @@ class RecordFilter(django_filters.FilterSet):
 
     class Meta:
         model = Record
-        exclude = ['date_issued', 'category', 'drug', 'balance', 'siv', 'srv', 'invoice_no', 'updated_at', 'remark', 'quantity']
+        exclude = ['date_issued', 'category', 'drug', 'balance', 'siv', 'srv', 'invoice_no', 'updated_at','updated','remark', 'quantity']
 
 
 
@@ -119,8 +119,7 @@ class RestockFilter(django_filters.FilterSet):
 
     class Meta:
         model = Restock
-        exclude = ['updated', 'date', 'quantity', 'restocked_by']
-
+        exclude = ['updated', 'date', 'quantity', 'restocked_by','expiration_date']
 
 
 class DispenseFilter(django_filters.FilterSet):
@@ -333,3 +332,70 @@ class BoxFilter(django_filters.FilterSet):
     class Meta:
         model = UnitIssueRecord
         fields = ['date_exact', 'date_start', 'date_end', 'drug','issued_by']
+
+
+
+class ReturnDrugFilter(django_filters.FilterSet):
+    # Date Filters
+    date_exact = django_filters.DateFilter(
+        label="Exact Date",
+        field_name='date',
+        lookup_expr='exact',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    date_start = django_filters.DateFilter(
+        label="Date From",
+        field_name='date',
+        lookup_expr='gte',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+    date_end = django_filters.DateFilter(
+        label="Date To",
+        field_name='date',
+        lookup_expr='lte',
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
+
+    # Unit Filter
+    unit = django_filters.ModelChoiceFilter(
+        label="Unit",
+        field_name='unit',
+        queryset=Unit.objects.all(),
+        widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
+    )
+
+    # Category Filter
+    category = django_filters.ModelChoiceFilter(
+        label="Category",
+        field_name='category',
+        queryset=Category.objects.all(),
+        widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
+    )
+
+    # Drug Filter
+    drug = django_filters.CharFilter(
+        label="Drug",
+        field_name='drug__trade_name',
+        lookup_expr='icontains',
+        widget=forms.TextInput(attrs={'class': 'text-xs'})
+    )
+
+    # Received By (User) Filter
+    received_by = django_filters.CharFilter(
+        label="Received By",
+        field_name='received_by__username',
+        lookup_expr='icontains',
+        widget=forms.TextInput(attrs={'class': 'text-xs'})
+    )
+
+    # Patient Info Filter
+    patient_info = django_filters.CharFilter(
+        label="Patient Info",
+        field_name='patient_info',
+        lookup_expr='icontains',
+        widget=forms.TextInput(attrs={'class': 'text-xs'})
+    )
+
+    class Meta:
+        model = ReturnedDrugs
+        fields = ['date_exact', 'date_start', 'date_end', 'unit', 'category', 'drug', 'received_by', 'patient_info']

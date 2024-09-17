@@ -280,3 +280,42 @@ class DispenseRecordForm(forms.ModelForm):
             raise forms.ValidationError(f"{drug} is not available in this dispensary.")
 
         return cleaned_data
+    
+
+
+class ReturnDrugForm(forms.ModelForm):
+    class Meta:
+        model = ReturnedDrugs
+        fields = ['category', 'drug', 'quantity', 'patient_info', 'date']
+
+    def __init__(self, *args, **kwargs):
+        self.unit = kwargs.pop('unit', None)
+        super(ReturnDrugForm, self).__init__(*args, **kwargs) 
+        self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
+        self.fields['date'].widget = forms.DateInput(attrs={'type': 'date'})
+        
+        if self.unit:
+            # Adjust this queryset as needed based on your specific requirements for returns
+            self.fields['drug'].queryset = Drug.objects.filter(
+                unit_store_drugs__unit=self.unit
+            ).distinct()
+
+        for field in self.fields.values():
+            field.required = False
+            field.widget.attrs.update({
+                'class': 'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'
+            })
+
+    def clean(self):
+        cleaned_data = super().clean()
+        drug = cleaned_data.get('drug')
+        quantity = cleaned_data.get('quantity')
+
+        if not drug or not quantity:
+            return cleaned_data
+
+        if quantity <= 0:
+            raise forms.ValidationError("Quantity must be greater than zero.")
+
+
+        return cleaned_data
