@@ -6,20 +6,29 @@
 <span class="flex justify-center p-4 gap-4 text-xl">
     <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>
 <h1 class="text-xl md:text-2xl text-cyan-800 text-center uppercase">MAIN STORE STOCK VALUE</h1>
-</span>
-<div class="w-fit mx-auto px-4 sm:px-6 lg:px-16 py-8 uppercase">
-        <div class="bg-gradient-to-r from-cyan-600 to-emerald-700 p-8 border-b-2 rounded-2xl">
-            <p class="text-emerald-100 text-xs mt-2 text-center">
-                <span class="bg-white text-emerald-700 text-xs px-2 py-1 rounded-full"> As of: {{ today }}</span>
-            </p>
-            <p class="md:text-6xl text-xl font-bold text-white mt-6 flex justify-center">
-                &#x20A6;{{ total_store_value|floatformat:2|intcomma }}
-            </p>
-            <p class="text-xs text-white text-center p-2 mt-2">
-                These values are updated in real-time based on current inventory levels and prices
-            </p>
-
-
-        </div>
-</div>
+</span><div class="w-full max-w-2xl mx-auto px-2 sm:px-3 lg:px-4 py-6">
+    <div class="bg-gradient-to-r from-cyan-600 to-emerald-700 p-8 rounded-3xl shadow-lg">
+      <div class="text-center">
+        <span class="inline-block bg-white text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full shadow-sm">
+          As of: {{ today }}
+        </span>
+      </div>
+      
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-6 mb-2 text-center">
+        &#x20A6;{{ total_store_value|floatformat:2|intcomma }}
+      </h2>
+      <p class="text-emerald-100 text-lg sm:text-xl text-center mb-6">Total Stock Value</p>
+      
+      <div class="bg-white bg-opacity-20 rounded-xl p-4 mb-6">
+        <p class="text-white text-2xl sm:text-3xl font-semibold text-center">
+          {{ total_store_quantity|intcomma }}
+        </p>
+        <p class="text-emerald-100 text-sm sm:text-base text-center">Total Stock Quantity</p>
+      </div>
+      
+      <p class="text-xs text-emerald-100 text-center italic">
+        These values are updated in real-time based on current inventory levels and prices
+      </p>
+    </div>
+  </div>
 {% endblock %}

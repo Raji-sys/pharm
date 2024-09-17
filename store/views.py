@@ -560,7 +560,6 @@ class StoreWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return self.request.user.is_superuser
 
     def handle_no_permission(self):
-        # You can customize this method to redirect non-superusers or show an error message
         return super().handle_no_permission()
 
     template_name = 'store/main_store_value.html'
@@ -569,9 +568,8 @@ class StoreWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['today'] = timezone.now()
         context['total_store_value'] = Drug.total_store_value()
-        
+        context['total_store_quantity'] = Drug.total_store_quantity()
         return context
-
 
 class UnitWorthView(LoginRequiredMixin, DetailView):
     model = Unit
@@ -584,19 +582,51 @@ class UnitWorthView(LoginRequiredMixin, DetailView):
         context['today'] = timezone.now()
 
         store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
+        store_quantity = sum(store.quantity for store in unit.unit_store.all())
+
         locker_value = 0
+        locker_quantity = 0
         if hasattr(unit, 'dispensary_locker'):
-            locker_value = unit.dispensary_locker.inventory.aggregate(
-                total=Sum(F('drug__cost_price') * F('quantity'))
-            )['total'] or 0
+            locker_aggregate = unit.dispensary_locker.inventory.aggregate(
+                value=Sum(F('drug__cost_price') * F('quantity')),
+                quantity=Sum('quantity')
+            )
+            locker_value = locker_aggregate['value'] or 0
+            locker_quantity = locker_aggregate['quantity'] or 0
 
         context['unit_worth'] = {
             'store_value': store_value,
+            'store_quantity': store_quantity,
             'locker_value': locker_value,
-            'total_value': store_value + locker_value
+            'locker_quantity': locker_quantity,
+            'total_value': store_value + locker_value,
+            'total_quantity': store_quantity + locker_quantity
         }
-
         return context
+# class UnitWorthView(LoginRequiredMixin, DetailView):
+#     model = Unit
+#     template_name = 'store/unit_value.html'
+#     context_object_name = 'unit'
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         unit = self.object
+#         context['today'] = timezone.now()
+
+#         store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
+#         locker_value = 0
+#         if hasattr(unit, 'dispensary_locker'):
+#             locker_value = unit.dispensary_locker.inventory.aggregate(
+#                 total=Sum(F('drug__cost_price') * F('quantity'))
+#             )['total'] or 0
+
+#         context['unit_worth'] = {
+#             'store_value': store_value,
+#             'locker_value': locker_value,
+#             'total_value': store_value + locker_value
+#         }
+
+#         return context
 
 
 class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -612,6 +642,8 @@ class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['today'] = timezone.now()
+
+        # context['total_store_quantity'] = Drug.total_store_quantity()
         context['total_store_value'] = Drug.total_store_value()
         context['combined_unit_value'] = Unit.combined_unit_value()
         context['grand_total_value'] = Unit.grand_total_value()
@@ -1393,34 +1425,3 @@ def box_pdf(request):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
-
-
-
-
-from django.http import Http404
-
-class DrugReportView(ListView):
-    model = Drug
-    template_name = 'store/drugs_report.html'
-    context_object_name = 'report_data'
-
-    def get_queryset(self):
-        unit_id = self.request.GET.get('unit_id')
-        if not unit_id:
-            raise Http404("Unit not specified")
-
-        queryset = Drug.objects.filter(unit_store_drugs__unit_id=unit_id).distinct()
-        self.filterset = DrugReportFilter(self.request.GET, queryset=queryset, request=self.request)
-        
-        # Calculate total_value for each drug
-        filtered_queryset = self.filterset.qs
-        # for drug in filtered_queryset:
-        #     drug.total_value = drug.closing_stock * drug.cost_price
-        
-        return filtered_queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['filter'] = self.filterset
-        context['unit'] = Unit.objects.get(id=self.request.GET.get('unit_id'))
-        return context

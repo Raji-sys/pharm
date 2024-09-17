@@ -10,48 +10,104 @@ logger = logging.getLogger(__name__)
 
 
 class Unit(models.Model):
-    name=models.CharField(max_length=200, null=True, blank=True)
-    update=models.DateField(auto_now_add=True,null=True)
-    
+    name = models.CharField(max_length=200, null=True, blank=True)
+    update = models.DateField(auto_now_add=True, null=True)
+
     @transaction.atomic
     def save(self, *args, **kwargs):
         creating = self._state.adding
         super().save(*args, **kwargs)
         if creating:
             DispensaryLocker.objects.create(unit=self)
-    
+
     def total_unit_value(self):
         store_value = sum(
             store.total_value for store in self.unit_store.all()
             if store.total_value is not None
         )
-        # return total_value
-
-    # Calculate value from dispensary locker
         locker_value = 0
         if hasattr(self, 'dispensary_locker'):
             locker_value = self.dispensary_locker.inventory.aggregate(
                 total=Sum(F('drug__cost_price') * F('quantity'))
             )['total'] or 0
-
         return store_value + locker_value
-    
+
+    def total_unit_quantity(self):
+        store_quantity = sum(
+            store.quantity for store in self.unit_store.all()
+        )
+        locker_quantity = 0
+        if hasattr(self, 'dispensary_locker'):
+            locker_quantity = self.dispensary_locker.inventory.aggregate(
+                total=Sum('quantity')
+            )['total'] or 0
+        return store_quantity + locker_quantity
+
     @classmethod
     def combined_unit_value(cls):
-        combined_value = sum(
-            unit.total_unit_value() for unit in cls.objects.all()
-        )
-        return combined_value
+        return sum(unit.total_unit_value() for unit in cls.objects.all())
+
+    @classmethod
+    def combined_unit_quantity(cls):
+        return sum(unit.total_unit_quantity() for unit in cls.objects.all())
 
     @classmethod
     def grand_total_value(cls):
-        main_store_value = Drug.total_store_value()  # Assuming Drug model handles the main store
+        main_store_value = Drug.total_store_value()
         combined_unit_value = cls.combined_unit_value()
-        grand_total = main_store_value + combined_unit_value
-        return grand_total
+        return main_store_value + combined_unit_value
+
+    @classmethod
+    def grand_total_quantity(cls):
+        main_store_quantity = Drug.total_store_quantity()  # Assuming you've added this method to the Drug model
+        combined_unit_quantity = cls.combined_unit_quantity()
+        return main_store_quantity + combined_unit_quantity
 
     def __str__(self):
         return self.name
+# class Unit(models.Model):
+#     name=models.CharField(max_length=200, null=True, blank=True)
+#     update=models.DateField(auto_now_add=True,null=True)
+    
+#     @transaction.atomic
+#     def save(self, *args, **kwargs):
+#         creating = self._state.adding
+#         super().save(*args, **kwargs)
+#         if creating:
+#             DispensaryLocker.objects.create(unit=self)
+    
+#     def total_unit_value(self):
+#         store_value = sum(
+#             store.total_value for store in self.unit_store.all()
+#             if store.total_value is not None
+#         )
+#         # return total_value
+
+#     # Calculate value from dispensary locker
+#         locker_value = 0
+#         if hasattr(self, 'dispensary_locker'):
+#             locker_value = self.dispensary_locker.inventory.aggregate(
+#                 total=Sum(F('drug__cost_price') * F('quantity'))
+#             )['total'] or 0
+
+#         return store_value + locker_value
+    
+#     @classmethod
+#     def combined_unit_value(cls):
+#         combined_value = sum(
+#             unit.total_unit_value() for unit in cls.objects.all()
+#         )
+#         return combined_value
+
+#     @classmethod
+#     def grand_total_value(cls):
+#         main_store_value = Drug.total_store_value()  # Assuming Drug model handles the main store
+#         combined_unit_value = cls.combined_unit_value()
+#         grand_total = main_store_value + combined_unit_value
+#         return grand_total
+
+#     def __str__(self):
+#         return self.name
 
 class Category(models.Model):
     DRUG_CLASSES = [
@@ -136,6 +192,13 @@ class Drug(models.Model):
     def __str__(self):
         return self.generic_name
 
+    @classmethod
+    def total_store_quantity(cls):
+        return sum(drug.total_purchased_quantity - drug.total_issued for drug in cls.objects.all())    
+    # @classmethod
+    # def total_store_quantity(cls):
+    #     return sum(drug.current_balance for drug in cls.objects.all() if drug.current_balance is not None)
+    
     @property
     def total_value(self):
         return self.current_balance * self.cost_price if self.current_balance is not None and self.cost_price is not None else 0
