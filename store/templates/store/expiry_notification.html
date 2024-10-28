@@ -3,10 +3,15 @@
 {% block title %}Expiry Date Notification{% endblock %}
 {% block content %}
 <div class="md:container md:mx-auto mx-1">
-    <span class="flex justify-center p-2 gap-4 text-xl">
-        <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
-        <h1 class="text-lg font-medium text-yellow-600 uppercase">Drug Expiry Notifications</h1>
-    </span>
+    
+    <div class="flex justify-center p-2 gap-4 text-xl">
+        <div>
+            <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
+        </div>
+        <div>
+            <h1 class="text-lg font-medium text-yellow-600 uppercase">Drug Expiry Notifications</h1>
+        </div>
+    </div>
     <div class="flex justify-center gap-4">
         <!-- Notification Box -->
         <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 mb-2 text-xs w-fit" role="alert">

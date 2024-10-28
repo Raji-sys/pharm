@@ -3,14 +3,16 @@
 {% block title %}DISPENSARY RECORD{% endblock %}
 {% block content %}
 <div class="container mx-auto p-4">
-    <span class="flex justify-center p-4 gap-4 text-xl">
+    <div class="flex justify-center p-4 gap-4 text-xl">
         {% if dispensary_locker %}
-        <a href="{% url 'unit_dispensary' dispensary_locker.unit.id %}">
-            <i class="fa-solid fa-arrow-left"></i>
-        </a>
-        <h2 class="text-center text-teal-700 uppercase">{{ dispensary_locker.unit.name }} Dispensary Records</h2>
+        <div>
+            <a href="{% url 'unit_dispensary' dispensary_locker.unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
+        </div>
+        <div>
+            <h2 class="text-lg text-center text-teal-700 uppercase">{{ dispensary_locker.unit.name }} Dispensary Records</h2>
+        </div>
         {% endif %}
-    </span>
+    </div>
     <!-- Filter Form -->
     <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
         <div class="px-4 py-5 sm:p-6">
@@ -60,7 +62,7 @@
         </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 mb-4">
         <div class="bg-rose-700 rounded-lg shadow p-2 text-center">
-            <h4 class="text-white font-medium text-sm mb-2">Total Prescriptions {% if total_dispensed == 1 %}Patient{% else %}Patients{% endif %}</h4>
+            <h4 class="text-white font-medium text-sm mb-2">Total Prescriptions</h4>
             <p class="text-xl font-bold text-blue-800"><span class="bg-white rounded-full px-2">{{ total_dispensed }} </span></p>
         </div>
         <div class="bg-zinc-700 rounded-lg shadow p-2 text-center">

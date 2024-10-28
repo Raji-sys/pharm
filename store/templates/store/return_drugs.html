@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 {% block title %}{{ unit.name }} | RETURN DRUGS FORM{% endblock %}
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-        <span class="flex justify-center p-4 gap-4 text-xl">
-            <a href="{% url 'return_drugs_list' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
-            <h2 class="text-center text-teal-700 uppercase">{{ unit.name }} return drugs form</h2>
-        </span>
+        <div class="flex justify-center p-4 gap-4 text-xl">
+            <div>
+                <a href="{% url 'return_drugs_list' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
+            </div>
+            <div>
+                <h2 class="text-center text-teal-700 uppercase text-lg">{{ unit.name }} return drugs form</h2>
+            </div>
+        </div>
         {% if messages %}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             {% for message in messages %}

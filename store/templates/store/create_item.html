@@ -3,15 +3,14 @@
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-cyan-700 to-cyan-900 px-6 py-4">
-            <span class="flex justify-center p-1 gap-4 text-sm text-white">
-                <a href="{% url 'list' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
-            <h1 class="text-sm text-center  uppercase">
-                Drug Form
-            </h1>
-            </span>
-        </div>
-        
+            <div class=" bg-gradient-to-r from-cyan-700 to-cyan-900 flex justify-center gap-4 text-xl py-2">
+            <div>
+                <a href="{% url 'list' %}" ><i class="text-white fa-solid fa-arrow-left"></i></a>    
+            </div>
+            <div>
+                <h1 class="text-lg text-center text-white uppercase">Drug Form</h1>
+            </div>
+        </div>        
         {% if form.non_field_errors %}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <strong class="">Error!</strong>

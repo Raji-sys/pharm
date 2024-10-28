@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
 {% block title %}Drugs Issuance Record{% endblock %}
 {% block content %}
-<div class="py-4 px-4 sm:px-6 lg:px-6">
-  <div class="max-w-7xl mx-auto">
+<div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-6">
     <div class="bg-amber-100 shadow-xl rounded-lg overflow-hidden">
-      <div class="bg-amber-600 px-4 py-4">
-        <span class="flex justify-center p-1 gap-4 text-sm text-white">
-          <a href="{% url 'record' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
-        <h2 class="text-sm  text-white text-center uppercase">Issue Drugs to Units</h2>
-        </span>
+      <div class="bg-amber-600 flex justify-center gap-4 text-white align-middle text-xl py-2">
+        <div>
+          <a href="{% url 'record' %}" ><i class="text-white fa-solid fa-arrow-left"></i></a>    
+        </div>
+        <div>
+          <h2 class=" text-white text-center uppercase text-lg">Issue Drugs to Units</h2>
+        </div>
       </div>
       {% if formset.non_form_errors %}
   <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative uppercase" role="alert">
@@ -83,7 +84,6 @@
         </div>
       </form>
     </div>
-  </div>
 </div>
 
 <script>

@@ -3,10 +3,14 @@
 {%block title%}{{store.name}} DASHBOARD{%endblock%}
 
 {%block content %}
-<span class="flex justify-center p-4 text-xl gap-4">
-  <a href="{%url 'store_list' %}"><i class="fa-solid fa-arrow-left"></i></a>
-  <h1 class="uppercase text-center  text-teal-700">{{store.name}} DASHBOARD</h1>
-   </span>
+<div class="flex justify-center p-4 text-xl gap-4">
+  <div>
+    <a href="{%url 'store_list' %}"><i class="fa-solid fa-arrow-left"></i></a>
+  </div>
+  <div>
+    <h2 class="uppercase text-center  text-teal-700 text-lg">{{store.name}} DASHBOARD</h2>
+  </div>
+</div>
    <div class="md:max-w-5xl md:mx-auto mt-4 rounded-2xl p-6 md:p-10 mx-2 shadow-xl bg-gray-100">
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
       <a href="{% url 'unit_bulk_locker' store.pk %}" class="block group">

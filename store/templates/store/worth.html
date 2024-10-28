@@ -51,11 +51,15 @@
             </h2>
             <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for unit_name, values in unit_worths.items %}
-                <li class="text-center bg-gradient-to-br from-cyan-500 to-cyan-700 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                <li class="text-center bg-gradient-to-br from-cyan-500 to-cyan-700 p-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
                     <h3 class="text-sm font-semibold text-white mb-3">{{ unit_name }}</h3>
-                    <div class="flex justify-between border-b border-cyan-400 pb-2 mb-2">
-                        <p class="text-xs text-white">bulk locker: <br> &#x20A6;{{ values.store_value|floatformat:2|intcomma }}</p>
-                        <p class="text-xs text-white">dispensary locker: <br> &#x20A6;{{ values.locker_value|floatformat:2|intcomma }}</p>
+                    <div class="flex justify-evenly border-b border-cyan-400  mb-2 pb-2">
+                        <div>
+                            <p class="text-xs text-white">bulk locker: <br> &#x20A6;{{ values.store_value|floatformat:2|intcomma }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-white">dispensary locker: <br> &#x20A6;{{ values.locker_value|floatformat:2|intcomma }}</p>
+                        </div>
                     </div>
                     <p class="text-sm font-bold text-white mt-2">Total: &#x20A6;{{ values.total_value|floatformat:2|intcomma }}</p>
                 </li>

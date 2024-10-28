@@ -3,10 +3,14 @@
 {% block title %}RECORD REPORT{% endblock %}
 
 {% block content %}
-<span class="flex justify-center p-4 gap-4 text-xl">
-    <a href="{% url 'record' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
-<h1 class="text-lg  text-amber-600 text-center uppercase">Issuance Record Report Filters</h1>
-</span>
+<div class="flex justify-center p-4 gap-4 text-xl">
+    <div>
+        <a href="{% url 'record' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
+    </div>
+    <div>
+        <h1 class="text-lg  text-amber-600 text-center uppercase">Issuance Record Report Filters</h1>
+    </div>
+</div>
 <div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}

@@ -3,10 +3,14 @@
 {% block title %}Drug Transfer Report{% endblock %}
 
 {% block content %}
-<span class="flex justify-center p-4 gap-4 text-xl">
-    <a href="{%url 'unit_transfer' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>    
-<h1 class="text-lg text-blue-800 text-center uppercase">{{unit.name}} Drug Transfer Report</h1>
-</span>
+<div class="flex justify-center p-4 gap-4 text-xl">
+    <div>
+        <a href="{%url 'unit_transfer' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>    
+    </div>
+    <div>
+        <h1 class="text-lg text-blue-800 text-center uppercase">{{unit.name}} Drug Transfer Report</h1>
+    </div>
+</div>
 <div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}
