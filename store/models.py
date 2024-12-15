@@ -65,49 +65,6 @@ class Unit(models.Model):
 
     def __str__(self):
         return self.name
-# class Unit(models.Model):
-#     name=models.CharField(max_length=200, null=True, blank=True)
-#     update=models.DateField(auto_now_add=True,null=True)
-    
-#     @transaction.atomic
-#     def save(self, *args, **kwargs):
-#         creating = self._state.adding
-#         super().save(*args, **kwargs)
-#         if creating:
-#             DispensaryLocker.objects.create(unit=self)
-    
-#     def total_unit_value(self):
-#         store_value = sum(
-#             store.total_value for store in self.unit_store.all()
-#             if store.total_value is not None
-#         )
-#         # return total_value
-
-#     # Calculate value from dispensary locker
-#         locker_value = 0
-#         if hasattr(self, 'dispensary_locker'):
-#             locker_value = self.dispensary_locker.inventory.aggregate(
-#                 total=Sum(F('drug__cost_price') * F('quantity'))
-#             )['total'] or 0
-
-#         return store_value + locker_value
-    
-#     @classmethod
-#     def combined_unit_value(cls):
-#         combined_value = sum(
-#             unit.total_unit_value() for unit in cls.objects.all()
-#         )
-#         return combined_value
-
-#     @classmethod
-#     def grand_total_value(cls):
-#         main_store_value = Drug.total_store_value()  # Assuming Drug model handles the main store
-#         combined_unit_value = cls.combined_unit_value()
-#         grand_total = main_store_value + combined_unit_value
-#         return grand_total
-
-#     def __str__(self):
-#         return self.name
 
 class Category(models.Model):
     DRUG_CLASSES = [
@@ -195,9 +152,6 @@ class Drug(models.Model):
     @classmethod
     def total_store_quantity(cls):
         return sum(drug.total_purchased_quantity - drug.total_issued for drug in cls.objects.all())    
-    # @classmethod
-    # def total_store_quantity(cls):
-    #     return sum(drug.current_balance for drug in cls.objects.all() if drug.current_balance is not None)
     
     @property
     def total_value(self):
@@ -350,11 +304,6 @@ class UnitIssueRecord(models.Model):
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     updated_at = models.DateField(auto_now=True)
     
-    # def clean(self):
-    #     if self.issued_to and self.issued_to_locker:
-    #         raise ValidationError("Cannot issue to both a unit and a locker at the same time.")
-    #     if not self.issued_to and not self.issued_to_locker:
-    #         raise ValidationError("Must issue to either a unit or a locker.")
     
     def save(self, *args, **kwargs):
         unit_store = UnitStore.objects.get(unit=self.unit, drug=self.drug)

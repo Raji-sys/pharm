@@ -16,7 +16,23 @@
             <div>
               <h3 class="text-sm uppercase">locker worth: <span class="text-green-700">&#x20A6;{{total_worth}}</span></h3>
             </div>
-
+                                            <!-- Search Form -->
+                                            <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 ">
+                                                <div class="flex items-center w-full sm:w-auto">
+                                                    <label for="q" class="sr-only">Search</label>
+                                                    <input type="text" name="q" id="q" value="{{ query|default_if_none:'' }}" placeholder="Search Drugs or Class..."
+                                                        class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-60">
+                                                </div>
+                                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                                {% if request.GET.urlencode %}
+                                                <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                                                    <i class="fas fa-rotate"></i>
+                                                </a>
+                                                {% endif %}
+                                    
+                                            </form>
             <div class="">
             <a href="{% url 'dispense' store.dispensary_locker.id %}"
                 class="inline-flex items-center px-4 py-2 border border-transparent text-xs lg:text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">

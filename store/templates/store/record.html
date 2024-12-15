@@ -3,8 +3,18 @@
 {% load static %}
 {% block title %}Drug Issue Records{% endblock %}
 {% block content %}
+<section class="text-center border-cyan-700 p-1">
+    {% for message in messages %}
+    <div class="">
+      <div class="bg-yellow-100 rounded-2xl text-sm p-4 w-fit mx-auto" uk-alert>
+        <a href class="uk-alert-close font-bold" uk-close></a>
+        <p class="text-green-700">{{ message }}</p> 
+      </div>
+    </div>
+    {% endfor %}
+  </section>
 <div class="mx-1 py-2">
-    <div class="flex justify-center p-4 gap-4 text-xl">
+    <div class="flex justify-center p-2 gap-4 text-xl">
         <div>
     <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>
 </div>
@@ -12,13 +22,30 @@
     <h1 class="text-lg  text-amber-600 text-center uppercase">Drug Issue Record</h1>
 </div>
     </div>
-    <div class="flex justify-end items-center m-2 space-x-2">
+    <div class=" flex flex-wrap justify-center items-center mb-1 space-x-2 gap-2">
             <a href="{% url 'create_record' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
                 <i class="fas fa-plus fa-2xl mr-2"></i> New Record
             </a>
             <a href="{% url 'record_report' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
                 <i class="fas fa-file-pdf fa-2xl mr-2"></i> Generate Report
             </a>
+                                <!-- Search Form -->
+        <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 ">
+            <div class="flex items-center w-full sm:w-auto">
+                <label for="q" class="sr-only">Search</label>
+                <input type="text" name="q" id="q" value="{{ query|default_if_none:'' }}" placeholder="Search Drugs, Class or Unit issued_to..."
+                    class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-60">
+            </div>
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
+                <i class="fas fa-search"></i>
+            </button>
+            {% if request.GET.urlencode %}
+            <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                <i class="fas fa-rotate"></i>
+            </a>
+            {% endif %}
+
+        </form>
     </div>
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="overflow-x-auto max-h-[70vh]">
