@@ -213,7 +213,7 @@ class UnitIssueFilter(django_filters.FilterSet):
     unit_issued_to = django_filters.ModelChoiceFilter(
         label="LOCKER",
         queryset=Unit.objects.all(),
-        field_name='unit_issued_to',
+        field_name='unit',
         to_field_name='id',
         lookup_expr='exact',
         widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
@@ -239,7 +239,7 @@ class UnitIssueFilter(django_filters.FilterSet):
     
     class Meta:
         model = UnitIssueRecord
-        fields = ['date_exact', 'date_start', 'date_end', 'drug','issued_to_locker','issued_by']
+        fields = ['date_exact', 'date_start', 'date_end', 'drug','issued_by']
 
 
 class TransferFilter(django_filters.FilterSet):
