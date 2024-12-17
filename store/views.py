@@ -957,9 +957,9 @@ def unitissue_report(request, pk):
     
     # Initialize the filter with the queryset and manually set the initial value
     unitissuefilter = UnitIssueFilter(
-        request.GET, 
-        queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'),
-        dispensary_locker=current_dispensary_locker
+        request.GET
+        #, queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'),
+        # dispensary_locker=current_dispensary_locker
     )
     
     # Set initial value for the unit filter
