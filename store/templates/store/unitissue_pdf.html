@@ -133,7 +133,6 @@ h1 {
                 <th class="small-column">#</th>
                 <th class="">UNIT</th>
                 <th class="">DATE ISSUED</th>
-                <th class="">PATIENT</th>
                 <th class="">DRUG INFO</th>
                 <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
@@ -151,9 +150,6 @@ h1 {
             </td>    
             <td class="text-center">
                 {{r.date_issued|default_if_none:''}}<br>
-            </td>    
-            <td class="text-center">
-                {{r.patient|default_if_none:''|upper}}<br>
             </td>    
             <td>
                 {{r.drug.generic_name|default_if_none:''|upper}} <br>
