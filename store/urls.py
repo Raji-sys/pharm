@@ -49,8 +49,8 @@ urlpatterns=[
     path('transfer-pdf/', views.transfer_pdf, name='transfer_pdf'),
     path('box/update/<int:pk>/', BoxUpdateView.as_view(), name='box_update'),
     path('box-report/<int:pk>/', views.box_report, name='box_report'),
-    path('transfer-pdf/', views.box_pdf, name='box_pdf'),
-
+    # path('box-pdf/', views.box_pdf, name='box_pdf'),
+    path('box_pdf/<int:pk>/', views.box_pdf, name='box_pdf'),
 
     path('worth/', InventoryWorthView.as_view(), name='worth'),
     

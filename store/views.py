@@ -1283,7 +1283,8 @@ class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
             unit_issue_records = unit_issue_records.filter(
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
-                Q(drug__category__name__icontains=query)
+                Q(drug__category__name__icontains=query)|
+                Q(moved_to__name__icontains=query)
             )        
         # Paginate the results
         paginator = Paginator(unit_issue_records, self.paginate_by)
@@ -1413,38 +1414,61 @@ def box_report(request, pk):
 
 
 @login_required
-def box_pdf(request):
-    ndate = datetime.datetime.now()
-    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
-    f = BoxFilter(request.GET, queryset=UnitIssueRecord.objects.all()).qs
-    total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+def box_pdf(request, pk):
+    unit = get_object_or_404(Unit, id=pk)
     
-    if f.exists() and f.first().drug.selling_price:
-        first_drug = f.first().drug.selling_price
-    else:
-        first_drug = 0
+    # Fetch unit issue records
+    unit_issue_records = UnitIssueRecord.objects.filter(
+        unit=unit,
+        moved_to__isnull=False, 
+        issued_to_locker__isnull=True
+    ).order_by('-date_issued')
     
-    total_price = total_quantity * first_drug
-    total_appearance = f.count()
-    keys = [key for key, value in request.GET.items() if value]
-    result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
+    # Prepare filter keys
+    keys = []
+    query = request.GET.get('q')
+    if query:
+        keys.append(f": {query}")
     
+    # Apply search query if present
+    query = request.GET.get('q')
+    if query:
+        unit_issue_records = unit_issue_records.filter(
+            Q(drug__generic_name__icontains=query) |
+            Q(drug__trade_name__icontains=query) |
+            Q(drug__category__name__icontains=query) |
+            Q(moved_to__name__icontains=query)
+        )
+    
+    # Calculate totals
+    total_quantity = unit_issue_records.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    total_appearance = unit_issue_records.count()
+    
+    # Get first drug's selling price for total price calculation
+    first_drug_price = unit_issue_records.first().drug.selling_price if unit_issue_records.exists() else 0
+    total_price = total_quantity * first_drug_price
+    
+    # Prepare context for PDF
     context = {
-        'f': f,
-        'pagesize': 'A4',
-        'orientation': 'Portrait',
-        'result': result,
-        'keys': keys,
+        'f': unit_issue_records,  # Match template's variable name
+        'total_quantity': total_quantity,
         'total_appearance': total_appearance,
         'total_price': total_price,
-        'total_quantity': total_quantity,
+        'keys': keys,
+        'result': f"GENERATED ON: {datetime.datetime.now().strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}",
+        'pagesize': 'A4',
+        'orientation': 'Portrait',
     }
     
+    # Generate PDF
     pdf_buffer = generate_pdf(context, 'store/box_pdf.html')
     
     if pdf_buffer is None:
         return HttpResponse('Error generating PDF', status=500)
     
+    # Prepare response
+    ndate = datetime.datetime.now()
+    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
