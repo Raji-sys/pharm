@@ -230,12 +230,12 @@ class UnitIssueFilter(django_filters.FilterSet):
         field_name='issued_by__username',
         lookup_expr='icontains'
     )
-    def __init__(self, *args, **kwargs):
-        dispensary_locker = kwargs.pop('dispensary_locker', None)
-        super().__init__(*args, **kwargs)
-        if dispensary_locker:
-            self.filters['issued_to_locker'].queryset = DispensaryLocker.objects.filter(id=dispensary_locker.id)
-            self.filters['issued_to_locker'].initial = dispensary_locker
+    # def __init__(self, *args, **kwargs):
+    #     dispensary_locker = kwargs.pop('dispensary_locker', None)
+    #     super().__init__(*args, **kwargs)
+    #     if dispensary_locker:
+    #         self.filters['issued_to_locker'].queryset = DispensaryLocker.objects.filter(id=dispensary_locker.id)
+    #         self.filters['issued_to_locker'].initial = dispensary_locker
     
     class Meta:
         model = UnitIssueRecord
