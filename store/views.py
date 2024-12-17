@@ -794,7 +794,7 @@ class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
                 Q(drug__category__name__icontains=query)|
-                Q(issued_to__unit__name__icontains=query)
+                Q(issued_to__name__icontains=query)
             )        
         # Paginate the results
         paginator = Paginator(unit_issue_records, self.paginate_by)
