@@ -211,7 +211,7 @@ class UnitIssueFilter(django_filters.FilterSet):
     #     widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
     # )
     unit_issued_to = django_filters.ModelChoiceFilter(
-        label="LOCKER",
+        label="UNIT DISPENSARY LOCKER",
         queryset=Unit.objects.all(),
         field_name='unit',
         to_field_name='id',
