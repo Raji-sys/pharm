@@ -153,7 +153,7 @@ h1 {
                 {{r.date_issued|default_if_none:''}}<br>
             </td>    
             <td class="text-center">
-                {{r.patient_info|default_if_none:''|upper}}<br>
+                {{r.patient|default_if_none:''|upper}}<br>
             </td>    
             <td>
                 {{r.drug.generic_name|default_if_none:''|upper}} <br>
