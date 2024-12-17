@@ -115,7 +115,7 @@ h1 {
     <div class="logo-container">
         <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
     </div>
-    <h1> NOHD {{f.unit}} PHARMACY TRANSFER REPORT</h1>
+    <h1> NOHD PHARMACY TRANSFER REPORT</h1>
     <div class="result">
       {{ result|upper }}
     </div>
@@ -131,9 +131,8 @@ h1 {
         <thead>
             <tr>
                 <th class="small-column">#</th>
-                <th class="">UNIT</th>
+                <th class="">UNIT FROM</th>
                 <th class="">DATE ISSUED</th>
-                <th class="">PATIENT</th>
                 <th class="">DRUG INFO</th>
                 <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
@@ -151,9 +150,6 @@ h1 {
             </td>    
             <td class="text-center">
                 {{r.date_issued|default_if_none:''}}<br>
-            </td>    
-            <td class="text-center">
-                {{r.patient_info|default_if_none:''|upper}}<br>
             </td>    
             <td>
                 {{r.drug.generic_name|default_if_none:''|upper}} <br>
