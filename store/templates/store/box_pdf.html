@@ -133,12 +133,10 @@ h1 {
                 <th class="small-column">#</th>
                 <th class="">UNIT</th>
                 <th class="">DATE ISSUED</th>
-                <th class="">PATIENT</th>
                 <th class="">DRUG INFO</th>
                 <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
                 <th class="">QUANITITY ISSUED</th>
-                <th class="">ISSUED TO</th>
                 <th class="">ISSUED BY</th>
             </tr>
               {% for r in f %}        
@@ -152,9 +150,6 @@ h1 {
             <td class="text-center">
                 {{r.date_issued|default_if_none:''}}<br>
             </td>    
-            <td class="text-center">
-                {{r.patient_info|default_if_none:''|upper}}<br>
-            </td>    
             <td>
                 {{r.drug.generic_name|default_if_none:''|upper}} <br>
                <small class="t">{{r.drug.strength|default_if_none:''|upper}}</small> 
@@ -167,9 +162,6 @@ h1 {
             </td>
             <td>
             {{r.quantity|default_if_none:''|upper}}
-            </td>
-            <td>
-            {{r.issued_to|default_if_none:''|upper}}
             </td>
             <td>
             {{r.issued_by|default_if_none:''|upper}}
