@@ -1522,7 +1522,7 @@ class ReturnedDrugsListView(ListView):
             queryset = queryset.filter(
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
-                Q(drug__category__name__icontains=query) |
+                Q(category__name__icontains=query) |
                 Q(patient_info__icontains=query)
             )
         return queryset
