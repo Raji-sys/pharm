@@ -145,7 +145,7 @@ h1 {
                 {{forloop.counter}}
             </td>    
             <td class="text-center">
-                {{r.date_issued|date:'d-M-Y'|default_if_none:''|upper}}<br>
+                {{r.date|date:'d-M-Y'|default_if_none:''|upper}}<br>
                 <small> 
                     issued by: {{r.issued_by|default_if_none:''|upper}}
                 </small>
