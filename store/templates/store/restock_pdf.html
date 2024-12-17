@@ -146,9 +146,6 @@ h1 {
             </td>    
             <td class="text-center">
                 {{r.date|date:'d-M-Y'|default_if_none:''|upper}}<br>
-                <small> 
-                    issued by: {{r.issued_by|default_if_none:''|upper}}
-                </small>
             </td>    
             <td>
                 {{r.drug.generic_name|default_if_none:''|upper}} <br>
