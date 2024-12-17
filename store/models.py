@@ -286,7 +286,8 @@ class LockerInventory(models.Model):
         return f"{self.drug} in {self.locker}"
 
 class Box(models.Model):
-    name=models.CharField(max_length=200, null=True, blank=True)
+    boxes=[('expiry box','expiry box'),('damaged box','damaged box'),('others','others')]
+    name=models.CharField(max_length=200, null=True, blank=True, choices=boxes)
     update=models.DateField(auto_now_add=True,null=True)
     
     def __str__(self):
