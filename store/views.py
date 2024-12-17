@@ -1550,6 +1550,6 @@ def return_report(request, unit_id):
         'returnfilter': returnfilter,
         'total_appearance': total_appearance,
         'total_quantity': total_quantity,
-        'page_obj': po
+        'po': po
     }
     return render(request, 'store/return_drugs_report.html', context)
