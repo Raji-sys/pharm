@@ -1034,9 +1034,10 @@ def transfer_report(request, pk):
     unit = get_object_or_404(Unit, id=pk)
     
     transferfilter = TransferFilter(
-        request.GET, 
-        queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'),
-        current_unit=unit
+        request.GET
+        # , 
+        # queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'),
+        # current_unit=unit
     )
     
     transferfilter.form.initial['unit'] = pk

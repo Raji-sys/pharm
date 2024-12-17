@@ -263,13 +263,20 @@ class TransferFilter(django_filters.FilterSet):
         lookup_expr='lte',
         widget=forms.DateInput(attrs={'type': 'date'})
     )
-
     issued_to = django_filters.ModelChoiceFilter(
-        label="UNIT TO",
-        field_name='issued_to',
-        queryset=Unit.objects.none(),
+        label="UNIT TRANSFERRED TO",
+        queryset=Unit.objects.all(),
+        field_name='unit',
+        to_field_name='id',
+        lookup_expr='exact',
         widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
     )
+    # issued_to = django_filters.ModelChoiceFilter(
+    #     label="UNIT TO",
+    #     field_name='issued_to',
+    #     queryset=Unit.objects.none(),
+    #     widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
+    # )
 
     # Drug Filter
     drug = django_filters.CharFilter(
