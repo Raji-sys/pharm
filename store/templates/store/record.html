@@ -3,7 +3,7 @@
 {% load static %}
 {% block title %}Drug Issue Records{% endblock %}
 {% block content %}
-<div class="mx-1 py-2">
+<div class="mx-1 py-2 md:mx-auto">
     <div class="flex justify-center p-2 gap-4 text-xl">
         <div>
     <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>
@@ -41,26 +41,26 @@
         <div class="overflow-x-auto max-h-[70vh]">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-amber-400">
-                    <tr>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Physical Date</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">System Date</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Issued By</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Generic Name</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Trade Name</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Strength</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">Selling Price</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">QTY</th>
-                        <th scope="col" class="p-1 text-center  text-xs font-medium text-gray-900 uppercase tracking-wider">edit</th>
+                    <tr class="text-left">
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Physical Date</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">System Date</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Issued By</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Generic Name</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Trade Name</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Strength</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Unit Issued To</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">Selling Price</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">QTY</th>
+                        <th scope="col" class="p-1  text-xs font-medium text-gray-900 uppercase tracking-wider">edit</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for r in po %}
-                    <tr class="{% cycle 'bg-white' 'bg-amber-50' %} hover:bg-amber-50 transition duration-150 ease-in-out text-center text-xs">
+                    <tr class="{% cycle 'bg-white' 'bg-amber-50' %} hover:bg-amber-50 transition duration-150 ease-in-outtext-left text-xs">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.date_issued|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.updated_at|default_if_none:'N/A' }}</td>
@@ -74,7 +74,7 @@
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.cost_price|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.selling_price|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.quantity|default_if_none:'N/A' }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500 text-center"><a href="{% url 'update_record' r.id %}"><i class="fa fa-solid fa-edit fa-lg text-amber-600"></i></a></td>
+                        <td class="px-3 py-4 whitespace-nowrap  text-gray-500 "><a href="{% url 'update_record' r.id %}"><i class="fa fa-solid fa-edit fa-lg text-amber-600"></i></a></td>
                     </tr>
                     {% endfor %}
                 </tbody>

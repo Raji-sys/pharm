@@ -5,7 +5,7 @@
 {% block title %}Restocking Record{% endblock %}
 
 {% block content %}
-<div class="mx-1 py-2">
+<div class="mx-1 py-2 md:mx-auto">
     <div class="flex justify-center p-4 gap-4 text-xl">
         <div>
             <a href="{% url 'main_store' %}" ><i class="fa-solid fa-arrow-left"></i></a>
@@ -44,22 +44,22 @@
         <div class="overflow-x-auto max-h-[70vh]">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-blue-400">
-                    <tr class="text-xs">
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Date</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">GENERIC NAME</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">STRENGTH</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">TRADE NAME</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">Expiry Date</th>
-                        <th scope="col" class="px-3 py-2 text-center text-xs font-medium text-gray-900 uppercase tracking-wider">edit</th>
+                    <tr class="text-xs text-left">
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">#</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">Category</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">GENERIC NAME</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">STRENGTH</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">TRADE NAME</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">Supplier</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">Quantity</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">Expiry Date</th>
+                        <th scope="col" class="px-3 py-2 text-xs font-medium text-gray-900 uppercase tracking-wider">edit</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     {% for r in po %}
-                    <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-50 transition duration-150 ease-in-out text-center text-xs">
+                    <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-50 transition duration-150 ease-in-out text-xs">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.date|default_if_none:'N/A' }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ r.drug.category|default_if_none:'N/A' }}</td>

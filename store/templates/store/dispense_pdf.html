@@ -140,6 +140,7 @@ h1 {
                 <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
                 <th class="">QUANITITY</th>
+                <th class="">BALANCE</th>
                 <th class="">DISPENSED BY</th>
             </tr>
               {% for r in f %}        
@@ -168,6 +169,9 @@ h1 {
             </td>
             <td>
             {{r.quantity|default_if_none:''|upper}}
+            </td>
+            <td>
+            {{r.balance_quantity|default_if_none:''|upper}}
             </td>
             <td>
             {{r.dispensed_by|default_if_none:''|upper}}

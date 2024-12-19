@@ -144,16 +144,16 @@ class DispenseFilter(django_filters.FilterSet):
     )
 
     # Dispensary Filter
-    dispensary = django_filters.ModelChoiceFilter(
-        label="DISPENSARY",
-        field_name='dispensary',
-        queryset=DispensaryLocker.objects.all(),
-        widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
-    )
+    # dispensary = django_filters.ModelChoiceFilter(
+    #     label="DISPENSARY",
+    #     field_name='dispensary',
+    #     queryset=DispensaryLocker.objects.all(),
+    #     widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
+    # )
 
     category = django_filters.ChoiceFilter(
         label="CATEGORY",
-        field_name='drug__category',
+        field_name='drug__category__name',
         lookup_expr='iexact',
         choices=Category.DRUG_CLASSES,
         widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
@@ -179,7 +179,8 @@ class DispenseFilter(django_filters.FilterSet):
 
     class Meta:
         model = DispenseRecord
-        fields = ['date_exact', 'date_start', 'date_end', 'dispensary', 'category', 'drug', 'dispensed_by', 'patient_info']
+        # fields = ['date_exact', 'date_start', 'date_end', 'dispensary', 'category', 'drug', 'dispensed_by', 'patient_info']
+        fields = ['date_exact', 'date_start', 'date_end', 'category', 'drug', 'dispensed_by', 'patient_info']
 
 
 class UnitIssueFilter(django_filters.FilterSet):

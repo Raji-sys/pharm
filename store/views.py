@@ -826,7 +826,7 @@ def unitissuerecord(request, unit_id):
         UnitIssueRecord,
         form=UnitIssueRecordForm,
         formset=CustomUnitIssueFormSet,
-        extra=2
+        extra=5
         )
 
     if request.method == 'POST':
@@ -1119,7 +1119,7 @@ class UnitIssueRecordListView(LoginRequiredMixin,UnitGroupRequiredMixin,ListView
 @login_required
 def dispenserecord(request, dispensary_id):
     dispensary = get_object_or_404(DispensaryLocker, id=dispensary_id)
-    DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=2)
+    DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=5)
     
     if request.method == 'POST':
         formset = DispensaryFormSet(request.POST, queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})
@@ -1145,7 +1145,7 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
     model = DispenseRecord
     template_name = 'store/dispensed_list.html'
     context_object_name = 'dispensed_list'
-    paginate_by = 5
+    paginate_by = 10
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -1315,7 +1315,7 @@ def boxrecord(request, unit_id):
         UnitIssueRecord,
         form=BoxRecordForm,
         formset=CustomUnitIssueFormSet,
-        extra=2
+        extra=5
         )
 
     if request.method == 'POST':
@@ -1477,7 +1477,7 @@ def box_pdf(request, pk):
 @login_required
 def return_drug(request, unit_id):
     unit = get_object_or_404(Unit, id=unit_id)
-    ReturnDrugFormSet = modelformset_factory(ReturnedDrugs, form=ReturnDrugForm, extra=2)
+    ReturnDrugFormSet = modelformset_factory(ReturnedDrugs, form=ReturnDrugForm, extra=5)
     
     if request.method == 'POST':
         formset = ReturnDrugFormSet(request.POST, queryset=ReturnedDrugs.objects.none(), form_kwargs={'unit': unit})

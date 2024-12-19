@@ -43,7 +43,7 @@
             <div class="overflow-x-auto max-h-[65vh]">
                 <table class="min-w-full divide-y divide-gray-300">
                     <thead class="bg-stone-500">
-                        <tr class="text-xs text-center text-white uppercase">
+                        <tr class="text-xs text-left text-white uppercase">
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">#</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Generic Drug</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
@@ -56,7 +56,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for r in page_obj %}
-                        <tr class="{% cycle 'bg-white' 'bg-stone-50' %} text-xs text-center">
+                        <tr class="{% cycle 'bg-white' 'bg-stone-50' %} text-xs text-left">
                             <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
@@ -64,7 +64,7 @@
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
                             <td class="px-4 py-2 text-gray-700">{{ r.issued_to.name|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 text-gray-700">{{ r.date_issued|date:"d-M-Y" }}</td>
-                            <td class="px-4 py-2 text-center">
+                            <td class="px-4 py-2">
                                 <a href="{% url 'transfer_update' r.id %}" class="text-stone-700 hover:text-stone-900">
                                     <i class="fas fa-edit fa-lg"></i>
                                 </a>

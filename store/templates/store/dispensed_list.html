@@ -2,32 +2,36 @@
 {% load static %}
 {% block title %}DISPENSARY RECORD{% endblock %}
 {% block content %}
-<div class="container mx-auto p-4">
-    <div class="flex justify-center p-2 gap-4 text-xl">
+<div class="container mx-auto p-1">
+    <div class="flex justify-center p-1 gap-2 text-lg">
         {% if dispensary_locker %}
         <div>
-            <a href="{% url 'unit_dispensary' dispensary_locker.unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
+            <a href="{% url 'unit_dispensary' dispensary_locker.unit.id %}" class="text-gray-600 hover:text-gray-800">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
         </div>
         <div>
-            <h2 class="text-lg text-center text-teal-700 uppercase">{{ dispensary_locker.unit.name }} Dispensary Records</h2>
+            <h2 class="text-base text-center text-teal-700 uppercase font-medium">{{ dispensary_locker.unit.name }} Dispensary Records</h2>
         </div>
         {% endif %}
     </div>
-    <div class="flex justify-end items-center m-2 space-x-2">
+    <div class="flex justify-end items-center m-1 space-x-1">
         {% if request.GET.urlencode %}
-            <a href="{% url 'dispense_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
-                <i class="fa-solid fa-file-pdf "></i>
+            <a href="{% url 'dispense_pdf' %}?{{request.GET.urlencode}}" 
+               class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-rose-500">
+                <i class="fa-solid fa-file-pdf"></i>
             </a>
-            <a href="?" class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+            <a href="?" 
+               class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-amber-500">
                 <i class="fa-solid fa-rotate"></i>
             </a>
-            {% endif %}
-        </div>
+        {% endif %}
+    </div>
     <!-- Filter Form -->
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
-        <div class="px-4 py-2 sm:p-6">
-            <form method="get" class="space-y-4">
-                <div class="md:flex md:justify-center gap-4 grid grid-cols-2">
+    <div class="bg-white shadow rounded-lg mb-2">
+        <div class="px-2 py-2">
+            <form method="get" class="space-y-1">
+                <div class="md:flex md:justify-center gap-2 grid grid-cols-2">    
                     {% for field in dispensefilter.form %}
                     <div>
                         <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
@@ -49,81 +53,90 @@
                             >
                         {% endif %}
                         {% if field.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+                            <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
                         {% endif %}
                     </div>
                  {% endfor %}
-                    <button type="submit" class="inline-flex items-center px-4 py-0 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <i class="fa-solid fa-search"></i>
+                 <button type="submit" class=" flex justify-center items-center px-2 py-0 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                     <i class="fa-solid fa-search"></i>&nbsp;search
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 mb-4">
-        <div class="bg-rose-700 rounded-lg shadow p-2 text-center">
-            <h4 class="text-white font-medium text-sm mb-2">Total Prescriptions</h4>
-            <p class="text-xl font-bold text-blue-800"><span class="bg-white rounded-full px-2">{{ total_dispensed }} </span></p>
+    <div class="grid grid-cols-2  md:grid-cols-3 lg:grid-cols-6 gap-4 p-2">
+        <div class="bg-gradient-to-br from-rose-600 to-rose-700 rounded-lg shadow-lg p-2 text-center transform transition-all duration-200 hover:scale-105">
+            <div class="flex items-center justify-between">
+                <i class="fas fa-pills text-white/80 text-sm"></i>
+                <span class="bg-white/90 rounded-full px-2 py-0.5 shadow-sm text-sm font-bold">{{ total_dispensed }}</span>
+            </div>
+            <h4 class="text-white uppercase text-xs m-4">Prescriptions</h4>
         </div>
-        <div class="bg-zinc-700 rounded-lg shadow p-2 text-center">
-            <h4 class="text-white font-medium text-sm mb-2">Dispensed Quantity</h4>
-            <p class="text-xl font-bold text-sky-800">
-                <span class="bg-white rounded-full px-2">
-                    {{ total_quantity }}</p>
-                </span>
+    
+        <div class="bg-gradient-to-br from-zinc-600 to-zinc-700 rounded-lg shadow-lg p-2 text-center transform transition-all duration-200 hover:scale-105">
+            <div class="flex items-center justify-between">
+                <i class="fas fa-box text-white/80 text-sm"></i>
+                <span class="bg-white/90 rounded-full px-2 py-0.5 shadow-sm text-sm font-bold">{{ total_quantity }}</span>
+            </div>
+            <h4 class="text-white uppercase text-xs m-4">Quantity</h4>
         </div>
-        <div class="bg-sky-700 rounded-lg shadow p-2 text-center">
-            <h4 class="text-white font-medium text-sm mb-2">Dispensed by Calculation</h4>
-            <p class="text-xl font-bold text-sky-800"><span class="bg-white rounded-full px-2">
-                &#x20A6;{{ total_cost_price|floatformat:2 }}</p>
-            </span>
+    
+        <div class="bg-gradient-to-br from-sky-600 to-sky-700 rounded-lg shadow-lg p-2 text-center transform transition-all duration-200 hover:scale-105">
+            <div class="flex items-center justify-between">
+                <i class="fas fa-calculator text-white/80 text-sm"></i>
+                <span class="bg-white/90 rounded-full px-2 py-0.5 shadow-sm text-sm font-bold">&#x20A6;{{ total_cost_price|floatformat:2 }}</span>
+            </div>
+            <h4 class="text-white uppercase text-xs m-4">by Calculation</h4>
         </div>
-        <div class="bg-amber-700 rounded-lg shadow p-2 text-center">
-            <h4 class="text-white font-medium text-sm mb-2">Dispensed by Schedule</h4>
-            <p class="text-xl font-bold text-amber-700">
-                <span class="bg-white rounded-full px-2">
-                    &#x20A6;{{ total_selling_price|floatformat:2 }}</p>
-                </span>
+    
+        <div class="bg-gradient-to-br from-amber-600 to-amber-700 rounded-lg shadow-lg p-2 text-center transform transition-all duration-200 hover:scale-105">
+            <div class="flex items-center justify-between">
+                <i class="fas fa-calendar text-white/80 text-sm"></i>
+                <span class="bg-white/90 rounded-full px-2 py-0.5 shadow-sm text-sm font-bold">&#x20A6;{{ total_selling_price|floatformat:2 }}</span>
+            </div>
+            <h4 class="text-white uppercase text-xs m-4">by Schedule</h4>
         </div>
-        <div class="bg-emerald-600 rounded-lg shadow p-2 text-center">
-            <h4 class="text-white font-medium text-sm mb-2">Total Profit</h4>
-            <p class="text-xl font-bold text-emerald-800">
-            <span class="bg-white rounded-full px-2">
-                    &#x20A6;{{ total_profit|floatformat:2 }}</p>
-                </span>
+    
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg shadow-lg p-2 text-center transform transition-all duration-200 hover:scale-105">
+            <div class="flex items-center justify-between">
+                <i class="fas fa-chart-line text-white/80 text-sm"></i>
+                <span class="bg-white/90 rounded-full px-2 py-0.5 shadow-sm text-sm font-bold">&#x20A6;{{ total_profit|floatformat:2 }}</span>
+            </div>
+            <h4 class="text-white uppercase text-xs m-4">Profit</h4>
         </div>
-        <div class="bg-purple-600  rounded-lg shadow p-2 text-center">
-            <h4 class="text-white font-medium text-sm mb-2">Profit Percentage</h4>
-            <p class="text-xl font-bold text-purple-800">
-            <span class="bg-white rounded-full px-2">
-                 {{ percentage|floatformat:2 }}%
-            </p>
-
-                </span>
+    
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-2 text-center transform transition-all duration-200 hover:scale-105">
+            <div class="flex items-center justify-between">
+                <i class="fas fa-percent text-white/80 text-sm"></i>
+                <span class="bg-white/90 rounded-full px-2 py-0.5 shadow-sm text-sm font-bold">{{ percentage|floatformat:2 }}%</span>
+            </div>
+            <h4 class="text-white uppercase text-xs m-4">Profit Percentage</h4>
         </div>
     </div>
+    
+    
     <div class="rounded-xl shadow-lg bg-white uppercase">
         <div class="overflow-x-auto rounded-lg">
             <table class="min-w-full divide-y divide-emerald-200">
-                <thead class="bg-emerald-500">
-                    <tr class="text-center">
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">#</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Patient</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Drug</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Trade Name</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Strength</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Cost Price</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Selling Price</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Quantity</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Balance</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Dispense Date</th>
-                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Dispensed By</th>
+                <thead class="bg-emerald-500 sticky top-0">
+                    <tr class="text-left">
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">#</th>                
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Patient</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Drug</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Trade Name</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Strength</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Cost Price</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Selling Price</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Quantity</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Balance</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Dispense Date</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Dispensed By</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-emerald-100">
                     {% for d in dispensed_list %}
-                    <tr class="hover:bg-emerald-50 transition-colors duration-300 text-xs text-center">
+                    <tr class="hover:bg-emerald-50 transition-colors duration-300 text-xs text-left">
                         <td class="p-3 whitespace-nowrap text-gray-700">{{forloop.counter}}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.patient_info|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.generic_name|default_if_none:'' }}</td>
@@ -138,38 +151,38 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="10" class="p-3 text-center text-gray-500">No records found</td>
+                        <td colspan="10" class="p-2 text-center text-gray-500">No records found</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-    <div class="mt-4 flex items-center justify-between">
+    <div class="mt-2 flex items-center justify-between px-2">
         <div>
-            <p class="text-sm text-gray-700">
-                Showing page <span class="font-medium">{{ page_obj.number }}</span> of <span class="font-medium">{{ page_obj.paginator.num_pages }}</span>
+            <p class="text-xs text-gray-700">
+                Page <span class="font-medium">{{ page_obj.number }}</span> / <span class="font-medium">{{ page_obj.paginator.num_pages }}</span>
             </p>
         </div>
         <div class="flex-1 flex justify-end">
             {% if page_obj.has_previous %}
             <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-3">
+               class="relative inline-flex items-center px-2 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-2">
                 <i class="fas fa-angle-double-left"></i>
             </a>
             <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-3">
+               class="relative inline-flex items-center px-2 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-2">
                 <i class="fas fa-angle-left"></i>
             </a>
             {% endif %}
     
             {% if page_obj.has_next %}
             <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+               class="relative inline-flex items-center px-2 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                 <i class="fas fa-angle-right"></i>
             </a>
             <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 ml-3">
+               class="relative inline-flex items-center px-2 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 ml-2">
                 <i class="fas fa-angle-double-right"></i>
             </a>
             {% endif %}
