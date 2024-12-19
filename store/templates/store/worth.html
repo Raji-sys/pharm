@@ -5,19 +5,19 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 uppercase ">
     <div class="bg-white bg-opacity-50  shadow-lg rounded-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-cyan-600 to-emerald-600 px-6 py-4 border-b-2">
-            <h3 class="text-lg font-bold text-white uppercase tracking-wider text-center">
+        <div class="bg-gradient-to-r from-cyan-600 to-emerald-600 px-6 py-4 border-b-2 text-center">
+            <h3 class="text-lg font-bold text-white uppercase tracking-wider">
                 Live Inventory Value
             </h3>
-            <p class="text-emerald-100 text-xs mt-1 text-center">
+            <p class="text-emerald-100 text-xs mt-1">
                 <span class="bg-white text-emerald-700 text-xs px-2 py-1 rounded-full"> As of: {{ today }}</span>
             </p>
-            <p class="text-xs text-white text-center p-2">
+            <p class="text-xs text-white p-2">
                 These values are updated in real-time based on current inventory levels and prices
             </p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
-            <div class="bg-gradient-to-br from-blue-500 to-blue-700 p-6 rounded-lg text-center shadow-md hover:shadow-lg transition-shadow duration-300 " >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 text-center">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                 <i class="fas fa-warehouse text-white text-3xl mb-2"></i>
                 <h2 class="text-lg font-bold text-gray-100">
                     Main Store Value
@@ -26,7 +26,7 @@
                     &#x20A6;{{ total_store_value|floatformat:2|intcomma }}
                 </p>
             </div>
-            <div class="bg-gradient-to-br from-purple-500 to-purple-700 p-6 rounded-lg text-center shadow-md hover:shadow-lg transition-shadow duration-300">
+            <div class="bg-gradient-to-br from-purple-500 to-purple-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                 <i class="fas fa-hospital-alt text-white text-3xl mb-2"></i>
                 <h2 class="text-lg font-bold text-gray-100">
                     Combined Unit Stores Value
@@ -35,7 +35,7 @@
                     &#x20A6;{{ combined_unit_value|floatformat:2|intcomma }}
                 </p>
             </div>
-            <div class="bg-gradient-to-br from-green-500 to-green-700 p-6 rounded-lg text-center shadow-md hover:shadow-lg transition-shadow duration-300">
+            <div class="bg-gradient-to-br from-green-500 to-green-700 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                 <i class="fas fa-chart-line text-white text-3xl mb-2"></i>
                 <h2 class="text-lg font-bold text-gray-100">
                     Grand Total Value
@@ -45,11 +45,11 @@
                 </p>
             </div>
         </div>
-        <div class="bg-white p-6 rounded-lg">
+        <div class="text-center bg-white rounded-lg">
             <h2 class="text-lg font-bold text-cyan-700 text-center mb-2">
                 Individual Unit Values
             </h2>
-            <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                 {% for unit_name, values in unit_worths.items %}
                 <li class="text-center bg-gradient-to-br from-cyan-500 to-cyan-700 p-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
                     <h3 class="text-sm font-semibold text-white mb-3">{{ unit_name }}</h3>
