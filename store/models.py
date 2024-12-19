@@ -324,6 +324,27 @@ class UnitIssueRecord(models.Model):
         super().save(*args, **kwargs)
 
 
+# class DispenseRecord(models.Model):
+#     dispensary = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, related_name='issuing_dispensary')
+#     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='dispensary_category')
+#     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='dispense_drugs')
+#     quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
+#     patient_info = models.CharField(max_length=100,null=True)
+#     dispensed_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+#     dispense_date = models.DateTimeField(auto_now=True)
+#     updated = models.DateField(auto_now=True)
+    
+#     def clean(self):
+#         pass    
+    
+#     def save(self, *args, **kwargs):
+#         dispense_locker = LockerInventory.objects.get(locker=self.dispensary, drug=self.drug)
+#         if self.quantity > dispense_locker.quantity:
+#             raise ValidationError(_("Not enough drugs in the unit store."), code='invalid_quantity')
+#         # Deduct from the dispensary locker
+#         dispense_locker.quantity -= self.quantity
+#         dispense_locker.save()
+#         super().save(*args, **kwargs)
 class DispenseRecord(models.Model):
     dispensary = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, related_name='issuing_dispensary')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='dispensary_category')
@@ -333,7 +354,8 @@ class DispenseRecord(models.Model):
     dispensed_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     dispense_date = models.DateTimeField(auto_now=True)
     updated = models.DateField(auto_now=True)
-    
+    balance_quantity = models.PositiveIntegerField(default=0)  # New field to store balance quantity
+
     def clean(self):
         pass    
     
@@ -344,6 +366,8 @@ class DispenseRecord(models.Model):
         # Deduct from the dispensary locker
         dispense_locker.quantity -= self.quantity
         dispense_locker.save()
+        # Store current balance quantity
+        self.balance_quantity = dispense_locker.quantity
         super().save(*args, **kwargs)
 
 

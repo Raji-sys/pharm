@@ -1153,7 +1153,7 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
         self.unit = self.dispensary_locker.unit
 
     def get_queryset(self):
-        queryset = DispenseRecord.objects.filter(dispensary=self.dispensary_locker).order_by('-updated')
+        queryset = DispenseRecord.objects.filter(dispensary=self.dispensary_locker).order_by('-dispense_date')
         self.filterset = DispenseFilter(self.request.GET, queryset=queryset)
         self.filterset.form.initial['dispensary'] = self.dispensary_locker.pk
         return self.filterset.qs

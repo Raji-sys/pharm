@@ -10,30 +10,28 @@
             <h2 class="text-center text-teal-700 uppercase text-lg">{{ unit.name }} RETURNED DRUGS</h2>
         </div>
     </div>
-    <div class=" flex flex-wrap justify-center items-center mb-1 space-x-2 gap-2">
+    <div class="flex flex-wrap justify-center items-center mb-1 space-x-2 gap-2">
         <a href="{% url 'return_drug' unit.id %}"
-       class="inline-flex items-center px-4 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-        <i class="fas fa-plus mr-2"></i> RETURN
+           class="inline-flex items-center px-4 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+            <i class="fas fa-plus mr-2"></i> RETURN
         </a>
-                                                <!-- Search Form -->
-                                                <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 ">
-                                                    <div class="flex items-center w-full sm:w-auto">
-                                                        <label for="q" class="sr-only">Search</label>
-                                                        <input type="text" name="q" id="q" value="{{ query|default_if_none:'' }}" placeholder="Search Drugs or Patient Info..."
-                                                            class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-60">
-                                                    </div>
-                                                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
-                                                        <i class="fas fa-search"></i>
-                                                    </button>
-                                                    {% if request.GET.urlencode %}
-                                                    <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
-                                                        <i class="fas fa-rotate"></i>
-                                                    </a>
-                                                    {% endif %}
-                                        
-                                                </form>
-        </div>
-
+        <!-- Search Form -->
+        <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
+            <div class="flex items-center w-full sm:w-auto">
+                <label for="q" class="sr-only">Search</label>
+                <input type="text" name="q" id="q" value="{{ query|default_if_none:'' }}" placeholder="Search Drugs or Patient Info..."
+                       class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-60">
+            </div>
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
+                <i class="fas fa-search"></i>
+            </button>
+            {% if request.GET.urlencode %}
+            <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                <i class="fas fa-rotate"></i>
+            </a>
+            {% endif %}
+        </form>
+    </div>
     <div class="rounded-xl shadow-lg bg-white uppercase">
         <div class="overflow-x-auto rounded-lg">
             <table class="min-w-full divide-y divide-purple-200">
@@ -44,9 +42,7 @@
                         <th class="px-4 py-2">Category</th>
                         <th class="px-4 py-2">Drug</th>
                         <th class="px-4 py-2">Quantity</th>
-                        <th class="px-4 py-2">Date</th>
-                        <th class="px-4 py-2">Received By</th>
-                                        </tr>
+                    </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-purple-100">
                     {% for drug in returned_drugs %}
@@ -56,9 +52,7 @@
                         <td class=" px-4 py-2">{{ drug.category.name }}</td>
                         <td class=" px-4 py-2">{{ drug.drug.generic_name }}</td>
                         <td class=" px-4 py-2">{{ drug.quantity }}</td>
-                        <td class=" px-4 py-2">{{ drug.date }}</td>
-                        <td class=" px-4 py-2">{{ drug.received_by.username }}</td>
-                                        </tr>
+                    </tr>
                     {% empty %}
                     <tr>
                         <td colspan="10" class="p-3 text-center text-gray-500">No records found</td>
@@ -67,38 +61,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
-    <div class="mt-4 flex items-center justify-between">
-        <div>
-            <p class="text-sm text-gray-700">
-                Showing page <span class="font-medium">{{ page_obj.number }}</span> of <span class="font-medium">{{ page_obj.paginator.num_pages }}</span>
-            </p>
-        </div>
-        {% if is_paginated %}
-        <div class="flex-1 flex justify-end">
-            {% if page_obj.has_previous %}
-            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-3">
-                <i class="fas fa-angle-double-left"></i>
-            </a>
-            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-3">
-                <i class="fas fa-angle-left"></i>
-            </a>
-            {% endif %}
-    
-            {% if page_obj.has_next %}
-            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                <i class="fas fa-angle-right"></i>
-            </a>
-            <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}" 
-               class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 ml-3">
-                <i class="fas fa-angle-double-right"></i>
-            </a>
-            {% endif %}
-        </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

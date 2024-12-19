@@ -61,6 +61,7 @@
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade Drug</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Balance QTY</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Cost Price</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Selling Price</th>
                         </tr>
                     </thead>
@@ -73,6 +74,7 @@
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ r.drug.cost_price|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ r.drug.selling_price|default_if_none:'N/A'|upper }}</td>
                         </tr>
                         {% endfor %}

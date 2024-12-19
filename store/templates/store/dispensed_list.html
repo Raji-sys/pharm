@@ -3,7 +3,7 @@
 {% block title %}DISPENSARY RECORD{% endblock %}
 {% block content %}
 <div class="container mx-auto p-4">
-    <div class="flex justify-center p-4 gap-4 text-xl">
+    <div class="flex justify-center p-2 gap-4 text-xl">
         {% if dispensary_locker %}
         <div>
             <a href="{% url 'unit_dispensary' dispensary_locker.unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
@@ -13,9 +13,19 @@
         </div>
         {% endif %}
     </div>
+    <div class="flex justify-end items-center m-2 space-x-2">
+        {% if request.GET.urlencode %}
+            <a href="{% url 'dispense_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
+                <i class="fa-solid fa-file-pdf "></i>
+            </a>
+            <a href="?" class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                <i class="fa-solid fa-rotate"></i>
+            </a>
+            {% endif %}
+        </div>
     <!-- Filter Form -->
     <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
-        <div class="px-4 py-5 sm:p-6">
+        <div class="px-4 py-2 sm:p-6">
             <form method="get" class="space-y-4">
                 <div class="md:flex md:justify-center gap-4 grid grid-cols-2">
                     {% for field in dispensefilter.form %}
@@ -43,23 +53,14 @@
                         {% endif %}
                     </div>
                  {% endfor %}
-                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <i class="fa-solid fa-search mr-2"></i> Search
+                    <button type="submit" class="inline-flex items-center px-4 py-0 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fa-solid fa-search"></i>
                     </button>
                 </div>
             </form>
         </div>
     </div>
-    <div class="flex justify-end items-center m-2 space-x-2">
-        {% if request.GET.urlencode %}
-            <a href="{% url 'dispense_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
-                <i class="fa-solid fa-file-pdf mr-2"></i> Generate PDF
-            </a>
-            <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                <i class="fa-solid fa-rotate mr-2"></i> Reset
-            </a>
-            {% endif %}
-        </div>
+
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 mb-4">
         <div class="bg-rose-700 rounded-lg shadow p-2 text-center">
             <h4 class="text-white font-medium text-sm mb-2">Total Prescriptions</h4>
@@ -102,7 +103,6 @@
                 </span>
         </div>
     </div>
-    {% if request.GET.urlencode %}
     <div class="rounded-xl shadow-lg bg-white uppercase">
         <div class="overflow-x-auto rounded-lg">
             <table class="min-w-full divide-y divide-emerald-200">
@@ -116,6 +116,7 @@
                         <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Cost Price</th>
                         <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Selling Price</th>
                         <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Quantity</th>
+                        <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Balance</th>
                         <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Dispense Date</th>
                         <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">Dispensed By</th>
                     </tr>
@@ -131,6 +132,7 @@
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.cost_price|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.selling_price|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.quantity|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap text-gray-700">{{ d.balance_quantity|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.dispense_date|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.dispensed_by|default_if_none:'' }}</td>
                     </tr>
@@ -174,6 +176,5 @@
         </div>
     </div>
     
-    {% endif %}
 </div>
 {% endblock %}
