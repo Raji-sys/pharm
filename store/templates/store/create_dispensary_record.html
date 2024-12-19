@@ -1,15 +1,15 @@
 {% extends "base.html" %}
-{% block title %}{{ unit }} | BULK TRANSFER{% endblock %}
+{% block title %}{{ unit }} | BULK TO DISPENSARY LOCKER {% endblock %}
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+<div class="mx-auto lg:px-8 py-4">
+    <div class="bg-white shadow-lg rounded-lg">
         <div class="flex justify-center p-4 gap-4 text-xl">
             {% if unit %}
             <div>
                 <a href="{% url 'unit_bulk_locker' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
             </div>
             <div>
-                <h2 class="text-lg text-center text-teal-700 uppercase">{{ unit }} BULK LOCKER TO DISPENSARY TRANSFER FORM</h2>
+                <h2 class="text-lg text-center text-teal-700 uppercase">{{ unit }} BULK LOCKER TO DISPENSARY FORM</h2>
             </div>
         {% endif %}
         </div>
@@ -20,7 +20,7 @@
             {% endfor %}
         </div>
         {% endif %}
-        <form method="post" class="bg-white p-6 rounded-lg shadow-md uppercase">
+        <form method="post" class="p-2 rounded-lg shadow-md uppercase">
             {% csrf_token %}
             {{ formset.management_form }}
             {% for form in formset %}

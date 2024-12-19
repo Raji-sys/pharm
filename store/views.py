@@ -627,6 +627,44 @@ class UnitWorthView(LoginRequiredMixin, DetailView):
         }
         return context
 
+# class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+#     template_name = 'store/worth.html'
+
+#     def test_func(self):
+#         return self.request.user.is_superuser
+
+#     def handle_no_permission(self):
+#         # You can customize this method to redirect non-superusers or show an error message
+#         return super().handle_no_permission()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['today'] = timezone.now()
+
+#         # context['total_store_quantity'] = Drug.total_store_quantity()
+#         context['total_store_value'] = Drug.total_store_value()
+#         context['combined_unit_value'] = Unit.combined_unit_value()
+#         context['grand_total_value'] = Unit.grand_total_value()
+        
+#         unit_worths = {}
+#         for unit in Unit.objects.all().order_by('name'):
+#             store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
+#             locker_value = 0
+#             if hasattr(unit, 'dispensary_locker'):
+#                 locker_value = unit.dispensary_locker.inventory.aggregate(
+#                     total=Sum(F('drug__cost_price') * F('quantity'))
+#                 )['total'] or 0
+#             unit_worths[unit.name] = {
+#                 'store_value': store_value,
+#                 'locker_value': locker_value,
+#                 'total_value': store_value + locker_value
+#             }
+        
+#         context['unit_worths'] = unit_worths
+#         return context
+
+from django.db.models import Sum, F
+
 class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'store/worth.html'
 
@@ -634,36 +672,39 @@ class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return self.request.user.is_superuser
 
     def handle_no_permission(self):
-        # You can customize this method to redirect non-superusers or show an error message
         return super().handle_no_permission()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['today'] = timezone.now()
 
-        # context['total_store_quantity'] = Drug.total_store_quantity()
         context['total_store_value'] = Drug.total_store_value()
         context['combined_unit_value'] = Unit.combined_unit_value()
         context['grand_total_value'] = Unit.grand_total_value()
-        
+
+        units = Unit.objects.all().prefetch_related('unit_store__drug').select_related('dispensary_locker')
         unit_worths = {}
-        for unit in Unit.objects.all().order_by('name'):
-            store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
+
+        for unit in units:
+            store_value = unit.unit_store.aggregate(
+                total_value=Sum(F('drug__cost_price') * F('quantity'))
+            )['total_value'] or 0
+
             locker_value = 0
             if hasattr(unit, 'dispensary_locker'):
                 locker_value = unit.dispensary_locker.inventory.aggregate(
                     total=Sum(F('drug__cost_price') * F('quantity'))
                 )['total'] or 0
+
             unit_worths[unit.name] = {
                 'store_value': store_value,
                 'locker_value': locker_value,
                 'total_value': store_value + locker_value
             }
-        
+
         context['unit_worths'] = unit_worths
         return context
-
-
+    
 class StoreListView(LoginRequiredMixin, ListView):
     model = Unit
     template_name = 'store/store_list.html'
