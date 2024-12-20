@@ -29,6 +29,8 @@ from django.core.exceptions import PermissionDenied
 from .models import Unit
 from decimal import Decimal
 from django.db.models import Sum, F
+from .models import LoginActivity
+
 
 def group_required(group_name):
     def decorator(view_func):
@@ -1577,7 +1579,6 @@ class ReturnedDrugsListView(ListView):
 def return_report(request, unit_id):
     unit = get_object_or_404(Unit, id=unit_id)
     returnfilter = ReturnDrugFilter(request.GET, queryset=ReturnedDrugs.objects.filter(unit=unit).order_by('-updated'))
-
     filtered_queryset = returnfilter.qs
     total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
     total_appearance = filtered_queryset.count()
@@ -1594,3 +1595,58 @@ def return_report(request, unit_id):
         'po': po
     }
     return render(request, 'store/return_drugs_report.html', context)
+
+
+from django.utils import timezone
+from datetime import datetime
+
+class LoginActivityListView(LoginRequiredMixin, ListView):
+    model = LoginActivity
+    template_name = 'store/login_activity_list.html'
+    context_object_name = 'logs'
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset().order_by('-login_time')
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(user__username__icontains=query) |
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query) |
+                Q(ip_address__icontains=query)
+            )
+
+        # Calculate duration for each log entry
+        for log in queryset:
+            if log.logout_time:
+                duration = log.logout_time - log.login_time
+                seconds = int(duration.total_seconds())
+                if seconds < 60:
+                    log.duration = f"{seconds} seconds"
+                else:
+                    minutes = seconds // 60
+                    remaining_seconds = seconds % 60
+                    if remaining_seconds == 0:
+                        log.duration = f"{minutes} minutes"
+                    else:
+                        log.duration = f"{minutes} minutes, {remaining_seconds} seconds"
+            else:
+                # For currently active sessions
+                duration = timezone.now() - log.login_time
+                seconds = int(duration.total_seconds())
+                if seconds < 60:
+                    log.duration = "now"
+                else:
+                    minutes = seconds // 60
+                    log.duration = f"{minutes} minutes"
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        # Count the number of logged-in users
+        context['logged_in_users_count'] = LoginActivity.objects.filter(logout_time__isnull=True).values('user_id').distinct().count()
+
+        return context

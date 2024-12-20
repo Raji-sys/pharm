@@ -7,7 +7,10 @@ from django.utils import timezone
 from datetime import timedelta
 import logging
 logger = logging.getLogger(__name__)
-
+from django.dispatch import receiver
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.utils.timezone import now
+from user_agents import parse
 
 class Unit(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
@@ -351,6 +354,8 @@ class DispenseRecord(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='dispense_drugs')
     quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
     patient_info = models.CharField(max_length=100,null=True)
+    # types = (('EHR','EHR'),('REGULAR', 'REGULAR'), ('NHIS', 'NHIS'),)
+    # patient_type = models.CharField(choices=types, max_length=100, null=True, blank=True)
     dispensed_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     dispense_date = models.DateTimeField(auto_now=True)
     updated = models.DateField(auto_now=True)
@@ -391,3 +396,114 @@ class ReturnedDrugs(models.Model):
 
     class Meta:
         verbose_name_plural = 'returned drugs record'
+
+
+class LoginActivity(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    login_time = models.DateTimeField(auto_now_add=True)
+    logout_time = models.DateTimeField(null=True, blank=True)
+    session_key = models.CharField(max_length=40, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    browser = models.CharField(max_length=255, null=True, blank=True)
+    os = models.CharField(max_length=255, null=True, blank=True)
+    device_type = models.CharField(max_length=50, default='pc')
+    updated = models.DateTimeField(auto_now=True)
+    
+    def get_browser_name(self):
+        ua_lower = self.user_agent.lower() if self.user_agent else ''
+        if 'chrome' in ua_lower:
+            return 'Chrome'
+        elif 'firefox' in ua_lower:
+            return 'Firefox'
+        elif 'safari' in ua_lower and 'chrome' not in ua_lower:
+            return 'Safari'
+        elif 'edge' in ua_lower:
+            return 'Edge'
+        elif 'opera' in ua_lower:
+            return 'Opera'
+        return 'Unknown'
+
+    def get_os_name(self):
+        ua_lower = self.user_agent.lower() if self.user_agent else ''
+        if 'windows' in ua_lower:
+            return 'Windows'
+        elif 'macintosh' in ua_lower or 'mac os' in ua_lower:
+            return 'MacOS'
+        elif 'linux' in ua_lower:
+            return 'Linux'
+        elif 'android' in ua_lower:
+            return 'Android'
+        elif 'iphone' in ua_lower or 'ipad' in ua_lower:
+            return 'iOS'
+        return 'Unknown'
+
+    def get_device_type(self):
+        ua_lower = self.user_agent.lower() if self.user_agent else ''
+        
+        # Check for mobile devices
+        if any(mobile in ua_lower for mobile in ['mobile', 'android', 'iphone', 'ipad', 'ipod']):
+            if 'tablet' in ua_lower or 'ipad' in ua_lower:
+                return 'tablet'
+            return 'mobile'
+        return 'pc'
+
+    def get_device_icon(self):
+        return 'fas fa-desktop'  # Since you're testing from laptop
+
+    def get_os_icon(self):
+        os_name = self.get_os_name()
+        if os_name == 'Windows':
+            return 'fab fa-windows'
+        elif os_name == 'MacOS':
+            return 'fab fa-apple'
+        elif os_name == 'Linux':
+            return 'fab fa-linux'
+        elif os_name == 'Android':
+            return 'fab fa-android'
+        elif os_name == 'iOS':
+            return 'fab fa-apple'
+        return 'fas fa-desktop'
+
+    def get_browser_icon(self):
+        browser_name = self.get_browser_name()
+        if browser_name == 'Chrome':
+            return 'fab fa-chrome'
+        elif browser_name == 'Firefox':
+            return 'fab fa-firefox'
+        elif browser_name == 'Safari':
+            return 'fab fa-safari'
+        elif browser_name == 'Edge':
+            return 'fab fa-edge'
+        elif browser_name == 'Opera':
+            return 'fab fa-opera'
+        return 'fas fa-globe'
+
+@receiver(user_logged_in)
+def log_user_login(sender, request, user, **kwargs):
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    ip_address = request.META.get('REMOTE_ADDR')
+    
+    # Create the activity instance first
+    activity = LoginActivity(
+        user=user,
+        session_key=request.session.session_key,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        device_type='pc'
+    )
+    
+    # Now set browser and OS using the instance methods
+    activity.browser = activity.get_browser_name()
+    activity.os = activity.get_os_name()
+    
+    # Save the instance
+    activity.save()
+
+@receiver(user_logged_out)
+def log_user_logout(sender, request, user, **kwargs):
+    LoginActivity.objects.filter(
+        user=user,
+        logout_time__isnull=True,
+        session_key=request.session.session_key
+    ).update(logout_time=timezone.now())
