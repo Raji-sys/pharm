@@ -449,7 +449,12 @@ class LoginActivity(models.Model):
         return 'pc'
 
     def get_device_icon(self):
-        return 'fas fa-desktop'  # Since you're testing from laptop
+        device_type = self.get_device_type()
+        if device_type == 'mobile':
+            return 'fas fa-mobile-alt'
+        elif device_type == 'tablet':
+            return 'fas fa-tablet-alt'
+        return 'fas fa-desktop'
 
     def get_os_icon(self):
         os_name = self.get_os_name()
