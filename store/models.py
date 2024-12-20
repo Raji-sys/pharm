@@ -516,7 +516,7 @@ def log_user_login(sender, request, user, **kwargs):
     # Now set browser, OS and device type using the instance methods
     activity.browser = activity.get_browser_name()
     activity.os = activity.get_os_name()
-    activity.device_type = activity.detect_device_type()
+    activity.device_type = activity.get_device_type()
     
     # Save the instance
     activity.save()
