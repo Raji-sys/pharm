@@ -1617,29 +1617,52 @@ class LoginActivityListView(LoginRequiredMixin, ListView):
                 Q(ip_address__icontains=query)
             )
 
-        # Calculate duration for each log entry
+        def format_duration(seconds):
+            if seconds < 60:
+                return f"{seconds} seconds"
+            elif seconds < 3600:
+                minutes, seconds = divmod(seconds, 60)
+                return f"{minutes} minutes, {seconds} seconds"
+            elif seconds < 86400:
+                hours, remainder = divmod(seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{hours} hours, {minutes} minutes, {seconds} seconds"
+            elif seconds < 604800:
+                days, remainder = divmod(seconds, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+            elif seconds < 2592000:
+                weeks, remainder = divmod(seconds, 604800)
+                days, remainder = divmod(remainder, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+            elif seconds < 31536000:
+                months, remainder = divmod(seconds, 2592000)
+                weeks, remainder = divmod(remainder, 604800)
+                days, remainder = divmod(remainder, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+            else:
+                years, remainder = divmod(seconds, 31536000)
+                months, remainder = divmod(remainder, 2592000)
+                weeks, remainder = divmod(remainder, 604800)
+                days, remainder = divmod(remainder, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{years} years, {months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+
         for log in queryset:
             if log.logout_time:
                 duration = log.logout_time - log.login_time
-                seconds = int(duration.total_seconds())
-                if seconds < 60:
-                    log.duration = f"{seconds} seconds"
-                else:
-                    minutes = seconds // 60
-                    remaining_seconds = seconds % 60
-                    if remaining_seconds == 0:
-                        log.duration = f"{minutes} minutes"
-                    else:
-                        log.duration = f"{minutes} minutes, {remaining_seconds} seconds"
             else:
-                # For currently active sessions
                 duration = timezone.now() - log.login_time
-                seconds = int(duration.total_seconds())
-                if seconds < 60:
-                    log.duration = "now"
-                else:
-                    minutes = seconds // 60
-                    log.duration = f"{minutes} minutes"
+
+            seconds = int(duration.total_seconds())
+            log.duration = format_duration(seconds)
+
 
         return queryset
 

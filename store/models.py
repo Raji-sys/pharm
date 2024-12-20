@@ -484,6 +484,19 @@ class LoginActivity(models.Model):
             return 'fab fa-opera'
         return 'fas fa-globe'
 
+# @receiver(user_logged_in)
+# def log_user_login(sender, request, user, **kwargs):
+#     user_agent = request.META.get('HTTP_USER_AGENT', '')
+#     ip_address = request.META.get('REMOTE_ADDR')
+    
+#     # Create the activity instance first
+#     activity = LoginActivity(
+#         user=user,
+#         session_key=request.session.session_key,
+#         ip_address=ip_address,
+#         user_agent=user_agent,
+#         device_type='pc'
+#     )
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
     user_agent = request.META.get('HTTP_USER_AGENT', '')
@@ -495,8 +508,18 @@ def log_user_login(sender, request, user, **kwargs):
         session_key=request.session.session_key,
         ip_address=ip_address,
         user_agent=user_agent,
-        device_type='pc'
+        browser='Unknown',  # Set to unknown by default
+        os='Unknown',  # Set to unknown by default
+        device_type='Unknown'  # Set to unknown by default
     )
+    
+    # Now set browser, OS and device type using the instance methods
+    activity.browser = activity.get_browser_name()
+    activity.os = activity.get_os_name()
+    activity.device_type = activity.detect_device_type()
+    
+    # Save the instance
+    activity.save()
     
     # Now set browser and OS using the instance methods
     activity.browser = activity.get_browser_name()
