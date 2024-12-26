@@ -170,7 +170,7 @@ def drugs_list(request):
 
 class DrugUpdateView(LoginRequiredMixin, StoreGroupRequiredMixin, UpdateView):
     model=Drug
-    form_class=DrugForm
+    form_class=DrugUpdateForm
     template_name='store/create_item.html'
     success_url=reverse_lazy('list')
   

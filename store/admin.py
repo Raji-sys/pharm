@@ -8,7 +8,9 @@ from django.utils.dateparse import parse_date
 from datetime import datetime
 from django.utils.dateparse import parse_date
 from import_export import fields, resources
-
+from django.contrib import messages
+from import_export.fields import Field
+from import_export.widgets import Widget
 
 admin.site.site_header="ADMIN PANEL"
 admin.site.index_title="PHARMACY INVENTORY MANAGEMENT SYSTEM"
@@ -18,7 +20,8 @@ admin.site.site_title="NOHD PHARMACY INVENTORY"
 class DrugAdminForm(forms.ModelForm):
     class Meta:
         model = Drug
-        fields = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','expiration_date']  
+        fields = ['cost_price','selling_price','total_purchased_quantity','expiration_date',]  
+        # fields = ['supply_date','generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','selling_price','total_purchased_quantity','expiration_date',]  
 
 
 @admin.register(Category)
@@ -60,7 +63,7 @@ class DrugAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
     resource_class = DrugResource
     form = DrugAdminForm
     exclude = ('added_by', 'balance', 'total_value')
-    list_display = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
+    list_display = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','selling_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
     list_filter = ['supply_date','category','supplier','added_by']
     search_fields = ['generic_name']
     list_per_page=10
@@ -76,28 +79,95 @@ class DrugAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
         obj.save()
 
 
-# @admin.register(Record)
-# class RecordAdmin(admin.ModelAdmin):
-#     exclude = ('issued_by', 'balance')
-#     list_display = ['drug', 'unit_issued_to', 'issued_by_username', 'quantity', 'date_issued','updated_at']
-#     search_fields = ['drug', 'issued_to','drug__supplier','drug__supply_date']
-#     list_filter = ['unit_issued_to', 'drug','drug__supplier','drug__supply_date']
-#     list_per_page = 10
+class ForeignKeyWidget(Widget):
+    def __init__(self, model, field):
+        self.model = model
+        self.field = field
 
-#     def save_model(self, request, obj, form, change):
-#         try:
-#             obj.issued_by = request.user
-#             super().save_model(request, obj, form, change)
-#         except ValidationError as e:
-#             messages.error(request, f"Error: {e.message}")
+    def clean(self, value, row=None, *args, **kwargs):
+        if not value:
+            return None
+        value = value.strip()  # Strip leading and trailing whitespace
+        try:
+            return self.model.objects.get(**{f"{self.field}__iexact": value})
+        except self.model.DoesNotExist:
+            raise IndexError(f"{value} does not exist in the database")
 
-#     def drug_date(self, obj):
-#         return obj.drug.supply_date
+    def render(self, value, obj=None):
+        if isinstance(value, self.model):
+            return getattr(value, self.field)
+        return value
 
-#     def issued_by_username(self, obj):
-#         return obj.issued_by.username if obj.issued_by else None
 
-#     issued_by_username.short_description = "Issued By"
+class RecordResource(resources.ModelResource):
+    id = Field(
+        column_name='id',
+        attribute='id'
+    )
+    category = Field(
+        column_name='category',
+        attribute='category',
+        widget=ForeignKeyWidget(Category, 'name')
+    )
+    drug = Field(
+        column_name='drug',
+        attribute='drug',
+        widget=ForeignKeyWidget(Drug, 'trade_name')
+    )
+    unit_issued_to = Field(
+        column_name='unit_issued_to',
+        attribute='unit_issued_to',
+        widget=ForeignKeyWidget(Unit, 'name')
+    )
+    issued_by = Field(
+        column_name='issued_by',
+        attribute='issued_by',
+        widget=ForeignKeyWidget(User, 'username')
+    )
+    quantity = Field(
+        column_name='quantity',
+        attribute='quantity'
+    )
+    date_issued = Field(
+        column_name='date_issued',
+        attribute='date_issued'
+    )
+    remark = Field(
+        column_name='remark',
+        attribute='remark'
+    )
+
+    class Meta:
+        model = Record
+        fields = ('id', 'category', 'drug', 'unit_issued_to', 'quantity', 'date_issued', 'remark', 'issued_by')
+        import_id_fields = []
+        skip_unchanged = True
+        report_skipped = False
+
+@admin.register(Record)
+class RecordAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
+    exclude = ('issued_by', 'balance')
+    list_display = ['drug', 'unit_issued_to', 'issued_by_username', 'quantity', 'date_issued','updated_at']
+    search_fields = ['drug', 'issued_to','drug__supplier','drug__supply_date']
+    list_filter = ['unit_issued_to','drug__supplier','updated_at']
+    list_per_page = 10
+    resource_class = RecordResource
+
+    def save_model(self, request, obj, form, change):
+        try:
+            obj.issued_by = request.user
+            super().save_model(request, obj, form, change)
+        except ValidationError as e:
+            messages.error(request, f"Error: {e.message}")
+
+    def drug_date(self, obj):
+        return obj.drug.supply_date
+
+    def issued_by_username(self, obj):
+        return obj.issued_by.username if obj.issued_by else None
+
+    issued_by_username.short_description = "Issued By"
+
 
 
 @admin.register(Unit)
