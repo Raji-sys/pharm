@@ -96,6 +96,7 @@ class Category(models.Model):
         ('CARDIOVASCULAR', 'Cardiovascular'),
         ('CNS_STIMULANT', 'CNS Stimulant'),
         ('CORTICOSTEROID', 'Corticosteroid'),
+        ('CONSUMABLES', 'Consumables'),
         ('DERMATOLOGICAL', 'Dermatological'),
         ('DIURETIC', 'Diuretic'),
         ('GASTROINTESTINAL', 'Gastrointestinal'),
