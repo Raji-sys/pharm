@@ -11,6 +11,7 @@ from import_export import fields, resources
 from django.contrib import messages
 from import_export.fields import Field
 from import_export.widgets import Widget
+from import_export.widgets import ForeignKeyWidget
 
 admin.site.site_header="ADMIN PANEL"
 admin.site.index_title="PHARMACY INVENTORY MANAGEMENT SYSTEM"
@@ -30,9 +31,21 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ['name']
     search_fields = ['name']
 
+from django.db.models import Q
+
+class CaseInsensitiveForeignKeyWidget(ForeignKeyWidget):
+    def get_queryset(self, value, row, *args, **kwargs):
+        return self.model.objects.filter(
+            Q(name__iexact=value)
+        )
 
 class DrugResource(resources.ModelResource):
     expiration_date = fields.Field(attribute='expiration_date', column_name='expiration_date')
+    category = fields.Field(
+        attribute='category',
+        column_name='category',
+        widget=CaseInsensitiveForeignKeyWidget(Category, 'name')
+    )
 
     class Meta:
         model = Drug
@@ -97,52 +110,6 @@ class ForeignKeyWidget(Widget):
         if isinstance(value, self.model):
             return getattr(value, self.field)
         return value
-
-
-# class RecordResource(resources.ModelResource):
- 
-#     id = Field(
-#         column_name='id',
-#         attribute='id'
-#     )
-#     category = Field(
-#         column_name='category',
-#         attribute='category',
-#         widget=ForeignKeyWidget(Category, 'name')
-#     )
-#     drug = Field(
-#         column_name='drug',
-#         attribute='drug',
-#         widget=ForeignKeyWidget(Drug, 'trade_name')
-#     )
-#     unit_issued_to = Field(
-#         column_name='unit_issued_to',
-#         attribute='unit_issued_to',
-#         widget=ForeignKeyWidget(Unit, 'name')
-#     )
-#     issued_by = Field(
-#         column_name='issued_by',
-#         attribute='issued_by',
-#         widget=ForeignKeyWidget(User, 'username')
-#     )
-#     quantity = Field(
-#         column_name='quantity',
-#         attribute='quantity'
-#     )
-#     date_issued = Field(
-#         column_name='date_issued',
-#         attribute='date_issued'
-#     )
-#     remark = Field(
-#         column_name='remark',
-#         attribute='remark'
-#     )
-#     class Meta:
-#         model = Record
-#         fields = ('id', 'category', 'drug', 'unit_issued_to', 'quantity', 'date_issued', 'remark', 'issued_by')
-#         import_id_fields = []
-#         skip_unchanged = True
-#         report_skipped = False
 
 class RecordResource(resources.ModelResource):
     id = Field(
