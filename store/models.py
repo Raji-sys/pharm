@@ -134,7 +134,7 @@ class Drug(models.Model):
     dosage=(('TABLET','TABLET'),('CAPSULE','CAPSULE'),('SYRUP','SYRUP'),('INJECTION','INJECTION'),('INFUSION','INFUSION'),('SUSPENSION','SUSPENSION'),('SOLUTION','SOLUTION'),('CONSUMABLE','CONSUMABLE'),('POWDER','POWDER'),('GRANULE','GRANULE'),('PELLET','PELLET'),
             ('EMULSION','EMULSION'),('TINCTURE','TINCTURE'),('OINTMENT','OINMENT'),('CREAM','CREAM'),('GEL','GEL'),('SUPPOSITORY','SUPPOSITORY'),('INHALER','INHALER'),('IMPLANT','IMPLANT'),('LOZENGE','LOZENGEN'),('SPRAY','SPRAY'),('TRANSDERMAL PATCH','TRANSDERMAL PATCH'))
     dosage_form = models.CharField(choices=dosage,max_length=100, null=True, blank=True)
-    pack_size = models.CharField('PACK SIZE',max_length=100, null=True, blank=True)
+    pack_size = models.IntegerField('PACK SIZE', null=True, blank=True)
     cost_price = models.DecimalField('COST PRICE',max_digits=10, decimal_places=2, null=True, blank=True)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     total_purchased_quantity = models.PositiveIntegerField('TOTAL QTY PURCHASED',default=0)
@@ -149,7 +149,21 @@ class Drug(models.Model):
             if timezone.now().date() >= six_months_before and not self.entered_expiry_period:
                 self.entered_expiry_period = timezone.now()
         super().save(*args, **kwargs)
-    
+
+    @property
+    def piece_unit_cost_price(self):
+        """Calculate unit cost price based on pack size, rounded to two decimal places."""
+        if self.pack_size and self.cost_price:
+            return round(self.cost_price / self.pack_size, 2)
+        return None
+
+    @property
+    def piece_unit_selling_price(self):
+        """Calculate unit selling price based on pack size, rounded to two decimal places."""
+        if self.pack_size and self.selling_price:
+            return round(self.selling_price / self.pack_size, 2)
+        return None
+
     def __str__(self):
         return self.generic_name
 
@@ -173,6 +187,18 @@ class Drug(models.Model):
     @property
     def current_balance(self):
         return self.total_purchased_quantity - self.total_issued
+    
+    @property
+    def total_items_purchased(self):
+        return (self.total_purchased_quantity or 0) * (self.pack_size or 1)
+    
+    @property
+    def total_items_issued(self):
+        return self.total_issued * (self.pack_size or 1)
+    
+    @property
+    def items_in_stock(self):
+        return self.total_items_purchased - self.total_items_issued
 
     class Meta:
         verbose_name_plural = 'drugs'
@@ -190,48 +216,95 @@ class Record(models.Model):
     updated = models.DateField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            if self.pk:
-                original_record = Record.objects.select_for_update().get(pk=self.pk)
-                net_quantity_change = self.quantity - original_record.quantity
+        try:
+            with transaction.atomic():
+                if self.pk:
+                    original_record = Record.objects.select_for_update().get(pk=self.pk)
+                    items_change = (self.quantity - original_record.quantity) * self.drug.pack_size
 
-                # Handle unit store updates
-                if original_record.unit_issued_to != self.unit_issued_to:
-                    # Remove quantity from old unit
-                    UnitStore.objects.filter(
-                        unit=original_record.unit_issued_to,
-                        drug=original_record.drug
-                    ).update(quantity=F('quantity') - original_record.quantity)
+                    # Handle unit store updates
+                    if original_record.unit_issued_to!= self.unit_issued_to:
+                        # Remove quantity (in pieces) from old unit
+                        UnitStore.objects.filter(
+                            unit=original_record.unit_issued_to,
+                            drug=original_record.drug
+                        ).update(quantity=F('quantity') - original_record.quantity * original_record.drug.pack_size)
 
-                    # Add quantity to new unit
-                    new_unit_store, created = UnitStore.objects.get_or_create(
+                    # Update quantity (in pieces) in the new unit
+                    unit_store, created = UnitStore.objects.get_or_create(
                         unit=self.unit_issued_to,
                         drug=self.drug,
                         defaults={'quantity': 0}
                     )
-                    new_unit_store.quantity = F('quantity') + self.quantity
-                    new_unit_store.save()
-                else:
-                    # Update quantity in the same unit
-                    UnitStore.objects.filter(
+                    if created:
+                        unit_store.quantity = self.quantity * self.drug.pack_size
+                    else:
+                        unit_store.quantity = F('quantity') + items_change
+                    unit_store.save()
+                else:  # New record
+                    # Add quantity (in pieces) to the unit store
+                    unit_store, created = UnitStore.objects.get_or_create(
                         unit=self.unit_issued_to,
-                        drug=self.drug
-                    ).update(quantity=F('quantity') + net_quantity_change)
+                        drug=self.drug,
+                        defaults={'quantity': 0}
+                    )
+                    unit_store.quantity = F('quantity') + self.quantity * self.drug.pack_size
+                    unit_store.save()
 
-            else:  # New record
-                # Add quantity to the unit store
-                unit_store, created = UnitStore.objects.get_or_create(
-                    unit=self.unit_issued_to,
-                    drug=self.drug,
-                    defaults={'quantity': 0}
-                )
-                unit_store.quantity = F('quantity') + self.quantity
-                unit_store.save()
+                super().save(*args, **kwargs)
+        except Exception as e:
+            raise ValidationError(f"Error updating unit store: {str(e)}")
 
-            super().save(*args, **kwargs)
+    def clean(self):
+        if self.quantity < 0:
+            raise ValidationError("Quantity cannot be negative")
+        if self.drug is None or self.unit_issued_to is None:
+            raise ValidationError("Drug and unit issued to cannot be null")
 
     class Meta:
         verbose_name_plural = 'drugs issued record'
+    
+    # def save(self, *args, **kwargs):
+    #     with transaction.atomic():
+    #         if self.pk:
+    #             original_record = Record.objects.select_for_update().get(pk=self.pk)
+    #             net_quantity_change = self.quantity - original_record.quantity
+
+    #             # Handle unit store updates
+    #             if original_record.unit_issued_to != self.unit_issued_to:
+    #                 # Remove quantity from old unit
+    #                 UnitStore.objects.filter(
+    #                     unit=original_record.unit_issued_to,
+    #                     drug=original_record.drug
+    #                 ).update(quantity=F('quantity') - original_record.quantity)
+
+    #                 # Add quantity to new unit
+    #                 new_unit_store, created = UnitStore.objects.get_or_create(
+    #                     unit=self.unit_issued_to,
+    #                     drug=self.drug,
+    #                     defaults={'quantity': 0}
+    #                 )
+    #                 new_unit_store.quantity = F('quantity') + self.quantity
+    #                 new_unit_store.save()
+    #             else:
+    #                 # Update quantity in the same unit
+    #                 UnitStore.objects.filter(
+    #                     unit=self.unit_issued_to,
+    #                     drug=self.drug
+    #                 ).update(quantity=F('quantity') + net_quantity_change)
+
+    #         else:  # New record
+    #             # Add quantity to the unit store
+    #             unit_store, created = UnitStore.objects.get_or_create(
+    #                 unit=self.unit_issued_to,
+    #                 drug=self.drug,
+    #                 defaults={'quantity': 0}
+    #             )
+    #             unit_store.quantity = F('quantity') + self.quantity
+    #             unit_store.save()
+
+    #         super().save(*args, **kwargs)
+
 
 
 class Restock(models.Model):
@@ -259,10 +332,10 @@ class UnitStore(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='unit_store_drugs')
     quantity = models.PositiveIntegerField('Quantity Available', default=0)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     @property
     def total_value(self):
-        return self.quantity * self.drug.cost_price
+        return self.quantity * self.drug.piece_unit_selling_price
 
     def __str__(self):
         return f"{self.quantity} of {self.drug.generic_name} in {self.unit.name}"

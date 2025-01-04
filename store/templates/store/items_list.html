@@ -53,8 +53,10 @@
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Dosage Form</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Pack Size</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Balance</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price</th>
-                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Selling Price</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price (Pack)</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Selling Price(Pack)</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Cost Price (Pieces)</th>
+                        <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Selling Price(Pieces)</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Expiry Date</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">Value</th>
                         <th scope="col" class="px-3   text-xs font-medium text-gray-900 uppercase tracking-wider">edit</th>
@@ -71,10 +73,12 @@
                         <td class="p-3 whitespace-nowrap  font-medium text-gray-900">{{ i.strength|default_if_none:''|upper }}</td>
                         <td class="p-3 whitespace-nowrap  text-gray-500">{{ i.supplier|default_if_none:'N/A'|upper }}</td>
                         <td class="p-3 whitespace-nowrap  text-gray-500">{{ i.dosage_form|default_if_none:'N/A' }}</td>
-                        <td class="p-3 whitespace-nowrap  text-gray-500">{{ i.pack_size|default_if_none:'N/A'|upper }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-500">{{ i.pack_size|default_if_none:'N/A'}}'s</td>
                         <td class="p-3 whitespace-nowrap  text-gray-500">{%if i.current_balance <= 0 %} <span class="text-rose-700 font-semibold">O/S</span>{%else%}{{ i.current_balance|default_if_none:'O/S' }}{%endif%}</td>
                         <td class="p-3 whitespace-nowrap  text-gray-500">&#x20A6;{{ i.cost_price|default_if_none:'N/A' }}</td>
                         <td class="p-3 whitespace-nowrap  text-gray-500">&#x20A6;{{ i.selling_price|default_if_none:'N/A' }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-500">&#x20A6;{{ i.piece_unit_cost_price|default_if_none:'N/A' }}</td>
+                        <td class="p-3 whitespace-nowrap  text-gray-500">&#x20A6;{{ i.piece_unit_selling_price|default_if_none:'N/A' }}</td>
                         <td class="p-3 whitespace-nowrap">
                             {% if i.expiration_date %}
                             {% if i.expiry_status == 'expired' %}

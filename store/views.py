@@ -629,41 +629,6 @@ class UnitWorthView(LoginRequiredMixin, DetailView):
         }
         return context
 
-# class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-#     template_name = 'store/worth.html'
-
-#     def test_func(self):
-#         return self.request.user.is_superuser
-
-#     def handle_no_permission(self):
-#         # You can customize this method to redirect non-superusers or show an error message
-#         return super().handle_no_permission()
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['today'] = timezone.now()
-
-#         # context['total_store_quantity'] = Drug.total_store_quantity()
-#         context['total_store_value'] = Drug.total_store_value()
-#         context['combined_unit_value'] = Unit.combined_unit_value()
-#         context['grand_total_value'] = Unit.grand_total_value()
-        
-#         unit_worths = {}
-#         for unit in Unit.objects.all().order_by('name'):
-#             store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
-#             locker_value = 0
-#             if hasattr(unit, 'dispensary_locker'):
-#                 locker_value = unit.dispensary_locker.inventory.aggregate(
-#                     total=Sum(F('drug__cost_price') * F('quantity'))
-#                 )['total'] or 0
-#             unit_worths[unit.name] = {
-#                 'store_value': store_value,
-#                 'locker_value': locker_value,
-#                 'total_value': store_value + locker_value
-#             }
-        
-#         context['unit_worths'] = unit_worths
-#         return context
 
 from django.db.models import Sum, F
 
@@ -932,7 +897,6 @@ class TransferUpdateView(LoginRequiredMixin,UnitGroupRequiredMixin,UpdateView):
 
 
 
-
 @unit_group_required
 def dispensaryissuerecord(request, unit_id):
     unit = get_object_or_404(Unit, id=unit_id)
@@ -1011,8 +975,8 @@ def unitissue_report(request, pk):
     
     filtered_queryset = unitissuefilter.qs
     total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists() and filtered_queryset.first().drug.selling_price:
-        first_drug = filtered_queryset.first().drug.selling_price
+    if filtered_queryset.exists() and filtered_queryset.first().drug.piece_unit_selling_price:
+        first_drug = filtered_queryset.first().drug.piece_unit_selling_price
     else:
         first_drug = 0
 
@@ -1042,8 +1006,8 @@ def unitissue_pdf(request):
     f = UnitIssueFilter(request.GET, queryset=UnitIssueRecord.objects.all()).qs
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
     
-    if f.exists() and f.first().drug.selling_price:
-        first_drug = f.first().drug.selling_price
+    if f.exists() and f.first().drug.piece_unit_selling_price:
+        first_drug = f.first().drug.piece_unit_selling_price
     else:
         first_drug = 0
     
@@ -1088,8 +1052,8 @@ def transfer_report(request, pk):
     
     filtered_queryset = transferfilter.qs
     total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists() and filtered_queryset.first().drug.selling_price:
-        first_drug = filtered_queryset.first().drug.selling_price
+    if filtered_queryset.exists() and filtered_queryset.first().drug.piece_unit_selling_price:
+        first_drug = filtered_queryset.first().drug.piece_unit_selling_price
     else:
         first_drug = 0
 
@@ -1118,8 +1082,8 @@ def transfer_pdf(request):
     f = TransferFilter(request.GET, queryset=UnitIssueRecord.objects.all()).qs
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
     
-    if f.exists() and f.first().drug.selling_price:
-        first_drug = f.first().drug.selling_price
+    if f.exists() and f.first().drug.piece_unit_selling_price:
+        first_drug = f.first().drug.piece_unit_selling_price
     else:
         first_drug = 0
     
@@ -1209,13 +1173,13 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
                 
         price_totals = filtered_queryset.aggregate(
             total_cost=Sum(F('quantity') * F('drug__cost_price')),
-            total_selling=Sum(F('quantity') * F('drug__selling_price')),
+            total_selling=Sum(F('quantity') * F('drug__piece_unit_selling_price')),
             total_quantity=Sum('quantity')
         )
 
         context['total_cost_price'] = price_totals['total_cost'] or Decimal('0.00')
-        context['total_selling_price'] = price_totals['total_selling'] or Decimal('0.00')
-        context['total_profit'] = context['total_selling_price'] - context['total_cost_price']
+        context['total_piece_unit_selling_price'] = price_totals['total_selling'] or Decimal('0.00')
+        context['total_profit'] = context['total_piece_unit_selling_price'] - context['total_cost_price']
 
         context['percentage'] = (
             (context['total_profit'] / context['total_cost_price']) * 100
@@ -1223,7 +1187,7 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
 
         context['total_quantity'] = price_totals['total_quantity'] or 0
 
-        context['total_price'] = context['total_selling_price']
+        context['total_price'] = context['total_piece_unit_selling_price']
         
         context['dispensary_locker'] = self.dispensary_locker
         context['dispensefilter'] = self.filterset
@@ -1246,8 +1210,8 @@ def dispense_report(request, pk):
     
     filtered_queryset = dispensefilter.qs
     total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists() and filtered_queryset.first().drug.selling_price:
-        first_drug = filtered_queryset.first().drug.selling_price
+    if filtered_queryset.exists() and filtered_queryset.first().drug.piece_unit_selling_price:
+        first_drug = filtered_queryset.first().drug.piece_unit_selling_price
     else:
         first_drug = 0
 
@@ -1276,8 +1240,8 @@ def dispense_pdf(request):
     f = DispenseFilter(request.GET, queryset=DispenseRecord.objects.all()).qs
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
     
-    if f.exists() and f.first().drug.selling_price:
-        first_drug = f.first().drug.selling_price
+    if f.exists() and f.first().drug.piece_unit_selling_price:
+        first_drug = f.first().drug.piece_unit_selling_price
     else:
         first_drug = 0
     
@@ -1433,8 +1397,8 @@ def box_report(request, pk):
     
     filtered_queryset = boxfilter.qs
     total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists() and filtered_queryset.first().drug.selling_price:
-        first_drug = filtered_queryset.first().drug.selling_price
+    if filtered_queryset.exists() and filtered_queryset.first().drug.piece_unit_selling_price:
+        first_drug = filtered_queryset.first().drug.piece_unit_selling_price
     else:
         first_drug = 0
 
@@ -1488,7 +1452,7 @@ def box_pdf(request, pk):
     total_appearance = unit_issue_records.count()
     
     # Get first drug's selling price for total price calculation
-    first_drug_price = unit_issue_records.first().drug.selling_price if unit_issue_records.exists() else 0
+    first_drug_price = unit_issue_records.first().drug.piece_unit_selling_price if unit_issue_records.exists() else 0
     total_price = total_quantity * first_drug_price
     
     # Prepare context for PDF
