@@ -606,18 +606,22 @@ class UnitWorthView(LoginRequiredMixin, DetailView):
         unit = self.object
         context['today'] = timezone.now()
 
-        store_value = sum(store.total_value for store in unit.unit_store.all() if store.total_value is not None)
+        # Calculate store values using Python, not ORM
+        store_value = sum(
+            ((store.drug.cost_price or 0) / (store.drug.pack_size or 1)) * (store.quantity or 0)
+            for store in unit.unit_store.all()
+        )
         store_quantity = sum(store.quantity for store in unit.unit_store.all())
 
         locker_value = 0
         locker_quantity = 0
         if hasattr(unit, 'dispensary_locker'):
-            locker_aggregate = unit.dispensary_locker.inventory.aggregate(
-                value=Sum(F('drug__cost_price') * F('quantity')),
-                quantity=Sum('quantity')
+            # Calculate locker values dynamically in Python
+            locker_value = sum(
+                ((inventory.drug.cost_price or 0) / (inventory.drug.pack_size or 1)) * (inventory.quantity or 0)
+                for inventory in unit.dispensary_locker.inventory.all()
             )
-            locker_value = locker_aggregate['value'] or 0
-            locker_quantity = locker_aggregate['quantity'] or 0
+            locker_quantity = sum(inventory.quantity for inventory in unit.dispensary_locker.inventory.all())
 
         context['unit_worth'] = {
             'store_value': store_value,
@@ -654,13 +658,17 @@ class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         for unit in units:
             store_value = unit.unit_store.aggregate(
-                total_value=Sum(F('drug__cost_price') * F('quantity'))
+                total_value=Sum(
+                    ExpressionWrapper(F('drug__cost_price') / F('drug__pack_size'), output_field=DecimalField()) * F('quantity')
+                )
             )['total_value'] or 0
 
             locker_value = 0
             if hasattr(unit, 'dispensary_locker'):
                 locker_value = unit.dispensary_locker.inventory.aggregate(
-                    total=Sum(F('drug__cost_price') * F('quantity'))
+                    total=Sum(
+                        ExpressionWrapper(F('drug__cost_price') / F('drug__pack_size'), output_field=DecimalField()) * F('quantity')
+                    )
                 )['total'] or 0
 
             unit_worths[unit.name] = {
@@ -671,6 +679,7 @@ class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         context['unit_worths'] = unit_worths
         return context
+
     
 class StoreListView(LoginRequiredMixin, ListView):
     model = Unit
@@ -758,9 +767,15 @@ class UnitDispensaryLockerView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
         dispensary_drugs = LockerInventory.objects.filter(locker__unit=self.object).select_related('drug').order_by('-updated')
 
         # Calculate total worth
-        total_worth = dispensary_drugs.aggregate(
-            total=Sum(F('drug__cost_price') * F('quantity'))
-        )['total'] or 0
+        # total_worth = dispensary_drugs.aggregate(
+        #     total=Sum(F('drug__piece_unit_cost_price') * F('quantity'))
+        # )['total'] or 0
+         # Dynamically calculate total worth
+          # Dynamically calculate total worth
+        total_worth = round(sum(
+            ((drug.drug.cost_price or 0) / (drug.drug.pack_size or 1)) * drug.quantity
+            for drug in dispensary_drugs
+        ), 2)
         query = self.request.GET.get('q')
         if query:
             dispensary_drugs = dispensary_drugs.filter(
@@ -1172,8 +1187,8 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
         context['total_dispensed'] = filtered_queryset.count()
                 
         price_totals = filtered_queryset.aggregate(
-            total_cost=Sum(F('quantity') * F('drug__cost_price')),
-            total_selling=Sum(F('quantity') * F('drug__piece_unit_selling_price')),
+            total_cost=Sum(F('quantity') * (F('drug__cost_price') / F('drug__pack_size'))),
+            total_selling=Sum(F('quantity') * (F('drug__selling_price') / F('drug__pack_size'))),
             total_quantity=Sum('quantity')
         )
 

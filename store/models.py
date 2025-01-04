@@ -11,6 +11,7 @@ from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.utils.timezone import now
 from user_agents import parse
+from django.db.models import F, ExpressionWrapper, DecimalField
 
 class Unit(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
@@ -23,17 +24,36 @@ class Unit(models.Model):
         if creating:
             DispensaryLocker.objects.create(unit=self)
 
+    # def total_unit_value(self):
+    #     store_value = sum(
+    #         store.total_value for store in self.unit_store.all()
+    #         if store.total_value is not None
+    #     )
+    #     locker_value = 0
+    #     if hasattr(self, 'dispensary_locker'):
+    #         locker_value = self.dispensary_locker.inventory.aggregate(
+    #             total=Sum(F('drug__cost_price') * F('quantity'))
+    #         )['total'] or 0
+    #     return store_value + locker_value
+
     def total_unit_value(self):
-        store_value = sum(
-            store.total_value for store in self.unit_store.all()
-            if store.total_value is not None
-        )
+        # Annotate the query with a custom expression for `piece_unit_cost_price`
+        store_value = self.unit_store.aggregate(
+            total_value=Sum(
+                ExpressionWrapper(F('drug__cost_price') / F('drug__pack_size'), output_field=DecimalField()) * F('quantity')
+            )
+        )['total_value'] or 0
+
         locker_value = 0
         if hasattr(self, 'dispensary_locker'):
             locker_value = self.dispensary_locker.inventory.aggregate(
-                total=Sum(F('drug__cost_price') * F('quantity'))
+                total=Sum(
+                    ExpressionWrapper(F('drug__cost_price') / F('drug__pack_size'), output_field=DecimalField()) * F('quantity')
+                )
             )['total'] or 0
+
         return store_value + locker_value
+
 
     def total_unit_quantity(self):
         store_quantity = sum(
