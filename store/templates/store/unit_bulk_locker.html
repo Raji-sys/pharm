@@ -76,9 +76,9 @@
                             <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.generic_name|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.strength|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.trade_name|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.drug.piece_unit_cost_price|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.drug.piece_unit_selling_price|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.quantity|default_if_none:''|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.drug.piece_unit_cost_price|default_if_none:'N/A'|intcomma }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.drug.piece_unit_selling_price|default_if_none:'N/A'|intcomma }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.quantity|default_if_none:'N/A' }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.total_value|floatformat:2|intcomma }}</td>
                             <td class="px-4 py-2 font-medium 
                             {% if i.drug.expiration_date <= today %}text-rose-700

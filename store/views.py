@@ -286,7 +286,7 @@ def records(request):
 
 @group_required('STORE')
 def create_record(request):
-    RecordFormSet = modelformset_factory(Record, form=RecordForm, extra=5)
+    RecordFormSet = modelformset_factory(Record, form=RecordForm, extra=25)
     if request.method == 'POST':
         formset = RecordFormSet(request.POST)
         if formset.is_valid():
@@ -657,19 +657,17 @@ class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         unit_worths = {}
 
         for unit in units:
-            store_value = unit.unit_store.aggregate(
-                total_value=Sum(
-                    ExpressionWrapper(F('drug__cost_price') / F('drug__pack_size'), output_field=DecimalField()) * F('quantity')
-                )
-            )['total_value'] or 0
+            store_value = sum(
+                unit_store.drug.piece_unit_cost_price * unit_store.quantity
+                for unit_store in unit.unit_store.all()
+            )
 
             locker_value = 0
             if hasattr(unit, 'dispensary_locker'):
-                locker_value = unit.dispensary_locker.inventory.aggregate(
-                    total=Sum(
-                        ExpressionWrapper(F('drug__cost_price') / F('drug__pack_size'), output_field=DecimalField()) * F('quantity')
-                    )
-                )['total'] or 0
+                locker_value = sum(
+                    inventory.drug.piece_unit_cost_price * inventory.quantity
+                    for inventory in unit.dispensary_locker.inventory.all()
+                )
 
             unit_worths[unit.name] = {
                 'store_value': store_value,
@@ -731,7 +729,7 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
         total_expiring_in_6_months = 0
         
         for unit_store_drug in page_obj:
-            total_worth += unit_store_drug.total_value
+            total_worth += float(unit_store_drug.total_value)
             unit_store_drug.restock_info = Restock.objects.filter(drug=unit_store_drug.drug).order_by('-date').first()
             
             if unit_store_drug.drug.expiration_date:

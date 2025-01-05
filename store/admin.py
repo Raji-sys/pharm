@@ -12,6 +12,7 @@ from django.contrib import messages
 from import_export.fields import Field
 from import_export.widgets import Widget
 from import_export.widgets import ForeignKeyWidget
+from django.db.models import Q
 
 admin.site.site_header="ADMIN PANEL"
 admin.site.index_title="PHARMACY INVENTORY MANAGEMENT SYSTEM"
@@ -25,13 +26,7 @@ class DrugAdminForm(forms.ModelForm):
         # fields = ['supply_date','generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','selling_price','total_purchased_quantity','expiration_date',]  
 
 
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id','name']
-    list_filter = ['name']
-    search_fields = ['name']
 
-from django.db.models import Q
 
 class CaseInsensitiveForeignKeyWidget(ForeignKeyWidget):
     def get_queryset(self, value, row, *args, **kwargs):
@@ -50,7 +45,7 @@ class DrugResource(resources.ModelResource):
     class Meta:
         model = Drug
         import_id_fields = ('id',)
-        fields = ('id', 'date_added', 'supply_date', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'expiration_date', 'added_by', 'entered_expiry_period', 'updated_at')
+        fields = ('id','code','date_added', 'supply_date', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'expiration_date', 'added_by', 'entered_expiry_period', 'updated_at')
 
     def before_import_row(self, row, **kwargs):
         if 'expiration_date' in row and row['expiration_date']:
@@ -76,7 +71,7 @@ class DrugAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
     resource_class = DrugResource
     form = DrugAdminForm
     exclude = ('added_by', 'balance', 'total_value')
-    list_display = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','selling_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
+    list_display = ['code','generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','selling_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
     list_filter = ['supply_date','category','supplier','added_by']
     search_fields = ['generic_name']
     list_per_page=10
@@ -92,7 +87,7 @@ class DrugAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
         obj.save()
 
 
-class ForeignKeyWidget(Widget):
+class DrugForeignKeyWidget(Widget):
     def __init__(self, model, field):
         self.model = model
         self.field = field
@@ -100,16 +95,23 @@ class ForeignKeyWidget(Widget):
     def clean(self, value, row=None, *args, **kwargs):
         if not value:
             return None
-        value = value.strip()  # Strip leading and trailing whitespace
+        value = value
         try:
-            return self.model.objects.get(**{f"{self.field}__iexact": value})
+            if self.field == 'code':
+                return self.model.objects.get(code=value)
+            else:
+                return self.model.objects.get(trade_name__iexact=value)
         except self.model.DoesNotExist:
             raise IndexError(f"{value} does not exist in the database")
 
     def render(self, value, obj=None):
         if isinstance(value, self.model):
-            return getattr(value, self.field)
+            if self.field == 'code':
+                return getattr(value, self.field)
+            else:
+                return getattr(value, 'trade_name')
         return value
+
 
 class RecordResource(resources.ModelResource):
     id = Field(
@@ -122,10 +124,10 @@ class RecordResource(resources.ModelResource):
         attribute='category',
         widget=ForeignKeyWidget(Category, 'name')
     )
-    drug = Field(
-        column_name='drug',
+    code = Field(
+        column_name='code',
         attribute='drug',
-        widget=ForeignKeyWidget(Drug, 'trade_name')
+        widget=DrugForeignKeyWidget(Drug, 'code')
     )
     unit_issued_to = Field(
         column_name='unit_issued_to',
@@ -152,7 +154,7 @@ class RecordResource(resources.ModelResource):
 
     class Meta:
         model = Record
-        fields = ('id', 'category', 'drug', 'unit_issued_to', 'quantity', 'date_issued', 'remark', 'issued_by')
+        fields = ('id', 'category', 'code', 'unit_issued_to', 'quantity', 'date_issued', 'remark', 'issued_by')
         import_id_fields = []
         skip_unchanged = True
         report_skipped = False
@@ -161,6 +163,25 @@ class RecordResource(resources.ModelResource):
         # Remove empty ID field if present
         if 'id' in row and not row['id']:
             del row['id']
+
+        # Validate the `code` field before import
+        code = row.get('code')
+        if not code:
+            raise ValueError("The 'code' field cannot be empty.")
+
+        # First, check if a drug with this code exists in the database
+        drug_queryset = Drug.objects.filter(code=code)
+
+        if not drug_queryset.exists():
+            raise ValueError(f"Drug with code '{code}' does not exist in the database.")
+
+        if drug_queryset.count() > 1:
+            raise ValueError(f"Multiple drugs found with code '{code}'. Please specify a unique code.")
+
+        # Set the drug ID in the row
+        drug = drug_queryset.first()  # Get the first matching drug
+        row['code'] = drug.id  # Update the row with the correct drug ID
+
 
             
 @admin.register(Record)
@@ -206,3 +227,20 @@ class DispenseRecordAdmin(admin.ModelAdmin):
     list_display=('dispensary','drug','quantity','balance_quantity','patient_info','dispensed_by','dispense_date',)
     search_fields=('dispensary','category','drug','patient_info','dispensed_by','dispense_date',)
     list_filter=('dispensary','dispensed_by','dispense_date',)
+
+
+class CategoryResource(resources.ModelResource):
+        class Meta:
+            model = Category
+            fields = ('id', 'name')
+            import_id_fields = ('id',)
+            skip_unchanged = True
+            report_skipped = False
+
+@admin.register(Category)
+class CategoryAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
+    list_display = ['id', 'name']
+    list_filter = ['name']
+    search_fields = ['name']
+    resource_class = CategoryResource
+

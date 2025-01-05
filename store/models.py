@@ -13,6 +13,18 @@ from django.utils.timezone import now
 from user_agents import parse
 from django.db.models import F, ExpressionWrapper, DecimalField
 
+class SerialNumberField(models.CharField):
+    description = "A unique serial number field with leading zeros"
+
+    def __init__(self, *args, **kwargs):
+        kwargs['unique'] = True
+        super().__init__(*args, **kwargs)
+
+    def deconstruct(self):
+        name, path, args, kwargs = super().deconstruct()
+        del kwargs["unique"]
+        return name, path, args, kwargs
+
 class Unit(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
     update = models.DateField(auto_now_add=True, null=True)
@@ -37,20 +49,15 @@ class Unit(models.Model):
     #     return store_value + locker_value
 
     def total_unit_value(self):
-        # Annotate the query with a custom expression for `piece_unit_cost_price`
-        store_value = self.unit_store.aggregate(
-            total_value=Sum(
-                ExpressionWrapper(F('drug__cost_price') / F('drug__pack_size'), output_field=DecimalField()) * F('quantity')
-            )
-        )['total_value'] or 0
+        store_value = sum(
+            store.quantity * store.drug.piece_unit_cost_price for store in self.unit_store.all()
+        )
 
         locker_value = 0
         if hasattr(self, 'dispensary_locker'):
-            locker_value = self.dispensary_locker.inventory.aggregate(
-                total=Sum(
-                    ExpressionWrapper(F('drug__cost_price') / F('drug__pack_size'), output_field=DecimalField()) * F('quantity')
-                )
-            )['total'] or 0
+            locker_value = sum(
+                item.quantity * item.drug.piece_unit_cost_price for item in self.dispensary_locker.inventory.all()
+            )
 
         return store_value + locker_value
 
@@ -162,27 +169,37 @@ class Drug(models.Model):
     added_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='added_drugs')
     entered_expiry_period = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField('DATE UPDATED',auto_now=True)
+    code = SerialNumberField(default="", editable=False,max_length=20,null=False,blank=True)
 
     def save(self, *args, **kwargs):
         if self.expiration_date:
             six_months_before = self.expiration_date - timedelta(days=180)
             if timezone.now().date() >= six_months_before and not self.entered_expiry_period:
                 self.entered_expiry_period = timezone.now()
+        if not self.code:
+                last_instance = self.__class__.objects.order_by('code').last()
+
+                if last_instance:
+                    last_code = int(last_instance.code)
+                    new_code = f"{last_code + 1:05d}"  # 06 for 6 leading zeros
+                else:
+                    new_code = "00001"
         super().save(*args, **kwargs)
 
     @property
     def piece_unit_cost_price(self):
         """Calculate unit cost price based on pack size, rounded to two decimal places."""
-        if self.pack_size and self.cost_price:
+        if self.pack_size and self.pack_size > 0 and self.cost_price:
             return round(self.cost_price / self.pack_size, 2)
-        return None
+        return self.cost_price  # Default to cost price if pack size is invalid
 
     @property
     def piece_unit_selling_price(self):
         """Calculate unit selling price based on pack size, rounded to two decimal places."""
-        if self.pack_size and self.selling_price:
+        if self.pack_size and self.pack_size > 0 and self.selling_price:
             return round(self.selling_price / self.pack_size, 2)
-        return None
+        return self.selling_price  # Default to selling price if pack size is invalid
+
 
     def __str__(self):
         return self.generic_name
@@ -210,15 +227,23 @@ class Drug(models.Model):
     
     @property
     def total_items_purchased(self):
-        return (self.total_purchased_quantity or 0) * (self.pack_size or 1)
-    
+        """Calculate the total number of items purchased, considering pack size."""
+        if self.total_purchased_quantity > 0:
+            return self.total_purchased_quantity * (self.pack_size or 1)
+        return 0
+
     @property
     def total_items_issued(self):
+        """Calculate the total number of items issued, considering pack size."""
         return self.total_issued * (self.pack_size or 1)
-    
+
     @property
     def items_in_stock(self):
-        return self.total_items_purchased - self.total_items_issued
+        if not self.pack_size or self.pack_size <= 0:
+            # Treat issued quantity as packs directly
+            return self.total_issued  # No conversion to pieces
+        return self.total_issued * self.pack_size
+
 
     class Meta:
         verbose_name_plural = 'drugs'
@@ -239,92 +264,48 @@ class Record(models.Model):
         try:
             with transaction.atomic():
                 if self.pk:
+                    # Update logic for an existing record
                     original_record = Record.objects.select_for_update().get(pk=self.pk)
-                    items_change = (self.quantity - original_record.quantity) * self.drug.pack_size
-
-                    # Handle unit store updates
-                    if original_record.unit_issued_to!= self.unit_issued_to:
-                        # Remove quantity (in pieces) from old unit
+                    if original_record.unit_issued_to != self.unit_issued_to:
+                        # Revert the quantity (in pieces if valid pack_size) in the original unit
                         UnitStore.objects.filter(
                             unit=original_record.unit_issued_to,
                             drug=original_record.drug
-                        ).update(quantity=F('quantity') - original_record.quantity * original_record.drug.pack_size)
+                        ).update(quantity=F('quantity') - (
+                            original_record.quantity if not original_record.drug.pack_size or original_record.drug.pack_size <= 0 
+                            else original_record.quantity * original_record.drug.pack_size
+                        ))
 
-                    # Update quantity (in pieces) in the new unit
+                    # Adjust the quantity for the new unit
                     unit_store, created = UnitStore.objects.get_or_create(
                         unit=self.unit_issued_to,
                         drug=self.drug,
                         defaults={'quantity': 0}
                     )
+                    items_change = self.quantity if not self.drug.pack_size or self.drug.pack_size <= 0 else self.quantity * self.drug.pack_size
                     if created:
-                        unit_store.quantity = self.quantity * self.drug.pack_size
+                        unit_store.quantity = items_change
                     else:
                         unit_store.quantity = F('quantity') + items_change
                     unit_store.save()
-                else:  # New record
-                    # Add quantity (in pieces) to the unit store
+                else:
+                    # Logic for new record
                     unit_store, created = UnitStore.objects.get_or_create(
                         unit=self.unit_issued_to,
                         drug=self.drug,
                         defaults={'quantity': 0}
                     )
-                    unit_store.quantity = F('quantity') + self.quantity * self.drug.pack_size
+                    items_to_add = self.quantity if not self.drug.pack_size or self.drug.pack_size <= 0 else self.quantity * self.drug.pack_size
+                    unit_store.quantity = F('quantity') + items_to_add
                     unit_store.save()
 
+                # Save the record
                 super().save(*args, **kwargs)
         except Exception as e:
             raise ValidationError(f"Error updating unit store: {str(e)}")
 
-    def clean(self):
-        if self.quantity < 0:
-            raise ValidationError("Quantity cannot be negative")
-        if self.drug is None or self.unit_issued_to is None:
-            raise ValidationError("Drug and unit issued to cannot be null")
-
     class Meta:
         verbose_name_plural = 'drugs issued record'
-    
-    # def save(self, *args, **kwargs):
-    #     with transaction.atomic():
-    #         if self.pk:
-    #             original_record = Record.objects.select_for_update().get(pk=self.pk)
-    #             net_quantity_change = self.quantity - original_record.quantity
-
-    #             # Handle unit store updates
-    #             if original_record.unit_issued_to != self.unit_issued_to:
-    #                 # Remove quantity from old unit
-    #                 UnitStore.objects.filter(
-    #                     unit=original_record.unit_issued_to,
-    #                     drug=original_record.drug
-    #                 ).update(quantity=F('quantity') - original_record.quantity)
-
-    #                 # Add quantity to new unit
-    #                 new_unit_store, created = UnitStore.objects.get_or_create(
-    #                     unit=self.unit_issued_to,
-    #                     drug=self.drug,
-    #                     defaults={'quantity': 0}
-    #                 )
-    #                 new_unit_store.quantity = F('quantity') + self.quantity
-    #                 new_unit_store.save()
-    #             else:
-    #                 # Update quantity in the same unit
-    #                 UnitStore.objects.filter(
-    #                     unit=self.unit_issued_to,
-    #                     drug=self.drug
-    #                 ).update(quantity=F('quantity') + net_quantity_change)
-
-    #         else:  # New record
-    #             # Add quantity to the unit store
-    #             unit_store, created = UnitStore.objects.get_or_create(
-    #                 unit=self.unit_issued_to,
-    #                 drug=self.drug,
-    #                 defaults={'quantity': 0}
-    #             )
-    #             unit_store.quantity = F('quantity') + self.quantity
-    #             unit_store.save()
-
-    #         super().save(*args, **kwargs)
-
 
 
 class Restock(models.Model):
@@ -347,6 +328,7 @@ class Restock(models.Model):
     class Meta:
         verbose_name_plural = 'restocking record'
 
+
 class UnitStore(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='unit_store')
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='unit_store_drugs')
@@ -355,7 +337,9 @@ class UnitStore(models.Model):
     
     @property
     def total_value(self):
-        return self.quantity * self.drug.piece_unit_selling_price
+        if self.quantity is not None and self.drug.piece_unit_cost_price is not None:
+            return self.quantity * self.drug.piece_unit_cost_price
+        return 0
 
     def __str__(self):
         return f"{self.quantity} of {self.drug.generic_name} in {self.unit.name}"
