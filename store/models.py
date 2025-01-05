@@ -13,17 +13,6 @@ from django.utils.timezone import now
 from user_agents import parse
 from django.db.models import F, ExpressionWrapper, DecimalField
 
-class SerialNumberField(models.CharField):
-    description = "A unique serial number field with leading zeros"
-
-    def __init__(self, *args, **kwargs):
-        kwargs['unique'] = True
-        super().__init__(*args, **kwargs)
-
-    def deconstruct(self):
-        name, path, args, kwargs = super().deconstruct()
-        del kwargs["unique"]
-        return name, path, args, kwargs
 
 class Unit(models.Model):
     name = models.CharField(max_length=200, null=True, blank=True)
@@ -169,21 +158,12 @@ class Drug(models.Model):
     added_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='added_drugs')
     entered_expiry_period = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField('DATE UPDATED',auto_now=True)
-    code = SerialNumberField(default="", editable=False,max_length=20,null=False,blank=True)
 
     def save(self, *args, **kwargs):
         if self.expiration_date:
             six_months_before = self.expiration_date - timedelta(days=180)
             if timezone.now().date() >= six_months_before and not self.entered_expiry_period:
                 self.entered_expiry_period = timezone.now()
-        if not self.code:
-                last_instance = self.__class__.objects.order_by('code').last()
-
-                if last_instance:
-                    last_code = int(last_instance.code)
-                    new_code = f"{last_code + 1:05d}"  # 06 for 6 leading zeros
-                else:
-                    new_code = "00001"
         super().save(*args, **kwargs)
 
     @property
@@ -436,8 +416,7 @@ class DispenseRecord(models.Model):
     updated = models.DateField(auto_now=True)
     balance_quantity = models.PositiveIntegerField(default=0)  # New field to store balance quantity
     date_issued = models.DateField(null=True)
-    # date_issued = models.DateField(auto_now=True,null=True)
-
+    
     def clean(self):
         pass    
     
