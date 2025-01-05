@@ -208,7 +208,9 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(
             Q(generic_name__icontains=query) |
             Q(trade_name__icontains=query)|
-            Q(category__name__icontains=query)
+            Q(category__name__icontains=query)|
+            Q(drug__dosage_form__icontains=query)|
+            Q(drug__strength__icontains=query)
             )
 
         return queryset
@@ -273,7 +275,9 @@ def records(request):
             Q(drug__generic_name__icontains=query) |
             Q(drug__trade_name__icontains=query)|
             Q(category__name__icontains=query)|
-            Q(unit_issued_to__name__icontains=query)
+            Q(unit_issued_to__name__icontains=query)|
+            Q(drug__dosage_form__icontains=query)|
+            Q(drug__strength__icontains=query)
         )
 
     pgn=Paginator(records,10)
@@ -420,7 +424,9 @@ def restocked_list(request):
         restock = restock.filter(
             Q(drug__generic_name__icontains=query) |
             Q(drug__trade_name__icontains=query)|
-            Q(category__name__icontains=query)
+            Q(category__name__icontains=query)|
+            Q(drug__dosage_form__icontains=query)|
+            Q(drug__strength__icontains=query)
         )
 
     pgn=Paginator(restock,10)
@@ -711,7 +717,9 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
             unit_store_drugs = unit_store_drugs.filter(
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
-                Q(drug__category__name__icontains=query)
+                Q(drug__category__name__icontains=query)|
+                Q(drug__dosage_form__icontains=query)|
+                Q(drug__strength__icontains=query)
             )        
         # Pagination
         paginator = Paginator(unit_store_drugs, self.paginate_by)
@@ -779,7 +787,9 @@ class UnitDispensaryLockerView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
             dispensary_drugs = dispensary_drugs.filter(
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
-                Q(drug__category__name__icontains=query)
+                Q(drug__category__name__icontains=query)|
+                Q(drug__dosage_form__icontains=query)|
+                Q(drug__strength__icontains=query)
             )        
         # Order the drugs and paginate
         ordered_drugs = dispensary_drugs.order_by('drug__generic_name')
@@ -815,7 +825,9 @@ class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
                 Q(drug__category__name__icontains=query)|
-                Q(issued_to__name__icontains=query)
+                Q(issued_to__name__icontains=query)|
+                Q(drug__dosage_form__icontains=query)|
+                Q(drug__strength__icontains=query)
             )        
         # Paginate the results
         paginator = Paginator(unit_issue_records, self.paginate_by)
@@ -1304,6 +1316,8 @@ class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
                 Q(drug__category__name__icontains=query)|
+                Q(drug__dosage_form__icontains=query)|
+                Q(drug__strength__icontains=query)|
                 Q(moved_to__name__icontains=query)
             )        
         # Paginate the results
@@ -1457,6 +1471,8 @@ def box_pdf(request, pk):
             Q(drug__generic_name__icontains=query) |
             Q(drug__trade_name__icontains=query) |
             Q(drug__category__name__icontains=query) |
+            Q(drug__dosage_form__icontains=query)|
+            Q(drug__strength__icontains=query)|
             Q(moved_to__name__icontains=query)
         )
     
@@ -1543,7 +1559,9 @@ class ReturnedDrugsListView(ListView):
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
                 Q(category__name__icontains=query) |
-                Q(patient_info__icontains=query)
+                Q(patient_info__icontains=query)|
+                Q(drug__dosage_form__icontains=query)|
+                Q(drug__strength__icontains=query)
             )
         return queryset
     def get_context_data(self, **kwargs):
