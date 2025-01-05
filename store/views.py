@@ -131,7 +131,7 @@ def drugs_list(request):
     
     if query:
         drugs = drugs.filter(
-            Q(generic_name__icontains=query) | Q(trade_name__icontains=query) | Q(category__name__icontains=query)
+            Q(generic_name__icontains=query) | Q(trade_name__icontains=query) | Q(category__name__icontains=query) | Q(dosage_form__icontains=query) | Q(strength__icontains=query) | Q(pack_size__icontains=query)
         )
     
     today = timezone.now().date()

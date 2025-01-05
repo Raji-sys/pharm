@@ -22,10 +22,8 @@ admin.site.site_title="NOHD PHARMACY INVENTORY"
 class DrugAdminForm(forms.ModelForm):
     class Meta:
         model = Drug
-        fields = ['cost_price','selling_price','total_purchased_quantity','expiration_date',]  
-        # fields = ['supply_date','generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','selling_price','total_purchased_quantity','expiration_date',]  
-
-
+        fields = ['cost_price','selling_price','expiration_date',]  
+        readonly_fields = ['total_purchased_quantity']
 
 
 class CaseInsensitiveForeignKeyWidget(ForeignKeyWidget):
