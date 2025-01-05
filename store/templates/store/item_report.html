@@ -97,7 +97,7 @@
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.supply_date|date:'d-m-Y'|default_if_none:'N/A' }}<br> <small> added by: {{ i.added_by|upper }}</small></td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.category|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.generic_name|default_if_none:'N/A'|upper }}</td>
-                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.strength|default_if_none:''|upper }}</td>
+                        <td class="px-3 py-4 whitespace-nowrap  font-medium text-gray-900">{{ i.strength|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.trade_name|default_if_none:'N/A'|upper }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.supplier|default_if_none:'N/A'|upper }} </td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.dosage_form|default_if_none:'N/A'|upper }}</td>

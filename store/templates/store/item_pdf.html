@@ -167,14 +167,13 @@ body{
             <tr class="bg-gradient-to-r from-cyan-700 via-cyan-500 to-cyan-700 text-white">
                 <th class="sn">#</th>
                 <th>DATE ADDED / UPDATED</th>
-                <th scope="col" class="dn p-3">DRUG INFO</th>
-                <th scope="col" class="dn p-3">TRADE NAME / SUPPLIER</th>
+                <th scope="col" class="p-3">DRUG INFO</th>
                 <th scope="col" class="df p-3">DOSAGE FORM</th>
                 <th scope="col" class="cp p-3">PACK SIZE</th>
                 <th scope="col" class="cp p-3">COST PRICE</th>
                 <th scope="col" class="cp p-3">BALANCE</th>
-                <th scope="col" class=" p-3">EXPIRY DATE</th>
-                <th scope="col" class=" p-3">ADDED BY</th>
+                <th scope="col" class="cp p-3">EXPIRY DATE</th>
+                <th scope="col" class="cp p-3">ADDED BY</th>
                 </tr>
               {% for i in f %}        
         <tr class="{% cycle 'bg-white hover:bg-cyan-200' 'bg-cyan-100 hover:bg-cyan-200' %} text-gray-600">
@@ -184,12 +183,10 @@ body{
                 <td class="border-1 border-stone-700 p-3 text-center">
                 {{i.updated_at|default_if_none:''}}
                 </td>
-                <td class="border-1 border-stone-700 p-3 text-center dn">
+                <td class="border-1 border-stone-700 p-3 text-center">
                 {{i.generic_name|default_if_none:''|upper}}<br>
-                {{i.strength|default_if_none:''|upper}}
-                </td>
-            <td class="border-1 border-stone-700 p-3 text-center dn">
                 {{i.trade_name|default_if_none:''|upper}}<br>
+                {{i.strength|default_if_none:''|upper}}
                 <small>
                     {{i.supplier|default_if_none:''|upper}} 
                 </small>
@@ -208,10 +205,10 @@ body{
                 <span class="rose">O/S</span>
                 {%else%}{{ i.current_balance|default_if_none:'O/S' }}{%endif%}
                 </td>
-                <td class="border-1 border-stone-700 p-3 text-center">
-                {{i.expiration_date|date:'M-Y'|default_if_none:'N/A'}}
+                <td class="cp border-1 border-stone-700 p-3 text-center">
+                {{i.expiration_date|date:'m-Y'|default_if_none:'N/A'}}
                 </td>
-                <td class="border-1 border-stone-700 p-3 text-center">
+                <td class="cp border-1 border-stone-700 p-3 text-center">
                 {{i.added_by|upper}}
                 </td>
           </tr>

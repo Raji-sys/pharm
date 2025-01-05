@@ -139,11 +139,9 @@ h1 {
                 <th class="small-column">#</th>
                 <th class="">PHYSICAL DATE</th>
                 <th class="">SYSTEM DATE</th>
-                <th class="">GENERIC DRUG </th>
-                <th class="">TRADE NAME</th>
-                <th class="">STRENGTH</th>
+                <th class="">DRUG INFO </th>
                 <th class="">SUPPLIER</th>
-                <th class="">ISSUED TO</th>
+                <th class="sn">ISSUED TO</th>
                 <th class="sn">QTY </th>
             </tr>
               {% for r in f %}        
@@ -161,18 +159,14 @@ h1 {
                 {{r.updated_at|default_if_none:''}}
             </td>
             <td>
-                {{r.drug.generic_name|default_if_none:''|upper}}
-            </td>
-            <td>
-                {{r.drug.trade_name|default_if_none:''|upper}}
-            </td>
-            <td class="">
+                {{r.drug.generic_name|default_if_none:''|upper}} <br>
+                {{r.drug.trade_name|default_if_none:''|upper}} <br> 
                 {{r.drug.strength|default_if_none:''|upper}}
             </td>
             <td>
                    {{r.drug.supplier|default_if_none:''|upper}}
             </td>
-            <td>
+            <td class="sn">
             {{r.unit_issued_to|default_if_none:''|upper}}
             </td>
             <td class="sn">

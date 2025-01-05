@@ -137,7 +137,6 @@ h1 {
                 <th class="">DATE DISPENSED</th>
                 <th class="">PATIENT</th>
                 <th class="">DRUG INFO</th>
-                <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
                 <th class="">QUANITITY</th>
                 <th class="">BALANCE</th>
@@ -158,11 +157,8 @@ h1 {
                 {{r.patient_info|default_if_none:''|upper}}<br>
             </td>    
             <td>
-                {{r.drug.generic_name|default_if_none:''|upper}} <br>
+                {{r.drug.trade_name|default_if_none:''|upper}} <br>
                <small class="t">{{r.drug.strength|default_if_none:''|upper}}</small> 
-            </td>
-            <td>
-                {{r.drug.trade_name|default_if_none:''|upper}}
             </td>
             <td>
                 {{r.drug.supplier|default_if_none:''|upper}}

@@ -222,7 +222,7 @@ class BoxAdmin(admin.ModelAdmin):
 
 @admin.register(DispenseRecord)
 class DispenseRecordAdmin(admin.ModelAdmin):
-    list_display=('dispensary','drug','quantity','balance_quantity','patient_info','dispensed_by','dispense_date',)
+    list_display=('date_issued','dispensary','drug','quantity','balance_quantity','patient_info','dispensed_by','dispense_date',)
     search_fields=('dispensary','category','drug','patient_info','dispensed_by','dispense_date',)
     list_filter=('dispensary','dispensed_by','dispense_date',)
 

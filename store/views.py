@@ -290,7 +290,7 @@ def records(request):
 
 @group_required('STORE')
 def create_record(request):
-    RecordFormSet = modelformset_factory(Record, form=RecordForm, extra=25)
+    RecordFormSet = modelformset_factory(Record, form=RecordForm, extra=10)
     if request.method == 'POST':
         formset = RecordFormSet(request.POST)
         if formset.is_valid():
@@ -492,7 +492,7 @@ def pdf_generator(buffer):
 
 @group_required('STORE')
 def drug_pdf(request):
-    ndate = datetime.datetime.now()
+    ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     drugfilter = DrugFilter(request.GET, queryset=Drug.objects.all().order_by('-updated_at'))
     f = drugfilter.qs
@@ -512,7 +512,7 @@ def drug_pdf(request):
 
 @group_required('STORE')
 def record_pdf(request):
-    ndate = datetime.datetime.now()
+    ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     f = RecordFilter(request.GET, queryset=Record.objects.all()).qs
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
@@ -550,7 +550,7 @@ def record_pdf(request):
 
 @group_required('STORE')
 def restock_pdf(request):
-    ndate = datetime.datetime.now()
+    ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     f = RestockFilter(request.GET, queryset=Restock.objects.all()).qs
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
@@ -710,7 +710,7 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug').order_by('-updated_at')
+        unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug').order_by('drug__dosage_form')
         
         query = self.request.GET.get('q')
         if query:
@@ -1026,7 +1026,7 @@ def unitissue_report(request, pk):
 
 @login_required
 def unitissue_pdf(request):
-    ndate = datetime.datetime.now()
+    ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     f = UnitIssueFilter(request.GET, queryset=UnitIssueRecord.objects.all()).qs
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
@@ -1102,7 +1102,7 @@ def transfer_report(request, pk):
 
 @login_required
 def transfer_pdf(request):
-    ndate = datetime.datetime.now()
+    ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     f = TransferFilter(request.GET, queryset=UnitIssueRecord.objects.all()).qs
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
@@ -1260,7 +1260,7 @@ def dispense_report(request, pk):
 
 @login_required
 def dispense_pdf(request):
-    ndate = datetime.datetime.now()
+    ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     f = DispenseFilter(request.GET, queryset=DispenseRecord.objects.all()).qs
     total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
@@ -1491,7 +1491,7 @@ def box_pdf(request, pk):
         'total_appearance': total_appearance,
         'total_price': total_price,
         'keys': keys,
-        'result': f"GENERATED ON: {datetime.datetime.now().strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}",
+        'result': f"GENERATED ON: {datetime.now().strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}",
         'pagesize': 'A4',
         'orientation': 'Portrait',
     }
@@ -1503,7 +1503,7 @@ def box_pdf(request, pk):
         return HttpResponse('Error generating PDF', status=500)
     
     # Prepare response
-    ndate = datetime.datetime.now()
+    ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'

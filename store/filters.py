@@ -126,19 +126,19 @@ class DispenseFilter(django_filters.FilterSet):
     # Date Filters
     date_exact = django_filters.DateFilter(
         label="EXACT DATE",
-        field_name='updated',
+        field_name='date_issued',
         lookup_expr='exact',
         widget=forms.DateInput(attrs={'type': 'date'})
     )
     date_start = django_filters.DateFilter(
         label="DATE FROM",
-        field_name='updated',
+        field_name='date_issued',
         lookup_expr='gte',
         widget=forms.DateInput(attrs={'type': 'date'})
     )
     date_end = django_filters.DateFilter(
         label="DATE TO",
-        field_name='updated',
+        field_name='date_issued',
         lookup_expr='lte',
         widget=forms.DateInput(attrs={'type': 'date'})
     )

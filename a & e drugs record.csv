@@ -1,0 +1,271 @@
+id,category,drug,unit_issued_to,quantity,date_issued,issued_by,remark,updated_at,updated,code
+,,SHARLARTEM,A & E,10,,admin,,,,00001
+,,FANTARTEN,A & E,11,,admin,,,,00002
+,,TANZOL,A & E,12,,admin,,,,00003
+,,AMITRYPTYLINE,A & E,13,,admin,,,,00004
+,,TAMADIPINE,A & E,14,,admin,,,,00005
+,,EMZOVASC,A & E,15,,admin,,,,00006
+,,ACIZIP,A & E,16,,admin,,,,00007
+,,ACYCOR,A & E,17,,admin,,,,00008
+,,NOSCLAN,A & E,18,,admin,,,,00009
+,,KENOP,A & E,19,,admin,,,,00010
+,,MEROCLAV,A & E,20,,admin,,,,00011
+,,DAFLON,A & E,21,,admin,,,,00012
+,,TAMAFAST,A & E,22,,admin,,,,00013
+,,DICLOFENAC,A & E,23,,admin,,,,00014
+,,MULTIVITAMIN,A & E,24,,admin,,,,00015
+,,CEFUROXIME,A & E,25,,admin,,,,00016
+,,PULMOCEF,A & E,26,,admin,,,,00017
+,,PULMOCEF,A & E,27,,admin,,,,00018
+,,KEZITIL,A & E,28,,admin,,,,00019
+,,ZOFIXIME,A & E,29,,admin,,,,00020
+,,TRAFIX,A & E,30,,admin,,,,00021
+,,CENOX,A & E,31,,admin,,,,00022
+,,CIPROFLOXACIN,A & E,32,,admin,,,,00023
+,,SPIRONOLACTONE,A & E,33,,admin,,,,00024
+,,CALCIUM L,A & E,34,,admin,,,,00025
+,,EBU-200,A & E,35,,admin,,,,00026
+,,PILPROFEN,A & E,36,,admin,,,,00027
+,,CLARY 500,A & E,37,,admin,,,,00028
+,,ELIQUIS,A & E,38,,admin,,,,00029
+,,ELIQUIS,A & E,39,,admin,,,,00030
+,,DIAPIL,A & E,40,,admin,,,,00031
+,,CYTOTEC,A & E,41,,admin,,,,00032
+,,METROSAM,A & E,42,,admin,,,,00033
+,,MICROMOX,A & E,43,,admin,,,,00034
+,,LIPOXIL,A & E,44,,admin,,,,00035
+,,TERLEV,A & E,45,,admin,,,,00036
+,,LIZOPRIL,A & E,46,,admin,,,,00037
+,,GENEVIN,A & E,47,,admin,,,,00038
+,,EMZOR PCM,A & E,48,,admin,,,,00039
+,,PARASAM,A & E,49,,admin,,,,00040
+,,LOTEMP,A & E,50,,admin,,,,00041
+,,ARTHROTEC,A & E,51,,admin,,,,00042
+,,CHEWABLE VIT-C,A & E,52,,admin,,,,00043
+,,CHEWABLE VIT-C,A & E,53,,admin,,,,00044
+,,EMVIT-C,A & E,54,,admin,,,,00045
+,,EMVIT-C,A & E,55,,admin,,,,00046
+,,NAT-C,A & E,56,,admin,,,,00047
+,,FOLIC ACID,A & E,57,,admin,,,,00048
+,,EM-B-FLEX,A & E,58,,admin,,,,00049
+,,PERGLIM,A & E,59,,admin,,,,00050
+,,EPROXEN,A & E,60,,admin,,,,00051
+,,RELEV,A & E,61,,admin,,,,00052
+,,LORATIDINE,A & E,62,,admin,,,,00053
+,,GLIBENCLAMIDE,A & E,63,,admin,,,,00054
+,,WILCREAS,A & E,64,,admin,,,,00055
+,,POTENZA PLUS,A & E,65,,admin,,,,00056
+,,JOLTAN PUS,A & E,66,,admin,,,,00057
+,,REAL FLEX,A & E,67,,admin,,,,00058
+,,METHYLMET,A & E,68,,admin,,,,00059
+,,DEXILANT,A & E,69,,admin,,,,00060
+,,EMZOPRIL,A & E,70,,admin,,,,00061
+,,TAMAPRIL,A & E,71,,admin,,,,00062
+,,LIBRE,A & E,72,,admin,,,,00063
+,,PIRITON,A & E,73,,admin,,,,00064
+,,RACE X,A & E,74,,admin,,,,00065
+,,PREDNISAM,A & E,75,,admin,,,,00066
+,,VOMET MD,A & E,76,,admin,,,,00067
+,,GALVUS MET,A & E,77,,admin,,,,00068
+,,MARCGESIC,A & E,78,,admin,,,,00069
+,,JUCOPAN,A & E,79,,admin,,,,00070
+,,PRIMALAR,A & E,80,,admin,,,,00071
+,,FESCRATE,A & E,81,,admin,,,,00072
+,,AZIRAB,A & E,82,,admin,,,,00073
+,,MELOCAM,A & E,83,,admin,,,,00074
+,,ERYTHRO 500,A & E,84,,admin,,,,00075
+,,DAPAGLIFLOZINE,A & E,85,,admin,,,,00076
+,,EMZOR ZINC SULPHATE,A & E,86,,admin,,,,00077
+,,CIDALIX,A & E,87,,admin,,,,00078
+,,PARATEX,A & E,88,,admin,,,,00079
+,,PANCEMOL,A & E,89,,admin,,,,00080
+,,FIDSON PCM,A & E,90,,admin,,,,00081
+,,NAZANEEM,A & E,91,,admin,,,,00082
+,,ERYTHRO,A & E,92,,admin,,,,00083
+,,SKYCIP,A & E,93,,admin,,,,00084
+,,MIRAXIM,A & E,94,,admin,,,,00085
+,,EZCEF,A & E,95,,admin,,,,00086
+,,MIRAFIX,A & E,96,,admin,,,,00087
+,,ALBEN-G,A & E,97,,admin,,,,00088
+,,KENOP,A & E,98,,admin,,,,00089
+,,GENEFEN,A & E,99,,admin,,,,00090
+,,TABUFEN,A & E,100,,admin,,,,00091
+,,AMOVIN,A & E,101,,admin,,,,00092
+,,TANZOL,A & E,102,,admin,,,,00093
+,,MIRAMOX,A & E,103,,admin,,,,00094
+,,VITAMIN C,A & E,104,,admin,,,,00095
+,,AMIBAGYL,A & E,105,,admin,,,,00096
+,,UNIGYL,A & E,106,,admin,,,,00097
+,,EXIPLON,A & E,107,,admin,,,,00098
+,,EXIPLON,A & E,108,,admin,,,,00099
+,,EMVITE-SYRUP,A & E,109,,admin,,,,00100
+,,BASATON,A & E,110,,admin,,,,00101
+,,ORAL MORPHINE,A & E,111,,admin,,,,00102
+,,ORAL MORPHINE,A & E,112,,admin,,,,00103
+,,AEROLINE,A & E,113,,admin,,,,00104
+,,SERETIDE,A & E,114,,admin,,,,00105
+,,EMTRISIL,A & E,115,,admin,,,,00106
+,,EMZOLYTE,A & E,116,,admin,,,,00107
+,,SELACE,A & E,117,,admin,,,,00108
+,,OMEPRAZOLE,A & E,118,,admin,,,,00109
+,,VITAMIN A,A & E,119,,admin,,,,00110
+,,ENAT 400,A & E,120,,admin,,,,00111
+,,FEROBIN PLUS,A & E,121,,admin,,,,00112
+,,LIGABA,A & E,122,,admin,,,,00113
+,,ANTALGEX-T,A & E,123,,admin,,,,00114
+,,FLUCOX,A & E,124,,admin,,,,00115
+,,JOINTFLEX,A & E,125,,admin,,,,00116
+,,DALACIN-C,A & E,126,,admin,,,,00117
+,,DALACAP,A & E,127,,admin,,,,00118
+,,CLINDACIN,A & E,128,,admin,,,,00119
+,,CLINDAMYCIN,A & E,129,,admin,,,,00120
+,,FLOTAC,A & E,130,,admin,,,,00121
+,,NAT-B,A & E,131,,admin,,,,00122
+,,AZITHROMYCIN,A & E,132,,admin,,,,00123
+,,AZITHROMYCIN,A & E,133,,admin,,,,00124
+,,MAXIRON,A & E,134,,admin,,,,00125
+,,MIRAMOX,A & E,135,,admin,,,,00126
+,,LYRICA,A & E,136,,admin,,,,00127
+,,REXIFEN,A & E,137,,admin,,,,00128
+,,DOXIN,A & E,138,,admin,,,,00129
+,,MEDITROL,A & E,139,,admin,,,,00130
+,,NEURACALM,A & E,140,,admin,,,,00131
+,,XENOBREX 200MG,A & E,141,,admin,,,,00132
+,,NORMAL SALINE,A & E,142,,admin,,,,00133
+,,NORMAL SALINE,A & E,143,,admin,,,,00134
+,,NORMAL SALINE,A & E,144,,admin,,,,00135
+,,DEXTROSE WATER,A & E,145,,admin,,,,00136
+,,DEXTROSE WATER,A & E,146,,admin,,,,00137
+,,DEXTROSE WATER,A & E,147,,admin,,,,00138
+,,DEXTROSE WATER,A & E,148,,admin,,,,00139
+,,DEXTROSE SALINE,A & E,149,,admin,,,,00140
+,,PAEDIATRIC SALINE,A & E,150,,admin,,,,00141
+,,MANNITOL,A & E,151,,admin,,,,00142
+,,MANNITOL,A & E,152,,admin,,,,00143
+,,METRONIDAZOLE,A & E,153,,admin,,,,00144
+,,METRONIDAZOLE,A & E,154,,admin,,,,00145
+,,LEVOFLOXACIN,A & E,155,,admin,,,,00146
+,,HARTMAN SOLUTION,A & E,156,,admin,,,,00147
+,,HARTMAN SOLUTION,A & E,157,,admin,,,,00148
+,,CIPROFLOXACIN,A & E,158,,admin,,,,00149
+,,THERMODOL,A & E,159,,admin,,,,00150
+,,RINGERS,A & E,160,,admin,,,,00151
+,,DICLOFENAC,A & E,161,,admin,,,,00152
+,,ROCKOX GEL,A & E,162,,admin,,,,00153
+,,RUFENAC,A & E,163,,admin,,,,00154
+,,H-CORT,A & E,164,,admin,,,,00155
+,,KETAZOL,A & E,165,,admin,,,,00156
+,,CLOTRIDERM,A & E,166,,admin,,,,00157
+,,GENTAMICIN,A & E,167,,admin,,,,00158
+,,PROVIDONE IODINE,A & E,168,,admin,,,,00159
+,,SULPHADIAZINE,A & E,169,,admin,,,,00160
+,,CHLORAMPHENICOL,A & E,170,,admin,,,,00161
+,,OXVID,A & E,171,,admin,,,,00162
+,,ZYCIN,A & E,172,,admin,,,,00163
+,,G PENT,A & E,173,,admin,,,,00164
+,,PILAT,A & E,174,,admin,,,,00165
+,,CUTENOX,A & E,175,,admin,,,,00166
+,,DEXAMETHASONE,A & E,176,,admin,,,,00167
+,,ROCEPHIN,A & E,177,,admin,,,,00168
+,,EBECEF,A & E,178,,admin,,,,00169
+,,CEFTAP,A & E,179,,admin,,,,00170
+,,CEFTRIAXONE,A & E,180,,admin,,,,00171
+,,AQUAZONE,A & E,181,,admin,,,,00172
+,,CEFTRIAXONE,A & E,182,,admin,,,,00173
+,,TANDAK,A & E,183,,admin,,,,00174
+,,EPIZIDE,A & E,184,,admin,,,,00175
+,,HALOTHANE,A & E,185,,admin,,,,00176
+,,ISOFLURANE,A & E,186,,admin,,,,00177
+,,SEVOFLURANE,A & E,187,,admin,,,,00178
+,,POTASSIUM CHLORIDE,A & E,188,,admin,,,,00179
+,,PARACETAMOL,A & E,189,,admin,,,,00180
+,,OMEPRAZOLE,A & E,190,,admin,,,,00181
+,,OMEPRAZOLE,A & E,191,,admin,,,,00182
+,,KETAMINE,A & E,192,,admin,,,,00183
+,,DICLOFENAC,A & E,193,,admin,,,,00184
+,,DICLOFENAC,A & E,194,,admin,,,,00185
+,,DIAZEPAM,A & E,195,,admin,,,,00186
+,,LASIX,A & E,196,,admin,,,,00187
+,,ONSETT,A & E,197,,admin,,,,00188
+,,ARTEETHER,A & E,198,,admin,,,,00189
+,,PROPOFOL,A & E,199,,admin,,,,00190
+,,LIGNOCAINE,A & E,200,,admin,,,,00191
+,,LIGNOCAINE ADRENALINE,A & E,201,,admin,,,,00192
+,,TT,A & E,202,,admin,,,,00193
+,,ATS,A & E,203,,admin,,,,00194
+,,AMOXYCILIN CLAVULANIC ACID,A & E,204,,admin,,,,00195
+,,RANITIDINE,A & E,205,,admin,,,,00196
+,,SUXA,A & E,206,,admin,,,,00197
+,,GLYCOPYROLATE,A & E,207,,admin,,,,00198
+,,ARTEMETHER,A & E,208,,admin,,,,00199
+,,ATROPINE,A & E,209,,admin,,,,00200
+,,TRANEXAMIC ACID,A & E,210,,admin,,,,00201
+,,MIDAZOLAM,A & E,211,,admin,,,,00202
+,,KETAMINE,A & E,212,,admin,,,,00203
+,,HYDROCORTISONE,A & E,213,,admin,,,,00204
+,,MAGNESIUM SULPHATE,A & E,214,,admin,,,,00205
+,,PROMETHAZINE,A & E,215,,admin,,,,00206
+,,METHYLPREDNISOLONE,A & E,216,,admin,,,,00207
+,,ACUPAN,A & E,217,,admin,,,,00208
+,,PLASIL,A & E,218,,admin,,,,00209
+,,ATRACURIUM,A & E,219,,admin,,,,00210
+,,PANCURONIUM,A & E,220,,admin,,,,00211
+,,ADRENALINE,A & E,221,,admin,,,,00212
+,,EPHEDRINE,A & E,222,,admin,,,,00213
+,,PHENYTOIN,A & E,223,,admin,,,,00214
+,,MEROPENEM,A & E,1000,,admin,,,,00215
+,,ARTENUSATE,A & E,1001,,admin,,,,00216
+,,DOXORUBICIN,A & E,1002,,admin,,,,00217
+,,CISPLATIN,A & E,1003,,admin,,,,00218
+,,GENTALEK,A & E,1004,,admin,,,,00219
+,,OXYTOCIN,A & E,1005,,admin,,,,00220
+,,HEAVY MARCAINE,A & E,1006,,admin,,,,00221
+,,PLAIN MARCAINE,A & E,1007,,admin,,,,00222
+,,ACTRAPID,A & E,1008,,admin,,,,00223
+,,MIXTARD,A & E,1009,,admin,,,,00224
+,,FILGRASTIM,A & E,1010,,admin,,,,00225
+,,VANCOMYCIN,A & E,1011,,admin,,,,00226
+,,SCALP VEIN NEEDLE size 22,A & E,1012,,admin,,,,00227
+,,INCONPAD DISPOSABLE BED SHEETS /PER PIECE,A & E,1013,,admin,,,,00228
+,,SURGICAL GLOVE size 7,A & E,1014,,admin,,,,00229
+,,SURGICAL GLOVE size 8,A & E,1015,,admin,,,,00230
+,,SUCTION CATHETER,A & E,1016,,admin,,,,00231
+,,BETADINE/PYODINE SOLUTION 10% (POVIDONE IODINE) (200),A & E,1017,,admin,,,,00232
+,,POVIDONE IODINE 2/lt,A & E,1018,,admin,,,,00233
+,,POVIDONE IODINE 10% (100),A & E,1019,,admin,,,,00234
+,,ADHESIVE PLASTER 6,A & E,1020,,admin,,,,00235
+,,FEEDING TUBES (NG TUBE) size 18,A & E,1021,,admin,,,,00236
+,,FEEDING TUBES (NG TUBE) size 16,A & E,1022,,admin,,,,00237
+,,FEEDING TUBES (NG TUBE) size 8,A & E,1023,,admin,,,,00238
+,,FEEDING TUBES (NG TUBE) size 6,A & E,1024,,admin,,,,00239
+,,K-Y JELLY,A & E,1025,,admin,,,,00240
+,,ORTHOBOND 4,A & E,1026,,admin,,,,00241
+,,ORTHOBOND 6,A & E,1027,,admin,,,,00242
+,,2-WAY CATHETER 16G ,A & E,1028,,admin,,,,00243
+,,2-WAY CATHETER 18G ,A & E,1029,,admin,,,,00244
+,,3-WAY CATHETER 16G,A & E,1030,,admin,,,,00245
+,,3-WAY CATHETER 18G,A & E,1031,,admin,,,,00246
+,,BLOOD GIVING SET ,A & E,1032,,admin,,,,00247
+,,CANNULA 16G ,A & E,1033,,admin,,,,00248
+,,CANNULA 18G ,A & E,1034,,admin,,,,00249
+,,CANNULA 20G ,A & E,1035,,admin,,,,00250
+,,CANNULA 22G ,A & E,1036,,admin,,,,00251
+,,CANNULA 24G ,A & E,1037,,admin,,,,00252
+,,CREPE BANDAGE 4 ,A & E,1038,,admin,,,,00253
+,,CREPE BANDAGE 6 ,A & E,1039,,admin,,,,00254
+,,INFUSION GIVING SET ,A & E,1040,,admin,,,,00255
+,,LATEX (EXAMINATION)HAND GLOVE ,A & E,1041,,admin,,,,00256
+,,POP 6 ,A & E,1042,,admin,,,,00257
+,,SUFRATULLE,A & E,1043,,admin,,,,00258
+,,URINE BAG ,A & E,1044,,admin,,,,00259
+,,Eusol Solution,A & E,1045,,admin,,,,00260
+,,Hydrogen Peroxide (H2O2) (100) ,A & E,1046,,admin,,,,00261
+,,CHEST TUBE 30,A & E,1047,,admin,,,,00262
+,,CHEST TUBE 16,A & E,1048,,admin,,,,00263
+,,CHEST TUBE 22,A & E,1049,,admin,,,,00264
+,,CHEST TUBE 20,A & E,1050,,admin,,,,00265
+,,CHEST TUBE 18,A & E,1051,,admin,,,,00266
+,,NEOSTIGMINE,A & E,1052,,admin,,,,00267
+,,LIDOCAINE PLUS,A & E,1053,,admin,,,,00268
+,,DICLOFENAC,A & E,1054,,admin,,,,00269
+,,CLEXANE,A & E,1055,,admin,,,,00270

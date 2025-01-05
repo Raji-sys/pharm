@@ -130,7 +130,8 @@
                         <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Selling Price</th>
                         <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Quantity</th>
                         <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Balance</th>
-                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Dispense Date</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Manual Date</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">System Date</th>
                         <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Dispensed By</th>
                     </tr>
                 </thead>
@@ -141,11 +142,12 @@
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.patient_info|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.generic_name|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.trade_name|default_if_none:'' }}</td>
-                        <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.strength|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.strength|default_if_none:'N/A' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.cost_price|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.selling_price|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.quantity|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.balance_quantity|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap text-gray-700">{{ d.date_issued|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.dispense_date|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.dispensed_by|default_if_none:'' }}</td>
                     </tr>

@@ -22,7 +22,7 @@
         <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 ">
             <div class="flex items-center w-full sm:w-auto">
                 <label for="q" class="sr-only">Search</label>
-                <input type="text" name="q" id="q" value="{{ query|default_if_none:'' }}" placeholder="Search Drugs or Class..."
+                <input type="text" name="q" id="q" value="{{ query|default_if_none:'' }}" placeholder="Search Drugs, Class, or Dosage Form..."
                     class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-60">
             </div>
             <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
@@ -56,9 +56,11 @@
                         <tr class="text-xs text-left text-white uppercase">
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">#</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Date Received</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Dosage Form</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Category</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Generic Drug</th>
+                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade name</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade Drug</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Cost Price</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Selling Price</th>
                             <th scope="col" class="px-4 py-2 font-medium tracking-wider">Balance QTY</th>
@@ -73,9 +75,11 @@
                         <tr class="{% cycle 'bg-white' 'bg-orange-50' %} text-xs text-left">
                             <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ i.updated_at|default_if_none:'N/A'}}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.dosage_form|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.category|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.generic_name|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.strength|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.trade_name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 font-medium text-gray-800">{{ i.drug.strength|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.drug.piece_unit_cost_price|default_if_none:'N/A'|intcomma }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">&#x20A6;{{ i.drug.piece_unit_selling_price|default_if_none:'N/A'|intcomma }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ i.quantity|default_if_none:'N/A' }}</td>

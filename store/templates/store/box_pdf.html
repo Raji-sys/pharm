@@ -101,6 +101,10 @@ h1 {
         .small-column {
             width: 30px;
         }
+        .mid-column {
+            width: 60px;
+        }
+
         .t{
             font-style: bold;
             font-size: 10px;
@@ -131,39 +135,36 @@ h1 {
         <thead>
             <tr>
                 <th class="small-column">#</th>
-                <th class="">UNIT</th>
+                <th class="mid-column">UNIT</th>
                 <th class="">DATE ISSUED</th>
                 <th class="">DRUG INFO</th>
-                <th class="">TRADE NAME</th>
                 <th class="">SUPPLIER</th>
-                <th class="">QUANITITY ISSUED</th>
-                <th class="">ISSUED BY</th>
+                <th class="mid-column">QTY</th>
+                <th class="mid-column">ISSUED BY</th>
             </tr>
               {% for r in f %}        
         <tr class=>
             <td class="small-column text-center">
                 {{forloop.counter}}
             </td>    
-            <td class="text-center">
+            <td class="text-center mid-column">
                 {{ r.unit|default_if_none:'' }}
             </td>    
             <td class="text-center">
                 {{r.date_issued|default_if_none:''}}<br>
             </td>    
             <td>
-                {{r.drug.generic_name|default_if_none:''|upper}} <br>
-               <small class="t">{{r.drug.strength|default_if_none:''|upper}}</small> 
-            </td>
-            <td>
                 {{r.drug.trade_name|default_if_none:''|upper}}
+ <br>
+               <small class="t">{{r.drug.strength|default_if_none:''|upper}}</small> 
             </td>
             <td>
                 {{r.drug.supplier|default_if_none:''|upper}}
             </td>
-            <td>
+            <td class="mid-column">
             {{r.quantity|default_if_none:''|upper}}
             </td>
-            <td>
+            <td class="mid-column">
             {{r.issued_by|default_if_none:''|upper}}
             </td>
           </tr>
