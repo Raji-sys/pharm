@@ -1259,24 +1259,118 @@ def dispense_report(request, pk):
 
 
 @login_required
-def dispense_pdf(request):
+def dispense_report(request, pk):
+    dispensary = get_object_or_404(DispensaryLocker, id=pk)
+    
+    # Initialize the filter with the queryset and manually set the initial value
+    dispensefilter = DispenseFilter(
+        request.GET, 
+        queryset=DispenseRecord.objects.filter(dispensary=dispensary).order_by('-updated')
+    )
+    
+    # Set initial value for the dispensary filter
+    dispensefilter.form.initial['dispensary'] = pk
+    
+    filtered_queryset = dispensefilter.qs
+    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    
+    # Calculate price using annotate to handle multiple drugs correctly
+    total_price = filtered_queryset.annotate(
+        item_price=models.F('quantity') * models.F('drug__piece_unit_selling_price')
+    ).aggregate(total=models.Sum('item_price'))['total'] or 0
+    
+    total_appearance = filtered_queryset.count()
+
+    pgn = Paginator(filtered_queryset, 10)
+    pn = request.GET.get('page')
+    po = pgn.get_page(pn)
+
+    context = {
+        'dispensary': dispensary,
+        'dispensefilter': dispensefilter,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+        'po': po
+    }
+    return render(request, 'store/dispense_report.html', context)
+
+
+@login_required
+def dispense_report(request, pk):
+    dispensary = get_object_or_404(DispensaryLocker, id=pk)
+    
+    # Initialize the filter with the queryset and manually set the initial value
+    dispensefilter = DispenseFilter(
+        request.GET, 
+        queryset=DispenseRecord.objects.filter(dispensary=dispensary).order_by('-updated')
+    )
+    
+    # Set initial value for the dispensary filter
+    dispensefilter.form.initial['dispensary'] = pk
+    
+    filtered_queryset = dispensefilter.qs
+    
+    # Calculate totals using annotate for accurate price calculations
+    totals = filtered_queryset.aggregate(
+        total_quantity=models.Sum('quantity'),
+        total_price=models.Sum(
+            models.F('quantity') * models.F('drug__piece_unit_selling_price'),
+            output_field=models.DecimalField()
+        )
+    )
+    
+    total_quantity = totals['total_quantity'] or 0
+    total_price = totals['total_price'] or 0
+    total_appearance = filtered_queryset.count()
+
+    pgn = Paginator(filtered_queryset, 10)
+    pn = request.GET.get('page')
+    po = pgn.get_page(pn)
+
+    context = {
+        'dispensary': dispensary,
+        'dispensefilter': dispensefilter,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'total_quantity': total_quantity,
+        'po': po
+    }
+    return render(request, 'store/dispense_report.html', context)
+
+
+@login_required
+def dispense_pdf(request, pk):
+    dispensary = get_object_or_404(DispensaryLocker, id=pk)
+    
+    # Use the same filtering logic as the report view
+    dispensefilter = DispenseFilter(
+        request.GET, 
+        queryset=DispenseRecord.objects.filter(dispensary=dispensary).order_by('-updated')
+    )
+    filtered_queryset = dispensefilter.qs
+    
+    # Calculate totals using annotate for accurate price calculations
+    totals = filtered_queryset.aggregate(
+        total_quantity=models.Sum('quantity'),
+        total_price=models.Sum(
+            models.F('quantity') * models.F('drug__piece_unit_selling_price'),
+            output_field=models.DecimalField()
+        )
+    )
+    
+    total_quantity = totals['total_quantity'] or 0
+    total_price = totals['total_price'] or 0
+    total_appearance = filtered_queryset.count()
+    
+    # Generate PDF metadata
     ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
-    f = DispenseFilter(request.GET, queryset=DispenseRecord.objects.all()).qs
-    total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    
-    if f.exists() and f.first().drug.piece_unit_selling_price:
-        first_drug = f.first().drug.piece_unit_selling_price
-    else:
-        first_drug = 0
-    
-    total_price = total_quantity * first_drug
-    total_appearance = f.count()
     keys = [key for key, value in request.GET.items() if value]
     result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
     
     context = {
-        'f': f,
+        'f': filtered_queryset,
         'pagesize': 'A4',
         'orientation': 'Portrait',
         'result': result,
@@ -1284,16 +1378,18 @@ def dispense_pdf(request):
         'total_appearance': total_appearance,
         'total_price': total_price,
         'total_quantity': total_quantity,
+        'dispensary': dispensary,
     }
     
+    # Generate PDF
     pdf_buffer = generate_pdf(context, 'store/dispense_pdf.html')
-    
     if pdf_buffer is None:
         return HttpResponse('Error generating PDF', status=500)
     
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
+
 
 class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
