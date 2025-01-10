@@ -35,6 +35,8 @@ urlpatterns=[
     path('stores/dispensary-locker/<int:pk>/', UnitDispensaryLockerView.as_view(), name='unit_dispensary'),
 
     path('stores/drug-transfer/<int:pk>/', UnitTransferView.as_view(), name='unit_transfer'),
+    path('unit/<int:pk>/received-records/', UnitReceivedRecordsView.as_view(), name='unit_received_records'),
+
     path('stores/box/<int:pk>/', BoxView.as_view(), name='unit_box'),
     
 
@@ -49,7 +51,11 @@ urlpatterns=[
 
     path('unit-issue-record/update/<int:pk>/', TransferUpdateView.as_view(), name='transfer_update'),
     path('transfer-report/<int:pk>/', views.transfer_report, name='transfer_report'),
-    path('transfer-pdf/', views.transfer_pdf, name='transfer_pdf'),
+    
+    path('transfer/<int:pk>/pdf/', transfer_pdf, name='transfer_pdf'),
+    path('unit/<int:pk>/receive-report/', receive_report, name='receive_report'),
+    path('receive/<int:pk>/pdf/', receive_pdf, name='receive_pdf'),
+    
     path('box/update/<int:pk>/', BoxUpdateView.as_view(), name='box_update'),
     path('box-report/<int:pk>/', views.box_report, name='box_report'),
     # path('box-pdf/', views.box_pdf, name='box_pdf'),

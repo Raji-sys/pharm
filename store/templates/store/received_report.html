@@ -5,30 +5,29 @@
 {% block content %}
 <div class="flex justify-center p-4 gap-4 text-xl">
     <div>
-        <a href="{% url 'unit_transfer' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>    
+        <a href="{%url 'unit_transfer' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>    
     </div>
     <div>
-        <h1 class="text-lg text-blue-800 text-center uppercase">{{unit.name}} Transfer-Out Report</h1>
+        <h1 class="text-lg text-blue-800 text-center uppercase">{{unit.name}} Transfer-In Report</h1>
     </div>
 </div>
-<div class="max-w-7xl mx-auto px-4">
+<div class="max-w-7xl mx-auto px-4 ">
     <div class="flex justify-end items-center m-2 space-x-2">
         {% if request.GET.urlencode %}
-            <a href="{% url 'transfer_pdf' unit.id %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
+            <a href="{% url 'receive_pdf' unit.id%}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
                 <i class="fa-solid fa-file-pdf mr-2"></i> Generate PDF
             </a>
             <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
                 <i class="fa-solid fa-rotate mr-2"></i> Reset
             </a>
-        {% endif %}
-    </div>
-
+            {% endif %}
+        </div>
 
     <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
         <div class="px-4 py-5 sm:p-6">
             <form method="get" class="space-y-4">
                 <div class="md:flex md:justify-center gap-4 grid grid-cols-2">
-                    {% for field in transferfilter.form %}
+                    {% for field in receivefilter.form %}
                     <div>
                         <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
                         {% if field.field.widget.input_type == 'select' %}
@@ -85,7 +84,7 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    {% for i in transferfilter.qs %}
+                    {% for i in receivefilter.qs %}
                     <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-100 transition duration-150 ease-in-out text-xs text-center uppercase">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.date_issued|default_if_none:'N/A' }}</td>

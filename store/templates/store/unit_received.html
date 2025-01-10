@@ -5,24 +5,17 @@
     <div class="container mx-auto p-4">
         <div class="flex justify-center p-4 gap-4 text-xl">
             <div>
-                <a href="{% url 'unit_dashboard' store.pk %}" ><i class="fa-solid fa-arrow-left"></i></a>
+                <a href="{% url 'unit_transfer' store.pk %}" ><i class="fa-solid fa-arrow-left"></i></a>
             </div>
             <div>
-                <h2 class="text-lg text-center text-teal-700 uppercase">{{ store.name }} Transfer-Out Records</h2>
+                <h2 class="text-lg text-center text-teal-700 uppercase">{{ store.name }} Transfer-In Records</h2>
             </div>
         </div>
         <div class=" flex flex-wrap justify-center items-center mb-1 space-x-2 gap-2">
-            <a href="{% url 'unit_issue_record_create' store.id %}"
-           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-stone-600 hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-500">
-            <i class="fas fa-plus mr-2"></i> New Transfer
-            </a>
-            <a href="{% url 'transfer_report' store.pk %}"
+          
+            <a href="{% url 'receive_report' store.pk %}"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <i class="fas fa-file-pdf mr-2 fa-2xl"></i> Transfer-Out Report
-                </a>
-            <a href="{% url 'unit_received_records' store.pk %}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                <i class="fas fa-inbox mr-2 fa-2xl"></i> Transfer-In Records
+                <i class="fas fa-file-pdf mr-2 fa-2xl"></i> Transfer-In Report
                 </a>
                                                 <!-- Search Form -->
                                                 <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 ">
@@ -43,42 +36,37 @@
                                                 </form>
             </div>
         <!-- Unit Issue Records Table -->
-        <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="overflow-x-auto max-h-[65vh]">
-                <table class="min-w-full divide-y divide-gray-300">
-                    <thead class="bg-stone-500">
-                        <tr class="text-xs text-left text-white uppercase">
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">#</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Generic Drug</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade Drug</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Quantity</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Issued To</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Date Issued</th>
-                            <th scope="col" class="px-4 py-2 font-medium tracking-wider">Update</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        {% for r in page_obj %}
-                        <tr class="{% cycle 'bg-white' 'bg-stone-50' %} text-xs text-left">
-                            <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
-                            <td class="px-4 py-2 text-gray-700">{{ r.issued_to.name|default_if_none:'N/A'|upper }}</td>
-                            <td class="px-4 py-2 text-gray-700">{{ r.date_issued }}</td>
-                            <td class="px-4 py-2">
-                                <a href="{% url 'transfer_update' r.id %}" class="text-stone-700 hover:text-stone-900">
-                                    <i class="fas fa-edit fa-lg"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+<!-- Unit Received Records Table -->
+<div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="overflow-x-auto max-h-[65vh]">
+        <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-stone-500">
+                <tr class="text-xs text-left text-white uppercase">
+                    <th scope="col" class="px-4 py-2 font-medium tracking-wider">#</th>
+                    <th scope="col" class="px-4 py-2 font-medium tracking-wider">Generic Drug</th>
+                    <th scope="col" class="px-4 py-2 font-medium tracking-wider">Strength</th>
+                    <th scope="col" class="px-4 py-2 font-medium tracking-wider">Trade Drug</th>
+                    <th scope="col" class="px-4 py-2 font-medium tracking-wider">Quantity</th>
+                    <th scope="col" class="px-4 py-2 font-medium tracking-wider">FROM</th>
+                    <th scope="col" class="px-4 py-2 font-medium tracking-wider">Date Issued</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for r in page_obj %}
+                <tr class="{% cycle 'bg-white' 'bg-stone-50' %} text-xs text-left">
+                    <td class="px-4 py-2 text-gray-700">{{ forloop.counter }}</td>
+                    <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.generic_name|default_if_none:'N/A'|upper }}</td>
+                    <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
+                    <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
+                    <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
+                    <td class="px-4 py-2 text-gray-700">{{ r.unit.name|default_if_none:'N/A'|upper }}</td>
+                    <td class="px-4 py-2 text-gray-700">{{ r.date_issued }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 
         <!-- Pagination and Back Button -->
