@@ -308,7 +308,7 @@ class BoxFilter(django_filters.FilterSet):
     issued_to = django_filters.ModelChoiceFilter(
         label="BOX",
         field_name='moved_to',
-        queryset=Box.objects.all(),
+        lookup_expr='iexact',
         widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
     )
 

@@ -1101,8 +1101,14 @@ def transfer_report(request, pk):
     transferfilter = TransferFilter(
         request.GET,
         queryset=UnitIssueRecord.objects.filter(unit=unit).annotate(
-            unit_price=models.F('drug__selling_price') / models.F('drug__pack_size'),
-            total_price=models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
+            unit_price=ExpressionWrapper(
+                models.F('drug__selling_price') / models.F('drug__pack_size'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            ),
+            total_price=ExpressionWrapper(
+                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            )
         ).order_by('-date_issued')
     )
     
@@ -1114,7 +1120,12 @@ def transfer_report(request, pk):
     # Calculate totals
     totals = filtered_queryset.aggregate(
         total_quantity=models.Sum('quantity'),
-        total_price=models.Sum('total_price'),
+        total_price=ExpressionWrapper(
+            models.Sum(
+                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
+            ),
+            output_field=DecimalField(max_digits=10, decimal_places=2)
+        ),
     )
     
     total_quantity = totals['total_quantity'] or 0
@@ -1126,7 +1137,6 @@ def transfer_report(request, pk):
     pn = request.GET.get('page')
     po = pgn.get_page(pn)
 
-    # Context for template
     context = {
         'unit': unit,
         'transferfilter': transferfilter,
@@ -1137,7 +1147,6 @@ def transfer_report(request, pk):
     }
     return render(request, 'store/transfer_report.html', context)
 
-
 @login_required
 def transfer_pdf(request, pk):
     unit = get_object_or_404(Unit, id=pk)
@@ -1146,8 +1155,14 @@ def transfer_pdf(request, pk):
     transferfilter = TransferFilter(
         request.GET,
         queryset=UnitIssueRecord.objects.filter(unit=unit).annotate(
-            unit_price=models.F('drug__selling_price') / models.F('drug__pack_size'),
-            total_price=models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
+            unit_price=ExpressionWrapper(
+                models.F('drug__selling_price') / models.F('drug__pack_size'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            ),
+            total_price=ExpressionWrapper(
+                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            )
         ).order_by('-date_issued')
     )
     
@@ -1156,7 +1171,12 @@ def transfer_pdf(request, pk):
     # Calculate totals using the same annotations
     totals = filtered_queryset.aggregate(
         total_quantity=models.Sum('quantity'),
-        total_price=models.Sum('total_price'),
+        total_price=ExpressionWrapper(
+            models.Sum(
+                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
+            ),
+            output_field=DecimalField(max_digits=10, decimal_places=2)
+        ),
     )
     
     total_quantity = totals['total_quantity'] or 0
@@ -1188,7 +1208,6 @@ def transfer_pdf(request, pk):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
-
 
 
 class UnitIssueRecordListView(LoginRequiredMixin,UnitGroupRequiredMixin,ListView):
@@ -1467,7 +1486,7 @@ class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
                 Q(drug__category__name__icontains=query)|
                 Q(drug__dosage_form__icontains=query)|
                 Q(drug__strength__icontains=query)|
-                Q(moved_to__name__icontains=query)
+                Q(moved_to__icontains=query)
             )        
         # Paginate the results
         paginator = Paginator(unit_issue_records, self.paginate_by)
@@ -1622,7 +1641,7 @@ def box_pdf(request, pk):
             Q(drug__category__name__icontains=query) |
             Q(drug__dosage_form__icontains=query)|
             Q(drug__strength__icontains=query)|
-            Q(moved_to__name__icontains=query)
+            Q(moved_to__icontains=query)
         )
     
     # Calculate totals
@@ -1821,91 +1840,113 @@ class LoginActivityListView(LoginRequiredMixin, ListView):
 
 @login_required
 def receive_report(request, pk):
-    unit = get_object_or_404(Unit, id=pk)
-    
-    # Initialize the filter with annotated queryset
-    receivefilter = ReceiveFilter(
-        request.GET,
-        queryset=UnitIssueRecord.objects.filter(issued_to=unit).annotate(
-            unit_price=models.F('drug__selling_price') / models.F('drug__pack_size'),
-            total_price=models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
-        ).order_by('-date_issued')
-    )
-    
-    receivefilter.form.initial['issued_to'] = pk
-    filtered_queryset = receivefilter.qs
-    
-    # Calculate totals using annotated fields
-    totals = filtered_queryset.aggregate(
-        total_quantity=models.Sum('quantity'),
-        total_price=models.Sum('total_price'),
-    )
-    
-    total_quantity = totals['total_quantity'] or 0
-    total_price = totals['total_price'] or 0
-    total_appearance = filtered_queryset.count()
+   unit = get_object_or_404(Unit, id=pk)
+   
+   # Initialize the filter with annotated queryset
+   receivefilter = ReceiveFilter(
+       request.GET,
+       queryset=UnitIssueRecord.objects.filter(issued_to=unit).annotate(
+           unit_price=ExpressionWrapper(
+               models.F('drug__selling_price') / models.F('drug__pack_size'),
+               output_field=DecimalField(max_digits=10, decimal_places=2)
+           ),
+           total_price=ExpressionWrapper(
+               models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
+               output_field=DecimalField(max_digits=10, decimal_places=2)
+           )
+       ).order_by('-date_issued')
+   )
+   
+   receivefilter.form.initial['issued_to'] = pk
+   filtered_queryset = receivefilter.qs
+   
+   # Calculate totals using annotated fields
+   totals = filtered_queryset.aggregate(
+       total_quantity=models.Sum('quantity'),
+       total_price=ExpressionWrapper(
+           models.Sum(
+               models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
+           ),
+           output_field=DecimalField(max_digits=10, decimal_places=2)
+       ),
+   )
+   
+   total_quantity = totals['total_quantity'] or 0
+   total_price = totals['total_price'] or 0
+   total_appearance = filtered_queryset.count()
 
-    paginator = Paginator(filtered_queryset, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+   paginator = Paginator(filtered_queryset, 10)
+   page_number = request.GET.get('page')
+   page_obj = paginator.get_page(page_number)
 
-    context = {
-        'unit': unit,
-        'receivefilter': receivefilter,
-        'total_appearance': total_appearance,
-        'total_price': total_price,
-        'total_quantity': total_quantity,
-        'page_obj': page_obj,
-    }
-    return render(request, 'store/received_report.html', context)
+   context = {
+       'unit': unit,
+       'receivefilter': receivefilter,
+       'total_appearance': total_appearance,
+       'total_price': total_price,
+       'total_quantity': total_quantity,
+       'page_obj': page_obj,
+   }
+   return render(request, 'store/received_report.html', context)
 
 @login_required
 def receive_pdf(request, pk):
-    unit = get_object_or_404(Unit, id=pk)
-    
-    # Use the same filtering logic with annotated fields
-    receivefilter = ReceiveFilter(
-        request.GET,
-        queryset=UnitIssueRecord.objects.filter(issued_to=unit).annotate(
-            unit_price=models.F('drug__selling_price') / models.F('drug__pack_size'),
-            total_price=models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
-        ).order_by('-date_issued')
-    )
-    
-    filtered_queryset = receivefilter.qs
-    
-    # Calculate totals using the same annotations
-    totals = filtered_queryset.aggregate(
-        total_quantity=models.Sum('quantity'),
-        total_price=models.Sum('total_price'),
-    )
-    
-    total_quantity = totals['total_quantity'] or 0
-    total_price = totals['total_price'] or 0
-    total_appearance = filtered_queryset.count()
-    
-    # Generate PDF metadata
-    ndate = datetime.now()
-    filename = ndate.strftime('received_on_%d_%m_%Y_at_%I_%M%p.pdf')
-    keys = [key for key, value in request.GET.items() if value]
-    result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
-    
-    context = {
-        'f': filtered_queryset,
-        'pagesize': 'A4',
-        'orientation': 'Portrait',
-        'result': result,
-        'keys': keys,
-        'total_appearance': total_appearance,
-        'total_price': total_price,
-        'total_quantity': total_quantity,
-        'unit': unit,
-    }
-    
-    pdf_buffer = generate_pdf(context, 'store/receive_pdf.html')
-    if pdf_buffer is None:
-        return HttpResponse('Error generating PDF', status=500)
-    
-    response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
+   unit = get_object_or_404(Unit, id=pk)
+   
+   # Use the same filtering logic with annotated fields
+   receivefilter = ReceiveFilter(
+       request.GET,
+       queryset=UnitIssueRecord.objects.filter(issued_to=unit).annotate(
+           unit_price=ExpressionWrapper(
+               models.F('drug__selling_price') / models.F('drug__pack_size'),
+               output_field=DecimalField(max_digits=10, decimal_places=2)
+           ),
+           total_price=ExpressionWrapper(
+               models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
+               output_field=DecimalField(max_digits=10, decimal_places=2)
+           )
+       ).order_by('-date_issued')
+   )
+   
+   filtered_queryset = receivefilter.qs
+   
+   # Calculate totals using the same annotations
+   totals = filtered_queryset.aggregate(
+       total_quantity=models.Sum('quantity'),
+       total_price=ExpressionWrapper(
+           models.Sum(
+               models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
+           ),
+           output_field=DecimalField(max_digits=10, decimal_places=2)
+       ),
+   )
+   
+   total_quantity = totals['total_quantity'] or 0
+   total_price = totals['total_price'] or 0
+   total_appearance = filtered_queryset.count()
+
+   # Generate PDF metadata
+   ndate = datetime.now()
+   filename = ndate.strftime('received_on_%d_%m_%Y_at_%I_%M%p.pdf')
+   keys = [key for key, value in request.GET.items() if value]
+   result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
+
+   context = {
+       'f': filtered_queryset,
+       'pagesize': 'A4',
+       'orientation': 'Portrait',
+       'result': result,
+       'keys': keys,
+       'total_appearance': total_appearance,
+       'total_price': total_price,
+       'total_quantity': total_quantity,
+       'unit': unit,
+   }
+   
+   pdf_buffer = generate_pdf(context, 'store/receive_pdf.html')
+   if pdf_buffer is None:
+       return HttpResponse('Error generating PDF', status=500)
+       
+   response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
+   response['Content-Disposition'] = f'attachment; filename="{filename}"'
+   return response

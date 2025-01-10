@@ -165,8 +165,7 @@ class BoxRecordForm(forms.ModelForm):
         super(BoxRecordForm, self).__init__(*args, **kwargs)
         self.fields['unit'].widget.attrs['readonly'] = True
         self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
-        if self.issuing_unit:
-            self.fields['moved_to'].queryset = Box.objects.exclude(id=self.issuing_unit.id)
+
         for field in self.fields.values():
             field.required = False
             field.widget.attrs.update({'class':'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})

@@ -343,22 +343,20 @@ class LockerInventory(models.Model):
     def __str__(self):
         return f"{self.drug} in {self.locker}"
 
-class Box(models.Model):
-    boxes=[('expiry','expiry'),('damage','damage'),('other','other')]
-    name=models.CharField(max_length=200, null=True, blank=True, choices=boxes)
-    update=models.DateField(auto_now_add=True,null=True)
-    
-    def __str__(self):
-        return self.name
 
 class UnitIssueRecord(models.Model):
+    BOX_CHOICES = [
+        ('expiry', 'Expiry'),
+        ('damage', 'Damage'),
+        ('other', 'Other'),
+    ]
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='issuing_unit')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='unitissue_category')
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='issued_drugs')
     quantity = models.PositiveIntegerField(null=True, blank=True)
     date_issued = models.DateTimeField(auto_now_add=True,null=True)
     issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
-    moved_to = models.ForeignKey(Box, on_delete=models.CASCADE, related_name='box_moved', null=True, blank=True)
+    moved_to = models.CharField (null=True, blank=True, choices=BOX_CHOICES, max_length=100)
     issued_to_locker = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, null=True, blank=True)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     updated_at = models.DateField(auto_now=True)

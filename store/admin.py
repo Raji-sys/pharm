@@ -214,12 +214,6 @@ class UnitAdmin(admin.ModelAdmin):
     list_filter = ('update',)
 
 
-@admin.register(Box)
-class BoxAdmin(admin.ModelAdmin):
-    list_display = ('name', 'update',)
-    search_fields = ('name',)
-    list_filter = ('update',)
-
 @admin.register(DispenseRecord)
 class DispenseRecordAdmin(admin.ModelAdmin):
     list_display=('date_issued','dispensary','drug','quantity','balance_quantity','patient_info','dispensed_by','dispense_date',)

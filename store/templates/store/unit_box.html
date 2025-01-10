@@ -63,7 +63,7 @@
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
-                            <td class="px-4 py-2 text-gray-700">{{ r.moved_to.name|default_if_none:'N/A'|upper }}</td>
+                            <td class="px-4 py-2 text-gray-700">{{ r.moved_to|default_if_none:'N/A'|upper }}</td>
                             <td class="px-4 py-2 text-gray-700">{{ r.date_issued|date:"d-M-Y" }}</td>
                             <td class="px-4 py-2 ">
                                 <a href="{% url 'box_update' r.id %}" class="text-rose-700 hover:text-rose-900">
