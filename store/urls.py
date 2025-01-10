@@ -70,6 +70,10 @@ urlpatterns=[
     path('unit/dispensary/dispensed-list/<int:pk>/', DispenseRecordView.as_view(), name='dispensed_list'),
     path('dispense-report/<int:pk>/', views.dispense_report, name='dispense_report'),
     path('dispense-pdf/<int:pk>/', views.dispense_pdf, name='dispense_pdf'),
+    
+    path('drug-request/new/<int:unit_id>/', DrugRequestCreateView.as_view(), name='drug_request_create'),
+    path('drug-request/new/', DrugRequestCreateView.as_view(), name='drug_request_create'),
+    path('drug-request/update/<int:pk>/', DrugRequestUpdateView.as_view(), name='drug_request_update'),
 
     path('unit/<int:unit_id>/return-drug/', return_drug, name='return_drug'),
     path('returned-drugs/<int:unit_id>/', ReturnedDrugsListView.as_view(), name='return_drugs_list'),

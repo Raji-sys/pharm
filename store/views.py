@@ -17,7 +17,7 @@ from django.http import JsonResponse
 from django.forms import modelformset_factory, BaseModelFormSet
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.views.generic import UpdateView, ListView, DetailView, TemplateView
+from django.views.generic import UpdateView, ListView, DetailView, TemplateView, CreateView
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -1875,3 +1875,92 @@ def receive_pdf(request, pk):
    response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
    response['Content-Disposition'] = f'attachment; filename="{filename}"'
    return response
+
+class DrugRequestCreateView(LoginRequiredMixin, CreateView):
+    model = DrugRequest
+    form_class = DrugRequestForm
+    template_name = 'store/drugrequest_form.html'
+    success_url = reverse_lazy('drugrequest_list')
+
+    def dispatch(self, request, *args, **kwargs):
+        # Get the unit from the URL or raise a 404 if not found
+        self.unit = get_object_or_404(Unit, id=self.kwargs['unit_id'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.requesting_unit = self.unit  # Assign the unit from the URL
+        form.instance.requested_by = self.request.user  # Associate the user making the request
+        return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['initial'] = {'requesting_unit': self.unit}  # Pre-fill the unit field in the form
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['unit'] = self.unit  # Add the unit to the template context
+        return context
+
+
+class DrugRequestListView(LoginRequiredMixin, ListView):
+    model = DrugRequest
+    template_name = 'store/request_list.html'
+    context_object_name = 'drugrequests'
+    paginate_by = 10
+
+    def dispatch(self, request, *args, **kwargs):
+        # Get the unit from the URL or raise a 404 if not found
+        self.unit = get_object_or_404(Unit, id=self.kwargs['unit_id'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        # Filter drug requests for the specific unit
+        queryset = DrugRequest.objects.filter(requesting_unit=self.unit).order_by('-created_at')
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+            Q(drug__generic_name__icontains=query) |
+            Q(drug__trade_name__icontains=query) |
+            Q(drug__category__name__icontains=query) |
+            Q(drug__dosage_form__icontains=query) |
+            Q(drug__strength__icontains=query) |
+            Q(requesting_unit__name__icontains=query)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['unit'] = self.unit  # Add the unit to the template context
+        context['query'] = self.request.GET.get('q', '')  # Add the search query to the context
+        return context
+
+class DrugRequestUpdateView(LoginRequiredMixin, UpdateView):
+    model = DrugRequest
+    form_class = DrugRequestForm
+    template_name = 'store/drugrequest_form.html'
+    success_url = reverse_lazy('drugrequest_list')
+
+    def dispatch(self, request, *args, **kwargs):
+        # Get the unit from the URL or raise a 404 if not found
+        self.unit = get_object_or_404(Unit, id=self.kwargs['unit_id'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        # Ensure the queryset is limited to drug requests for the specific unit
+        return DrugRequest.objects.filter(requesting_unit=self.unit)
+
+    def form_valid(self, form):
+        form.instance.requesting_unit = self.unit  # Assign the unit from the URL
+        form.instance.requested_by = self.request.user  # Associate the user making the request
+        return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['initial'] = {'requesting_unit': self.unit}  # Pre-fill the unit field in the form
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['unit'] = self.unit  # Add the unit to the template context
+        return context

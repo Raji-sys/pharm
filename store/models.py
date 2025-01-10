@@ -565,3 +565,13 @@ def log_user_logout(sender, request, user, **kwargs):
         logout_time__isnull=True,
         session_key=request.session.session_key
     ).update(logout_time=timezone.now())
+
+
+class DrugRequest(models.Model):
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='request_drug')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='request_drug_category')
+    drug = models.ForeignKey(Drug, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True)
+    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    request_date = models.DateField(null=True)
