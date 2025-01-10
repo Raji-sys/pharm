@@ -38,7 +38,7 @@
                 <thead class="bg-purple-500">
                     <tr class="text-left text-xs text-white">
                         <th class="p-3 text-xs font-medium text-white uppercase tracking-wider">#</th>
-                        <th class="px-4 py-2">Date</th>
+                        <th class="px-4 py-2">Return Date</th>
                         <th class="px-4 py-2">Recieved By</th>
                         <th class="px-4 py-2">Patient Info</th>
                         <th class="px-4 py-2">Dosage Form</th>
@@ -52,7 +52,7 @@
                     {% for drug in returned_drugs %}
                     <tr class="hover:bg-purple-50 transition-colors duration-300 text-xs text-left">
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ forloop.counter }}</td>
-                        <td class=" px-4 py-2">{{ drug.date }}</td>
+                        <td class=" px-4 py-2">{{ drug.updated }}</td>
                         <td class=" px-4 py-2">{{ drug.received_by }}</td>
                         <td class=" px-4 py-2">{{ drug.patient_info }}</td>
                         <td class=" px-4 py-2">{{ drug.drug.dosage_form }}</td>

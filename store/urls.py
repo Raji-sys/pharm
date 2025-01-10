@@ -64,12 +64,13 @@ urlpatterns=[
     path('worth/', InventoryWorthView.as_view(), name='worth'),
     
     path('main-store-worth/', StoreWorthView.as_view(), name='main_store_value'),
-    path('unit-worth/<int:pk>', UnitWorthView.as_view(), name='unit_value'),
+    path('unit-worth/<int:pk>/', UnitWorthView.as_view(), name='unit_value'),
 
     path('unit/dispensary/<int:dispensary_id>/dispense/', views.dispenserecord, name='dispense'),
     path('unit/dispensary/dispensed-list/<int:pk>/', DispenseRecordView.as_view(), name='dispensed_list'),
     path('dispense-report/<int:pk>/', views.dispense_report, name='dispense_report'),
-    path('dispense-pdf/', views.dispense_pdf, name='dispense_pdf'),
+    path('dispense-pdf/<int:pk>/', views.dispense_pdf, name='dispense_pdf'),
+
     path('unit/<int:unit_id>/return-drug/', return_drug, name='return_drug'),
     path('returned-drugs/<int:unit_id>/', ReturnedDrugsListView.as_view(), name='return_drugs_list'),
     path('return-report/<int:unit_id>/', views.return_report, name='return_report'),

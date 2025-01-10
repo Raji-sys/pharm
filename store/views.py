@@ -30,6 +30,7 @@ from .models import Unit
 from decimal import Decimal
 from django.db.models import Sum, F
 from .models import LoginActivity
+from datetime import datetime
 
 
 def group_required(group_name):
@@ -1294,101 +1295,26 @@ class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
     def get_unit_for_mixin(self):
         return self.unit
     
-    
-@login_required
-def dispense_report(request, pk):
-    dispensary = get_object_or_404(DispensaryLocker, id=pk)
-    
-    # Initialize the filter with the queryset and manually set the initial value
-    dispensefilter = DispenseFilter(request.GET, queryset=DispenseRecord.objects.filter(dispensary=dispensary).order_by('-updated'))
-    
-    # Set initial value for the dispensary filter
-    dispensefilter.form.initial['dispensary'] = pk
-    
-    filtered_queryset = dispensefilter.qs
-    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists() and filtered_queryset.first().drug.piece_unit_selling_price:
-        first_drug = filtered_queryset.first().drug.piece_unit_selling_price
-    else:
-        first_drug = 0
-
-    total_price = total_quantity * first_drug
-    total_appearance = filtered_queryset.count()
-
-    pgn = Paginator(filtered_queryset, 10)
-    pn = request.GET.get('page')
-    po = pgn.get_page(pn)
-
-    context = {
-        'dispensary':dispensary,
-        'dispensefilter': dispensefilter,
-        'total_appearance': total_appearance,
-        'total_price': total_price,
-        'total_quantity': total_quantity,
-        'po': po
-    }
-    return render(request, 'store/dispense_report.html', context)
-
-
 @login_required
 def dispense_report(request, pk):
     dispensary = get_object_or_404(DispensaryLocker, id=pk)
     
     # Initialize the filter with the queryset and manually set the initial value
     dispensefilter = DispenseFilter(
-        request.GET, 
+        request.GET,
         queryset=DispenseRecord.objects.filter(dispensary=dispensary).order_by('-updated')
     )
     
     # Set initial value for the dispensary filter
     dispensefilter.form.initial['dispensary'] = pk
-    
-    filtered_queryset = dispensefilter.qs
-    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    
-    # Calculate price using annotate to handle multiple drugs correctly
-    total_price = filtered_queryset.annotate(
-        item_price=models.F('quantity') * models.F('drug__piece_unit_selling_price')
-    ).aggregate(total=models.Sum('item_price'))['total'] or 0
-    
-    total_appearance = filtered_queryset.count()
-
-    pgn = Paginator(filtered_queryset, 10)
-    pn = request.GET.get('page')
-    po = pgn.get_page(pn)
-
-    context = {
-        'dispensary': dispensary,
-        'dispensefilter': dispensefilter,
-        'total_appearance': total_appearance,
-        'total_price': total_price,
-        'total_quantity': total_quantity,
-        'po': po
-    }
-    return render(request, 'store/dispense_report.html', context)
-
-
-@login_required
-def dispense_report(request, pk):
-    dispensary = get_object_or_404(DispensaryLocker, id=pk)
-    
-    # Initialize the filter with the queryset and manually set the initial value
-    dispensefilter = DispenseFilter(
-        request.GET, 
-        queryset=DispenseRecord.objects.filter(dispensary=dispensary).order_by('-updated')
-    )
-    
-    # Set initial value for the dispensary filter
-    dispensefilter.form.initial['dispensary'] = pk
-    
     filtered_queryset = dispensefilter.qs
     
     # Calculate totals using annotate for accurate price calculations
     totals = filtered_queryset.aggregate(
         total_quantity=models.Sum('quantity'),
-        total_price=models.Sum(
-            models.F('quantity') * models.F('drug__piece_unit_selling_price'),
-            output_field=models.DecimalField()
+        total_price=ExpressionWrapper(
+            models.Sum(models.F('quantity') * models.F('drug__piece_unit_selling_price')),
+            output_field=DecimalField(max_digits=10, decimal_places=2)
         )
     )
     
@@ -1409,7 +1335,6 @@ def dispense_report(request, pk):
         'po': po
     }
     return render(request, 'store/dispense_report.html', context)
-
 
 @login_required
 def dispense_pdf(request, pk):
@@ -1417,30 +1342,33 @@ def dispense_pdf(request, pk):
     
     # Use the same filtering logic as the report view
     dispensefilter = DispenseFilter(
-        request.GET, 
+        request.GET,
         queryset=DispenseRecord.objects.filter(dispensary=dispensary).order_by('-updated')
     )
+    
     filtered_queryset = dispensefilter.qs
     
     # Calculate totals using annotate for accurate price calculations
     totals = filtered_queryset.aggregate(
         total_quantity=models.Sum('quantity'),
-        total_price=models.Sum(
-            models.F('quantity') * models.F('drug__piece_unit_selling_price'),
-            output_field=models.DecimalField()
+        total_price=ExpressionWrapper(
+            models.Sum(
+                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
+            ),
+            output_field=DecimalField(max_digits=10, decimal_places=2)
         )
     )
     
     total_quantity = totals['total_quantity'] or 0
     total_price = totals['total_price'] or 0
     total_appearance = filtered_queryset.count()
-    
+
     # Generate PDF metadata
     ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     keys = [key for key, value in request.GET.items() if value]
     result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
-    
+
     context = {
         'f': filtered_queryset,
         'pagesize': 'A4',
@@ -1457,11 +1385,10 @@ def dispense_pdf(request, pk):
     pdf_buffer = generate_pdf(context, 'store/dispense_pdf.html')
     if pdf_buffer is None:
         return HttpResponse('Error generating PDF', status=500)
-    
+        
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
-
 
 class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
@@ -1695,10 +1622,10 @@ def return_drug(request, unit_id):
                             instance.received_by = request.user
                             instance.save()
 
-                            # Update UnitStore
-                            unit_store, created = UnitStore.objects.get_or_create(unit=unit, drug=instance.drug)
-                            unit_store.quantity += instance.quantity
-                            unit_store.save()
+                            # Update DispensaryLocker inventory
+                            locker_inventory, created = LockerInventory.objects.get_or_create(locker=unit.dispensary_locker, drug=instance.drug)
+                            locker_inventory.quantity += instance.quantity
+                            locker_inventory.save()
 
                     messages.success(request, 'Drugs returned successfully')
                     return redirect('return_drugs_list', unit_id=unit.id)
@@ -1760,8 +1687,6 @@ def return_report(request, unit_id):
     return render(request, 'store/return_drugs_report.html', context)
 
 
-from django.utils import timezone
-from datetime import datetime
 
 class LoginActivityListView(LoginRequiredMixin, ListView):
     model = LoginActivity
