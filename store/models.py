@@ -412,7 +412,7 @@ class ReturnedDrugs(models.Model):
     category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True, blank=True, related_name='returned_category')
     drug = models.ForeignKey('Drug', on_delete=models.CASCADE, null=True)
     quantity = models.IntegerField(null=True)
-    date = models.DateField(null=True)
+    date = models.DateField(auto_now=True,null=True)
     received_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='drug_returning')
     updated = models.DateTimeField(auto_now=True)
 

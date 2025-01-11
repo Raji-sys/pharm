@@ -1517,52 +1517,75 @@ class BoxUpdateView(LoginRequiredMixin,UnitGroupRequiredMixin,UpdateView):
         return super().form_invalid(form)
 
 
-@login_required
-def box_report(request, pk):
-    unit = get_object_or_404(Unit, id=pk)
-    
-    boxfilter = BoxFilter(
-        request.GET, 
-        queryset=UnitIssueRecord.objects.filter(unit=unit).order_by('-updated_at'),
-    )
-    
-    boxfilter.form.initial['unit'] = pk
-    
-    filtered_queryset = boxfilter.qs
-    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists() and filtered_queryset.first().drug.piece_unit_selling_price:
-        first_drug = filtered_queryset.first().drug.piece_unit_selling_price
-    else:
-        first_drug = 0
+class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
+    model = Unit
+    template_name = 'store/unit_box.html'
+    context_object_name = 'store'
+    paginate_by = 10
 
-    total_price = total_quantity * first_drug
-    total_appearance = filtered_queryset.count()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Fetch unit issue records where this unit is the issuing unit
+        unit_issue_records = UnitIssueRecord.objects.filter(
+            unit=self.object,
+            moved_to__isnull=False, 
+            issued_to_locker__isnull=True
+        ).select_related('drug').order_by('-date_issued')
+        
+        # Store the base queryset for calculations
+        self.filtered_queryset = unit_issue_records
+        
+        # Apply search filters if query exists
+        query = self.request.GET.get('q')
+        if query:
+            unit_issue_records = unit_issue_records.filter(
+                Q(drug__generic_name__icontains=query) |
+                Q(drug__trade_name__icontains=query)|
+                Q(drug__category__name__icontains=query)|
+                Q(drug__dosage_form__icontains=query)|
+                Q(drug__strength__icontains=query)|
+                Q(moved_to__icontains=query)
+            )
+            self.filtered_queryset = unit_issue_records
+            
+        # Calculate totals
+        total_quantity = self.filtered_queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        total_appearance = self.filtered_queryset.count()
+        
+        # Calculate total price by summing (quantity * price) for each record
+        total_price = sum(
+            record.quantity * (record.drug.piece_unit_selling_price or 0)
+            for record in self.filtered_queryset
+        )
+        
+        # Paginate the results
+        paginator = Paginator(unit_issue_records, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
-    pgn = Paginator(filtered_queryset, 10)
-    pn = request.GET.get('page')
-    po = pgn.get_page(pn)
+        # Update context with all data
+        context.update({
+            'unit_issue_records': page_obj,
+            'page_obj': page_obj,
+            'query': self.request.GET.get('q', ''),
+            'total_appearance': total_appearance,
+            'total_quantity': total_quantity,
+            'total_price': total_price
+        })
 
-    context = {
-        'unit': unit,
-        'boxfilter': boxfilter,
-        'total_appearance': total_appearance,
-        'total_price': total_price,
-        'total_quantity': total_quantity,
-        'po': po
-    }
-    return render(request, 'store/box_report.html', context)
-
+        return context
 
 @login_required
 def box_pdf(request, pk):
     unit = get_object_or_404(Unit, id=pk)
     
-    # Fetch unit issue records
+    # Fetch unit issue records with drug relationship
     unit_issue_records = UnitIssueRecord.objects.filter(
         unit=unit,
         moved_to__isnull=False, 
         issued_to_locker__isnull=True
-    ).order_by('-date_issued')
+    ).select_related('drug').order_by('-date_issued')
     
     # Prepare filter keys
     keys = []
@@ -1571,7 +1594,6 @@ def box_pdf(request, pk):
         keys.append(f": {query}")
     
     # Apply search query if present
-    query = request.GET.get('q')
     if query:
         unit_issue_records = unit_issue_records.filter(
             Q(drug__generic_name__icontains=query) |
@@ -1586,13 +1608,15 @@ def box_pdf(request, pk):
     total_quantity = unit_issue_records.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
     total_appearance = unit_issue_records.count()
     
-    # Get first drug's selling price for total price calculation
-    first_drug_price = unit_issue_records.first().drug.piece_unit_selling_price if unit_issue_records.exists() else 0
-    total_price = total_quantity * first_drug_price
+    # Calculate total price by summing (quantity * price) for each record
+    total_price = sum(
+        record.quantity * (record.drug.piece_unit_selling_price or 0)
+        for record in unit_issue_records
+    )
     
     # Prepare context for PDF
     context = {
-        'f': unit_issue_records,  # Match template's variable name
+        'f': unit_issue_records,
         'total_quantity': total_quantity,
         'total_appearance': total_appearance,
         'total_price': total_price,
@@ -1649,6 +1673,8 @@ def return_drug(request, unit_id):
     return render(request, 'store/return_drugs.html', {'formset': formset, 'unit': unit})
 
 
+from django.db.models import Q, Sum
+
 class ReturnedDrugsListView(ListView):
     model = ReturnedDrugs
     template_name = 'store/return_list.html'
@@ -1658,22 +1684,56 @@ class ReturnedDrugsListView(ListView):
     def get_queryset(self):
         unit_id = self.kwargs.get('unit_id')
         self.unit = get_object_or_404(Unit, id=unit_id)
-        queryset= ReturnedDrugs.objects.filter(unit=self.unit).order_by('-updated')
+        queryset = ReturnedDrugs.objects.filter(unit=self.unit).order_by('-updated')
+
+        # Get search parameters
         query = self.request.GET.get('q')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        # Apply text search filters
         if query:
             queryset = queryset.filter(
                 Q(drug__generic_name__icontains=query) |
-                Q(drug__trade_name__icontains=query)|
+                Q(drug__trade_name__icontains=query) |
                 Q(category__name__icontains=query) |
-                Q(patient_info__icontains=query)|
-                Q(drug__dosage_form__icontains=query)|
+                Q(patient_info__icontains=query) |
+                Q(drug__dosage_form__icontains=query) |
                 Q(drug__strength__icontains=query)
             )
+
+        # Apply date filters
+        if start_date:
+            queryset = queryset.filter(date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(date__lte=end_date)
+
+        self.filtered_queryset = queryset  # Save queryset for use in get_context_data
         return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['unit'] = self.unit  # Pass the unit to the template
-        context['query'] = self.request.GET.get('q', '') 
+        
+        # Calculate total price by summing (quantity * price) for each item
+        total_price = sum(
+            item.quantity * item.drug.piece_unit_selling_price 
+            for item in self.filtered_queryset.select_related('drug')
+        )
+        
+        # Calculate other totals
+        total_quantity = self.filtered_queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        total_appearance = self.filtered_queryset.count()
+
+        # Add calculated data to the context
+        context.update({
+            'unit': self.unit,
+            'query': self.request.GET.get('q', ''),
+            'start_date': self.request.GET.get('start_date', ''),
+            'end_date': self.request.GET.get('end_date', ''),
+            'total_quantity': total_quantity,
+            'total_appearance': total_appearance,
+            'total_price': total_price,
+        })
         return context
 
 @login_required

@@ -136,6 +136,7 @@ h1 {
             <tr>
                 <th class="small-column">#</th>
                 <th class="mid-column">UNIT</th>
+                <th class="">STATUS</th>
                 <th class="">DATE ISSUED</th>
                 <th class="">DRUG INFO</th>
                 <th class="">SUPPLIER</th>
@@ -149,6 +150,9 @@ h1 {
             </td>    
             <td class="text-center mid-column">
                 {{ r.unit|default_if_none:'' }}
+            </td>    
+            <td class="text-center mid-column">
+                {{ r.moved_to|default_if_none:'' }}
             </td>    
             <td class="text-center">
                 {{r.date_issued|default_if_none:''}}<br>
