@@ -8,8 +8,8 @@
       ACCESS DENIED! 
     </p>
     <p class=" uppercase text-emerald-800 font-bold text-xl p-2">
-      {{request.user}},
-    </p>
+      {{ request.user.first_name|default:request.user.username }} {{ request.user.last_name|default:'' }}
+        </p>
     <p class="text-sm font-semibold m-4 border-b-2 border-zinc-700">
         YOU DO NOT HAVE PERMISSION TO VIEW THIS PAGE <br>CONTACT IT STAFF OR YOUR HEAD OF DEPARTMENT FOR DETAILS!
     </p>
