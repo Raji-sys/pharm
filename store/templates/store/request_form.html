@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ unit.name }} | DRUGS REQUEST FORM{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 w-fit">
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden ">
+        <div class="flex justify-center p-4 gap-4 text-xl">
+            <div>
+                <a href="{% url 'unit_bulk_locker' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
+            </div>
+            <div>
+                <h2 class="text-center text-teal-700 uppercase text-lg">{{ unit.name }} drug request form</h2>
+            </div>
+        </div>
+        {% if messages %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            {% for message in messages %}
+            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form action="" method="POST" enctype="multipart/form-data" class="px-6 py-8 text-xs text-center">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:flex gap-4">
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700 uppercase mb-1">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-8 flex justify-center">
+                <button type="submit" class="text-xs inline-flex items-center px-6 py-3 border border-transparent  font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 uppercase transition duration-150 ease-in-out">
+                    request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+// Debug version with logging
+function initializePage() {
+  // Helper function to load drugs
+  function load_drugs() {
+    const categorySelect = document.querySelector('select[name$="category"]');
+    const drugSelect = document.querySelector('select[name$="drug"]');
+    
+    if (!categorySelect || !drugSelect) {
+      console.error('Category or drug select elements not found');
+      return;
+    }
+
+    const categoryId = categorySelect.value;
+    console.log('Selected category ID:', categoryId);
+    
+    const url = `/get_drugs_by_category/${categoryId}/`;
+    console.log('Fetching from URL:', url);
+
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Received data:', data);
+        drugSelect.innerHTML = '';  // Clear previous options
+        
+        if (data.drugs && Array.isArray(data.drugs)) {
+          data.drugs.forEach(drug => {
+            const option = document.createElement('option');
+            option.value = drug.id;
+            option.text = drug.name;
+            drugSelect.add(option);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error loading drugs:', error);
+        drugSelect.innerHTML = '<option value="">Error loading drugs</option>';
+      });
+  }
+
+  // Attach event listener
+  const categorySelect = document.querySelector('select[name$="category"]');
+  if (categorySelect) {
+    console.log('Attaching event listener to category select');
+    categorySelect.addEventListener('change', load_drugs);
+  } else {
+    console.error('Category select element not found');
+  }
+}
+
+// Call initialization when DOM is loaded
+document.addEventListener('DOMContentLoaded', initializePage);
+</script>
+{% endblock %}

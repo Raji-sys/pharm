@@ -236,3 +236,15 @@ class CategoryAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
     search_fields = ['name']
     resource_class = CategoryResource
 
+
+@admin.register(DrugRequest)
+class DrugRequestAdmin(admin.ModelAdmin):
+    list_display = ['unit','drugs', 'updated', 'requested_by']
+    list_filter = ['requested_by','unit', 'updated']
+    search_fields = ['drugs', 'requested_by__username']
+    list_per_page = 10
+
+    def save_model(self, request, obj, form, change):
+        if not obj.requested_by:
+            obj.requested_by = request.user
+        obj.save()

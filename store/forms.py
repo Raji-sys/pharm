@@ -301,7 +301,6 @@ class DispenseRecordForm(forms.ModelForm):
         return cleaned_data
     
 
-
 class ReturnDrugForm(forms.ModelForm):
     class Meta:
         model = ReturnedDrugs
@@ -337,41 +336,39 @@ class ReturnDrugForm(forms.ModelForm):
 
 
         return cleaned_data
-    
+
+
 class DrugRequestForm(forms.ModelForm):
     class Meta:
         model = DrugRequest
-        fields = ['category', 'drug', 'quantity']
-        widgets = {
-                'request_date': forms.DateInput(attrs={'type': 'date'}),
-            }
+        fields = ['drugs']
 
-        def __init__(self, *args, **kwargs):
-            self.requesting_unit = kwargs.pop('requesting_unit', None)
-            super(DrugRequestForm, self).__init__(*args, **kwargs)
-            self.fields['requesting_unit'].widget.attrs['readonly'] = True
-            self.fields['drug'].widget.attrs.update({'onchange': 'load_drugs()'})
-            for field in self.fields.values():
-                field.required = False
-                field.widget.attrs.update({'class': 'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
+    def __init__(self, *args, **kwargs):
+        self.unit = kwargs.pop('unit', None)
+        super(DrugRequestForm, self).__init__(*args, **kwargs)
+        
+        for field in self.fields.values():
+            field.required = False
+            field.widget.attrs.update({
+                'class': 'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'
+            })
 
-        def clean_quantity(self):
-            quantity = self.cleaned_data.get('quantity')
-            if quantity is None:
-                raise forms.ValidationError("Quantity is required.")
-            if quantity <= 0:
-                raise forms.ValidationError("Quantity must be greater than zero.")
-            return quantity
+    def clean(self):
+        cleaned_data = super().clean()
+        drug = cleaned_data.get('drug')
+        quantity = cleaned_data.get('quantity')
 
-        def clean(self):
-            cleaned_data = super().clean()
-            drug = cleaned_data.get('drug')
-            quantity = cleaned_data.get('quantity')
-
-            if not drug or not quantity:
-                return cleaned_data
-
-            if quantity <= 0:
-                raise forms.ValidationError("Quantity must be greater than zero.")
-
+        if not drug or not quantity:
             return cleaned_data
+
+        if quantity <= 0:
+            raise forms.ValidationError("Quantity must be greater than zero.")
+
+
+    def clean_quantity(self):
+        quantity = self.cleaned_data.get('quantity')
+        if quantity is None:
+            raise forms.ValidationError("Quantity is required.")
+        if quantity <= 0:
+            raise forms.ValidationError("Quantity must be greater than zero.")
+        return quantity

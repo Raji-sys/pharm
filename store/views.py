@@ -31,7 +31,8 @@ from decimal import Decimal
 from django.db.models import Sum, F
 from .models import LoginActivity
 from datetime import datetime
-
+from django.db.models import Sum, F
+from django.urls import reverse
 
 def group_required(group_name):
     def decorator(view_func):
@@ -94,20 +95,31 @@ class StoreGroupRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.groups.filter(name='STORE').exists()
     
-class MainStoreDashboardView(LoginRequiredMixin, StoreGroupRequiredMixin,TemplateView):
+from django.utils.timezone import now, timedelta
+
+class MainStoreDashboardView(LoginRequiredMixin, StoreGroupRequiredMixin, TemplateView):
     template_name = 'store/main_store_dashboard.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
         today = timezone.now().date()
         six_months_later = today + timedelta(days=180)
-
+        
+        # Count expiring drugs
         expiring_drugs_count = Drug.objects.filter(
             expiration_date__gt=today,
             expiration_date__lte=six_months_later
         ).count()
         context['expiring_drugs_count'] = expiring_drugs_count
+        
+        # Count recent DrugRequest instances
+        last_24_hours = now() - timedelta(hours=24)
+        recent_drug_request_count = DrugRequest.objects.filter(updated__gte=last_24_hours).count()
+        context['recent_drug_request_count'] = recent_drug_request_count
+        
         return context
+
 
 
 @group_required('STORE')
@@ -640,9 +652,6 @@ class UnitWorthView(LoginRequiredMixin, DetailView):
         }
         return context
 
-
-from django.db.models import Sum, F
-
 class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'store/worth.html'
 
@@ -708,10 +717,12 @@ class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
     template_name = 'store/unit_bulk_locker.html'
     context_object_name = 'store'
     paginate_by = 10
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug').order_by('drug__dosage_form')
+        context['unit_store_drugs'] = unit_store_drugs
+        context['drug_requests_url'] = reverse('unit_drug_requests', kwargs={'pk': self.object.pk})
         
         query = self.request.GET.get('q')
         if query:
@@ -1879,8 +1890,11 @@ def receive_pdf(request, pk):
 class DrugRequestCreateView(LoginRequiredMixin, CreateView):
     model = DrugRequest
     form_class = DrugRequestForm
-    template_name = 'store/drugrequest_form.html'
-    success_url = reverse_lazy('drugrequest_list')
+    template_name = 'store/request_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Drug request created successfully.')
+        return reverse_lazy('unit_bulk_locker', kwargs={'pk': self.unit.id})
 
     def dispatch(self, request, *args, **kwargs):
         # Get the unit from the URL or raise a 404 if not found
@@ -1888,13 +1902,18 @@ class DrugRequestCreateView(LoginRequiredMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        form.instance.requesting_unit = self.unit  # Assign the unit from the URL
+        form.instance.unit = self.unit  # Assign the unit from the URL
         form.instance.requested_by = self.request.user  # Associate the user making the request
-        return super().form_valid(form)
+        try:
+            with transaction.atomic():
+                return super().form_valid(form)
+        except Exception as e:
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['initial'] = {'requesting_unit': self.unit}  # Pre-fill the unit field in the form
+        kwargs['initial'] = {'unit': self.unit}  # Pre-fill the unit field in the form
         return kwargs
 
     def get_context_data(self, **kwargs):
@@ -1909,37 +1928,32 @@ class DrugRequestListView(LoginRequiredMixin, ListView):
     context_object_name = 'drugrequests'
     paginate_by = 10
 
-    def dispatch(self, request, *args, **kwargs):
-        # Get the unit from the URL or raise a 404 if not found
-        self.unit = get_object_or_404(Unit, id=self.kwargs['unit_id'])
-        return super().dispatch(request, *args, **kwargs)
-
     def get_queryset(self):
-        # Filter drug requests for the specific unit
-        queryset = DrugRequest.objects.filter(requesting_unit=self.unit).order_by('-created_at')
+        # Get all drug requests and optionally filter by search query
+        queryset = DrugRequest.objects.select_related('unit', 'requested_by').order_by('-updated')
         query = self.request.GET.get('q')
         if query:
-            queryset = queryset.filter(
-            Q(drug__generic_name__icontains=query) |
-            Q(drug__trade_name__icontains=query) |
-            Q(drug__category__name__icontains=query) |
-            Q(drug__dosage_form__icontains=query) |
-            Q(drug__strength__icontains=query) |
-            Q(requesting_unit__name__icontains=query)
-            )
+            queryset = queryset.filter(Q(unit__name__icontains=query))
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['unit'] = self.unit  # Add the unit to the template context
-        context['query'] = self.request.GET.get('q', '')  # Add the search query to the context
+        for drug_request in context['drugrequests']:
+            if drug_request.drugs:
+                # Convert newline-separated `drugs` text into a list
+                drug_request.drugs_list = drug_request.drugs.splitlines()
+        context['query'] = self.request.GET.get('q', '')
         return context
+
 
 class DrugRequestUpdateView(LoginRequiredMixin, UpdateView):
     model = DrugRequest
     form_class = DrugRequestForm
     template_name = 'store/drugrequest_form.html'
-    success_url = reverse_lazy('drugrequest_list')
+
+    def get_success_url(self):
+        messages.success(self.request, 'Drug request updated successfully.')
+        return reverse_lazy('unit_bulk_locker', kwargs={'pk': self.unit.id})
 
     def dispatch(self, request, *args, **kwargs):
         # Get the unit from the URL or raise a 404 if not found
@@ -1948,19 +1962,35 @@ class DrugRequestUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         # Ensure the queryset is limited to drug requests for the specific unit
-        return DrugRequest.objects.filter(requesting_unit=self.unit)
+        return DrugRequest.objects.filter(unit=self.unit)
 
     def form_valid(self, form):
-        form.instance.requesting_unit = self.unit  # Assign the unit from the URL
+        form.instance.unit = self.unit  # Assign the unit from the URL
         form.instance.requested_by = self.request.user  # Associate the user making the request
         return super().form_valid(form)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['initial'] = {'requesting_unit': self.unit}  # Pre-fill the unit field in the form
+        kwargs['initial'] = {'unit': self.unit}  # Pre-fill the unit field in the form
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['unit'] = self.unit  # Add the unit to the template context
+        return context
+
+class UnitDrugRequestListView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
+    model = DrugRequest
+    template_name = 'store/unit_request_list.html'
+    context_object_name = 'drugrequests'
+    paginate_by = 10
+
+    def get_queryset(self):
+        # Filter drug requests by the unit
+        unit = self.kwargs.get('pk')  # Assuming `pk` is the Unit's primary key
+        return DrugRequest.objects.filter(unit_id=unit).select_related('unit', 'requested_by').order_by('-updated')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['unit'] = Unit.objects.get(pk=self.kwargs.get('pk'))
         return context
