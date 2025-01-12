@@ -135,7 +135,6 @@ h1 {
             <tr>
                 <th class="small-column">#</th>
                 <th class="mid-column">FROM</th>
-                <th class="mid-column">TO</th>
                 <th class="">DATE RECEIVED</th>
                 <th class="">DRUG INFO</th>
                 <th class="mid-column">SUPPLIER</th>
@@ -150,10 +149,7 @@ h1 {
                     {{ forloop.counter }}
                 </td>
                 <td class="text-center mid-column">
-                    {{ r.unit|default_if_none:'' }}
-                </td>
-                <td class="text-center mid-column">
-                    {{ r.issued_to|default_if_none:'' }}
+                    {{ r.unit.name|default_if_none:'' }}
                 </td>
                 <td class="text-center">
                     {{ r.date_issued|default_if_none:'' }}
