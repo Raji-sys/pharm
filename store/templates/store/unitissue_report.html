@@ -12,61 +12,67 @@
 </div>
 </div>
 <div class="max-w-7xl mx-auto px-4 ">
-    <div class="flex justify-end items-center m-2 space-x-2">
-        {% if request.GET.urlencode %}
-            <a href="{% url 'unitissue_pdf' %}?{{request.GET.urlencode}}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
-                <i class="fa-solid fa-file-pdf mr-2"></i> Generate PDF
-            </a>
-            <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
-                <i class="fa-solid fa-rotate mr-2"></i> Reset
-            </a>
-            {% endif %}
-        </div>
 
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-4">
+    <div class="w-fit mx-auto bg-white shadow overflow-hidden sm:rounded-lg mb-4">
         <div class="px-4 py-5 sm:p-6">
-            <form method="get" class="space-y-4">
-                <div class="md:flex md:justify-center gap-4 grid grid-cols-2">
-                    {% for field in unitissuefilter.form %}
-                    <div>
-                        <label for="{{ field.id_for_label }}" class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
-                        {% if field.field.widget.input_type == 'select' %}
-                        <select name="{{ field.name }}" id="{{ field.id_for_label }}" 
-                        class="mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm text-xs border-gray-300 rounded-md">
-                    {% for choice in field.field.choices %}
-                        <option value="{{ choice.0 }}" {% if choice.0 == field.value %}selected{% endif %}>
-                            {{ choice.1 }}
-                        </option>
-                    {% endfor %}
-                </select>
-                        {% else %}
-                            <input type="{{ field.field.widget.input_type }}" 
-                                   name="{{ field.name }}" 
-                                   id="{{ field.id_for_label }}" 
-                                   value="{{ field.value|default:'' }}"
-                                   class="mt-1 focus:ring-cyan-500 focus:border-cyan-500 block w-full shadow-sm text-xs border-gray-300 rounded-md"
-                            >
-                        {% endif %}
-                        {% if field.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                 {% endfor %}
-                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        <i class="fa-solid fa-search mr-2"></i> Search
-                    </button>
+                    <!-- Search Form -->
+                     <div class="flex justify-center">
+
+                         <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2" >
+                             <div class="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 w-full sm:w-auto">
+                                 <div class="flex items-center w-full sm:w-auto">
+                                     <label for="q" class="sr-only">Search</label>
+                    <input type="text" name="q" id="q" 
+                           value="{{ query|default_if_none:'' }}" 
+                           placeholder="Search..."
+                           class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-60">
                 </div>
-            </form>
+
+                <div class="flex items-center w-full sm:w-auto">
+                    <label for="start_date" class="sr-only">Start Date</label>
+                    <input type="date" name="start_date" id="start_date"
+                           value="{{ start_date|default_if_none:'' }}"
+                           class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-auto">
+                </div>
+                <div class="flex items-center w-full sm:w-auto">
+                    <label for="end_date" class="sr-only">End Date</label>
+                    <input type="date" name="end_date" id="end_date"
+                           value="{{ end_date|default_if_none:'' }}"
+                           class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-auto">
+                </div>
+                
+                
+            </div>
+            
+            <div class="flex space-x-2">
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
+                    <i class="fas fa-search"></i>
+                </button>
+                
+                {% if request.GET.urlencode %}
+                <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                    <i class="fas fa-rotate"></i>
+                </a>
+                <a href="{% url 'unitissue_pdf' unit_id=unit.id %}?{{ request.GET.urlencode }}"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
+                 <i class="fa-solid fa-file-pdf mr-2"></i> Generate Report
+             </a>
+                     
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
         </div>
     </div>
 
-    {% if request.GET.urlencode %}
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="overflow-x-auto max-h-[70vh]">
             <div class="bg-white">
                 <p class="p-2 whitespace-nowrap text-xs text-blue-700 text-center uppercase">
                     moved: {{ total_appearance }} {%if total_appearance > 1 %}times{%else%} once {% endif %}- Quantity: {{ total_quantity }} - Value: &#x20A6;{{ total_price }}
                 </p>
+                
             </div>
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-blue-400">
@@ -83,7 +89,7 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    {% for i in unitissuefilter.qs %}
+                    {% for i in issues %}
                     <tr class="{% cycle 'bg-white' 'bg-blue-50' %} hover:bg-blue-100 transition duration-150 ease-in-out text-xs text-center uppercase">
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ forloop.counter }}</td>
                         <td class="px-3 py-4 whitespace-nowrap  text-gray-500">{{ i.date_issued|default_if_none:'N/A' }}</td>
@@ -132,6 +138,5 @@
             {% endif %}
         </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

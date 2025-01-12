@@ -355,9 +355,31 @@ class UnitIssueRecord(models.Model):
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='issued_drugs')
     quantity = models.PositiveIntegerField(null=True, blank=True)
     date_issued = models.DateTimeField(auto_now_add=True,null=True)
-    issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
     moved_to = models.CharField (null=True, blank=True, choices=BOX_CHOICES, max_length=100)
     issued_to_locker = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, null=True, blank=True)
+    issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    updated_at = models.DateField(auto_now=True)
+    
+    
+    def save(self, *args, **kwargs):
+        unit_store = UnitStore.objects.get(unit=self.unit, drug=self.drug)
+        
+        if self.quantity > unit_store.quantity:
+            raise ValidationError(_("Not enough drugs in the unit store."), code='invalid_quantity')
+        
+        # Deduct from the issuing unit's store
+        unit_store.quantity -= self.quantity
+        unit_store.save()
+        super().save(*args, **kwargs)
+
+
+class TransferRecord(models.Model):
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='transfer_unit')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='transfer_category')
+    drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='transfer_drugs')
+    quantity = models.PositiveIntegerField(null=True, blank=True)
+    date_issued = models.DateTimeField(auto_now_add=True,null=True)
+    issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     updated_at = models.DateField(auto_now=True)
     
@@ -378,6 +400,7 @@ class UnitIssueRecord(models.Model):
             receiving_store.quantity += self.quantity
             receiving_store.save()
         super().save(*args, **kwargs)
+
 
 class DispenseRecord(models.Model):
     dispensary = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, related_name='issuing_dispensary')
@@ -572,4 +595,4 @@ class DrugRequest(models.Model):
     drugs = models.TextField(null=True, blank=True)
     updated = models.DateTimeField(auto_now=True)
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    request_date = models.DateField(null=True)
+    request_date = models.DateField(auto_now=True,null=True)

@@ -183,52 +183,6 @@ class DispenseFilter(django_filters.FilterSet):
         fields = ['date_exact', 'date_start', 'date_end', 'category', 'drug', 'dispensed_by', 'patient_info']
 
 
-class UnitIssueFilter(django_filters.FilterSet):
- 
-    # Date Filters
-    date_exact = django_filters.DateFilter(
-        label="EXACT DATE",
-        field_name='updated_at',
-        lookup_expr='exact',
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-    date_start = django_filters.DateFilter(
-        label="DATE FROM",
-        field_name='updated_at',
-        lookup_expr='gte',
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-    date_end = django_filters.DateFilter(
-        label="DATE TO",
-        field_name='updated_at',
-        lookup_expr='lte',
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-
-    unit_issued_to = django_filters.ModelChoiceFilter(
-        label="UNIT DISPENSARY LOCKER",
-        queryset=Unit.objects.all(),
-        field_name='unit',
-        to_field_name='id',
-        lookup_expr='exact',
-        widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
-    )
-    # Drug Filter
-    drug = django_filters.CharFilter(
-        label="DRUG",
-        field_name='drug__trade_name',
-        lookup_expr='icontains'
-    )
-
-    issued_by = django_filters.CharFilter(
-        label="ISSUED BY",
-        field_name='issued_by__username',
-        lookup_expr='icontains'
-    )
-    class Meta:
-        model = UnitIssueRecord
-        fields = ['date_exact', 'date_start', 'date_end', 'drug','issued_by']
-
 
 class TransferFilter(django_filters.FilterSet):
  
@@ -281,54 +235,6 @@ class TransferFilter(django_filters.FilterSet):
     class Meta:
         model = UnitIssueRecord
         fields = ['date_exact', 'date_start', 'date_end', 'drug', 'issued_to','issued_by']
-
-
-class BoxFilter(django_filters.FilterSet):
- 
-    # Date Filters
-    date_exact = django_filters.DateFilter(
-        label="EXACT DATE",
-        field_name='updated_at',
-        lookup_expr='exact',
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-    date_start = django_filters.DateFilter(
-        label="DATE FROM",
-        field_name='updated_at',
-        lookup_expr='gte',
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-    date_end = django_filters.DateFilter(
-        label="DATE TO",
-        field_name='updated_at',
-        lookup_expr='lte',
-        widget=forms.DateInput(attrs={'type': 'date'})
-    )
-
-    issued_to = django_filters.ModelChoiceFilter(
-        label="BOX",
-        field_name='moved_to',
-        lookup_expr='iexact',
-        widget=forms.Select(attrs={'class': 'text-center text-xs focus:outline-none w-1/3 sm:w-fit text-indigo-800 rounded shadow-sm shadow-indigo-600 border-indigo-600 border'})
-    )
-
-    # Drug Filter
-    drug = django_filters.CharFilter(
-        label="DRUG",
-        field_name='drug__trade_name',
-        lookup_expr='icontains'
-    )
-
-    issued_by = django_filters.CharFilter(
-        label="ISSUED BY",
-        field_name='issued_by__username',
-        lookup_expr='icontains'
-    )
-
-    class Meta:
-        model = UnitIssueRecord
-        fields = ['date_exact', 'date_start', 'date_end', 'drug','issued_by']
-
 
 
 class ReturnDrugFilter(django_filters.FilterSet):

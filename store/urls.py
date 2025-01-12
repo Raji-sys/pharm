@@ -23,6 +23,9 @@ urlpatterns=[
     path('record-report/', views.record_report, name='record_report'),
     path('record-pdf/', views.record_pdf, name='record_pdf'),
     
+    path('unit/<int:unit_id>/issue-records/', UnitIssueRecordListView.as_view(), name='unit_issue_list'),
+    path('unit/<int:unit_id>/issue-records/pdf/', unit_issue_record_pdf, name='unitissue_pdf'),
+    
     path('restock-drugs/', views.restock, name='restock_drugs'),
     path('retocked-list/', views.restocked_list, name='restocked'),
     path('update-restocked-drug/<int:pk>/',RestockUpdateView.as_view(),name='update_restock'),
@@ -43,16 +46,12 @@ urlpatterns=[
     path('store/locker/<int:unit_id>/', views.dispensaryissuerecord, name='dispensary_record'),
     path('expiry-date-notification/', ExpiryNotificationView.as_view(), name='expiry_notification'),
     
-    path('unit-issue-record/new/<int:unit_id>/', views.unitissuerecord, name='unit_issue_record_create'),
-    path('box/new/<int:unit_id>/', views.boxrecord, name='box_record_create'),
-    path('unit-issue-records/', UnitIssueRecordListView.as_view(), name='unit_issue_record_list'),
-    path('unit-issue-report/<int:pk>/', views.unitissue_report, name='unitissue_report'),
-    path('unitissue-pdf/', views.unitissue_pdf, name='unitissue_pdf'),
 
-    path('unit-issue-record/update/<int:pk>/', TransferUpdateView.as_view(), name='transfer_update'),
-    path('transfer-report/<int:pk>/', views.transfer_report, name='transfer_report'),
+    path('box/new/<int:unit_id>/', views.boxrecord, name='box_record_create'),
     
+    path('transfer-report/<int:pk>/', views.transfer_report, name='transfer_report'),
     path('transfer/<int:pk>/pdf/', transfer_pdf, name='transfer_pdf'),
+
     path('unit/<int:pk>/receive-report/', receive_report, name='receive_report'),
     path('receive/<int:pk>/pdf/', receive_pdf, name='receive_pdf'),
     

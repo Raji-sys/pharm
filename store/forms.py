@@ -99,7 +99,7 @@ class RestockForm(forms.ModelForm):
 class UnitIssueRecordForm(forms.ModelForm):
     class Meta:
         model = UnitIssueRecord
-        fields = ['unit', 'category', 'drug', 'quantity', 'issued_to']
+        fields = ['unit', 'category', 'drug', 'quantity', 'issued_to_locker']
         # widgets = {
         #     'date_issued': forms.DateInput(attrs={'type': 'date'}),
         # }
@@ -372,3 +372,6 @@ class DrugRequestForm(forms.ModelForm):
         if quantity <= 0:
             raise forms.ValidationError("Quantity must be greater than zero.")
         return quantity
+
+class TransferForm(forms.ModelForm):
+    pass

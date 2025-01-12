@@ -22,16 +22,15 @@ from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Case, When, Value, CharField, Q
+from django.db.models import Case, When, Value, CharField, Q, Sum, F
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 from .models import Unit
 from decimal import Decimal
-from django.db.models import Sum, F
+from django.utils.timezone import now, timedelta
 from .models import LoginActivity
 from datetime import datetime
-from django.db.models import Sum, F
 from django.urls import reverse
 
 def group_required(group_name):
@@ -95,7 +94,6 @@ class StoreGroupRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.groups.filter(name='STORE').exists()
     
-from django.utils.timezone import now, timedelta
 
 class MainStoreDashboardView(LoginRequiredMixin, StoreGroupRequiredMixin, TemplateView):
     template_name = 'store/main_store_dashboard.html'
@@ -711,7 +709,6 @@ class UnitDashboardView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     context_object_name = 'store'
 
 
-
 class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     model = Unit
     template_name = 'store/unit_bulk_locker.html'
@@ -784,12 +781,6 @@ class UnitDispensaryLockerView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
         context = super().get_context_data(**kwargs)
         dispensary_drugs = LockerInventory.objects.filter(locker__unit=self.object).select_related('drug').order_by('-updated')
 
-        # Calculate total worth
-        # total_worth = dispensary_drugs.aggregate(
-        #     total=Sum(F('drug__piece_unit_cost_price') * F('quantity'))
-        # )['total'] or 0
-         # Dynamically calculate total worth
-          # Dynamically calculate total worth
         total_worth = round(sum(
             ((drug.drug.cost_price or 0) / (drug.drug.pack_size or 1)) * drug.quantity
             for drug in dispensary_drugs
@@ -826,14 +817,14 @@ class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         
         # Fetch unit issue records where this unit is the issuing unit
-        unit_issue_records = UnitIssueRecord.objects.filter(
+        transfer_record = TransferRecord.objects.filter(
             unit=self.object,
             issued_to__isnull=False, 
             issued_to_locker__isnull=True
         ).order_by('-date_issued')
         query = self.request.GET.get('q')
         if query:
-            unit_issue_records = unit_issue_records.filter(
+            transfer_record = transfer_record.filter(
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query)|
                 Q(drug__category__name__icontains=query)|
@@ -842,11 +833,11 @@ class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
                 Q(drug__strength__icontains=query)
             )        
         # Paginate the results
-        paginator = Paginator(unit_issue_records, self.paginate_by)
+        paginator = Paginator(transfer_record, self.paginate_by)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-        context['unit_issue_records'] = page_obj
+        context['transfer_record'] = page_obj
         context['page_obj'] = page_obj
         context['query'] = self.request.GET.get('q', '')       
 
@@ -862,7 +853,7 @@ class UnitReceivedRecordsView(LoginRequiredMixin, UnitGroupRequiredMixin, Detail
         context = super().get_context_data(**kwargs)
 
         # Fetch unit issue records where this unit is the receiving unit
-        received_records = UnitIssueRecord.objects.filter(
+        received_records = TransferRecord.objects.filter(
             issued_to=self.object
         ).order_by('-date_issued')
 
@@ -887,87 +878,6 @@ class UnitReceivedRecordsView(LoginRequiredMixin, UnitGroupRequiredMixin, Detail
         context['query'] = self.request.GET.get('q', '')
 
         return context
-
-
-@unit_group_required
-def unitissuerecord(request, unit_id):
-    unit = get_object_or_404(Unit, id=unit_id)
-    
-    # Create a custom formset that passes the issuing_unit to each form
-    class CustomUnitIssueFormSet(BaseModelFormSet):
-        def __init__(self, *args, **kwargs):
-            self.issuing_unit = kwargs.pop('issuing_unit', None)
-            super().__init__(*args, **kwargs)
-
-        def _construct_form(self, i, **kwargs):
-            kwargs['issuing_unit'] = self.issuing_unit
-            return super()._construct_form(i, **kwargs)
-    
-    UnitIssueFormSet = modelformset_factory(
-        UnitIssueRecord,
-        form=UnitIssueRecordForm,
-        formset=CustomUnitIssueFormSet,
-        extra=5
-        )
-
-    if request.method == 'POST':
-        formset = UnitIssueFormSet(request.POST, issuing_unit=unit)
-        if formset.is_valid():
-            try:
-                with transaction.atomic():
-                    instances = formset.save(commit=False)
-                    for instance in instances:
-                        instance.issued_by = request.user
-                        instance.unit = unit
-                        instance.save()
-                        if instance.issued_to_locker:
-                            locker_inventory, created = LockerInventory.objects.get_or_create(
-                                locker=instance.issued_to_locker,
-                                drug=instance.drug,
-                                defaults={'quantity': 0}
-                            )
-                            locker_inventory.quantity += instance.quantity
-                            locker_inventory.save()
-                    messages.success(request, 'Successfully Transfered')
-                    return redirect('unit_transfer', pk=unit_id)
-            except Exception as e:
-                messages.error(request, f"An error occurred: {str(e)}")
-    else:
-        formset = UnitIssueFormSet(
-            queryset=UnitIssueRecord.objects.none(),
-            issuing_unit=unit,
-            initial=[{'unit': unit}] * 2
-        )
-    return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})
-
-
-class TransferUpdateView(LoginRequiredMixin,UnitGroupRequiredMixin,UpdateView):
-    model = UnitIssueRecord
-    form_class = UnitIssueRecordForm
-    template_name = 'store/transfer_update.html'
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['issuing_unit'] = self.object.unit
-        return kwargs
-
-    def get_success_url(self):
-        return reverse_lazy('unit_transfer', kwargs={'pk': self.object.unit.pk})
-
-    def form_valid(self, form):
-        try:
-            form.instance.issued_by = self.request.user
-            response = super().form_valid(form)
-            messages.success(self.request, "Record updated successfully.")
-            return response
-        except ValidationError as e:
-            form.add_error(None, str(e))
-            return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        messages.error(self.request, "There was an error updating the record. Please check the form.")
-        return super().form_invalid(form)
-
 
 
 @unit_group_required
@@ -1028,81 +938,183 @@ def dispensaryissuerecord(request, unit_id):
 
     return render(request, 'store/create_dispensary_record.html', {'formset': formset, 'unit': unit})
 
+from django.utils.timezone import now
+
+class UnitIssueRecordListView(ListView):
+    model = UnitIssueRecord
+    template_name = "store/unitissue_report.html"
+    context_object_name = "issues"
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = UnitIssueRecord.objects.all()
+        query = self.request.GET.get("q", "").strip()
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        # Get the unit id from the URL (you will pass this as part of the URL)
+        unit_id = self.kwargs.get("unit_id")
+        if unit_id:
+            # Filter by the unit in the UnitIssueRecord model
+            queryset = queryset.filter(unit__id=unit_id)
+        # Apply search filter
+        if query:
+            queryset = queryset.filter(
+                Q(drug__generic_name__icontains=query) |
+                Q(drug__trade_name__icontains=query) |
+                Q(issued_by__username__icontains=query)
+            )
+
+        # Apply date filters
+        if start_date:
+            queryset = queryset.filter(updated_at__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(updated_at__lte=end_date)
+
+        # Calculate the total appearance, total quantity, and total price
+        total_appearance = queryset.count()  # Total number of records in queryset
+        total_quantity = queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        total_price = sum(issue.drug.piece_unit_cost_price * issue.quantity for issue in queryset)
+
+        # Add the calculated values to the context
+        self.total_appearance = total_appearance
+        self.total_quantity = total_quantity
+        self.total_price = total_price
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Fetch the unit info from the URL (unit_id)
+        unit_id = self.kwargs.get("unit_id")
+        if unit_id:
+            unit = get_object_or_404(Unit, id=unit_id)
+            context['unit'] = unit  # Add unit to context
+        context['query'] = self.request.GET.get("q", "").strip()
+        context['start_date'] = self.request.GET.get("start_date", '')
+        context['end_date'] = self.request.GET.get("end_date", '')
+        # Add the total calculations to context
+        context['total_appearance'] = self.total_appearance
+        context['total_quantity'] = self.total_quantity
+        context['total_price'] = self.total_price
+        return context
+
+
+from django.http import StreamingHttpResponse
+
+from django.db.models import Q, Sum
+from django.http import StreamingHttpResponse
+from datetime import datetime
 
 @login_required
-def unitissue_report(request, pk):
-    unit = get_object_or_404(Unit, id=pk)
-    
-    
-    # Initialize the filter with the queryset and manually set the initial value
-    unitissuefilter = UnitIssueFilter(
-        request.GET
+def unit_issue_record_pdf(request, unit_id):
+    # Base queryset for the unit
+    queryset = UnitIssueRecord.objects.filter(unit_id=unit_id)
+
+    # Retrieve filter parameters from the GET request
+    query = request.GET.get("q", "").strip()
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    # Apply search filter
+    if query:
+        queryset = queryset.filter(
+            Q(drug__generic_name__icontains=query) |
+            Q(drug__trade_name__icontains=query) |
+            Q(issued_by__username__icontains=query)
+        )
+
+    # Apply date range filters
+    if start_date:
+        queryset = queryset.filter(updated_at__gte=start_date)
+    if end_date:
+        queryset = queryset.filter(updated_at__lte=end_date)
+
+    # Calculate totals
+    total_quantity = queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
+    total_appearance = queryset.count()
+    total_price = sum(
+        record.quantity * (record.drug.piece_unit_cost_price or 0)
+        for record in queryset
     )
-    
-    # Set initial value for the unit filter
-    unitissuefilter.form.initial['unit'] = pk
-    
-    filtered_queryset = unitissuefilter.qs
-    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    if filtered_queryset.exists() and filtered_queryset.first().drug.piece_unit_selling_price:
-        first_drug = filtered_queryset.first().drug.piece_unit_selling_price
-    else:
-        first_drug = 0
 
-    total_price = total_quantity * first_drug
-    total_appearance = filtered_queryset.count()
-
-    pgn = Paginator(filtered_queryset, 10)
-    pn = request.GET.get('page')
-    po = pgn.get_page(pn)
-
+    # Prepare context for the PDF
     context = {
-        'unit': unit,
-        'unitissuefilter': unitissuefilter,
+        'f': queryset,
+        'total_quantity': total_quantity,
         'total_appearance': total_appearance,
         'total_price': total_price,
-        'total_quantity': total_quantity,
-        'po': po,
-    }
-    return render(request, 'store/unitissue_report.html', context)
-
-
-@login_required
-def unitissue_pdf(request):
-    ndate = datetime.now()
-    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
-    f = UnitIssueFilter(request.GET, queryset=UnitIssueRecord.objects.all()).qs
-    total_quantity = f.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    
-    if f.exists() and f.first().drug.piece_unit_selling_price:
-        first_drug = f.first().drug.piece_unit_selling_price
-    else:
-        first_drug = 0
-    
-    total_price = total_quantity * first_drug
-    total_appearance = f.count()
-    keys = [key for key, value in request.GET.items() if value]
-    result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
-    
-    context = {
-        'f': f,
+        'query': query,
+        'start_date': start_date,
+        'end_date': end_date,
+        'result': f"GENERATED ON: {datetime.now().strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}",
         'pagesize': 'A4',
         'orientation': 'Portrait',
-        'result': result,
-        'keys': keys,
-        'total_appearance': total_appearance,
-        'total_price': total_price,
-        'total_quantity': total_quantity,
     }
-    
+
+    # Generate the PDF
     pdf_buffer = generate_pdf(context, 'store/unitissue_pdf.html')
-    
     if pdf_buffer is None:
         return HttpResponse('Error generating PDF', status=500)
-    
+
+    # Prepare the response
+    filename = datetime.now().strftime('unit_issue_%d_%m_%Y.pdf')
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+@unit_group_required
+def transferecord(request, unit_id):
+    unit = get_object_or_404(Unit, id=unit_id)
+    
+    # Create a custom formset that passes the issuing_unit to each form
+    class CustomUnitIssueFormSet(BaseModelFormSet):
+        def __init__(self, *args, **kwargs):
+            self.issuing_unit = kwargs.pop('issuing_unit', None)
+            super().__init__(*args, **kwargs)
+
+        def _construct_form(self, i, **kwargs):
+            kwargs['issuing_unit'] = self.issuing_unit
+            return super()._construct_form(i, **kwargs)
+    
+    TransferFormSet = modelformset_factory(
+        TransferRecord,
+        form=TransferForm,
+        formset=CustomUnitIssueFormSet,
+        extra=5
+        )
+
+    if request.method == 'POST':
+        formset = TransferFormSet(request.POST, issuing_unit=unit)
+        if formset.is_valid():
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        instance.issued_by = request.user
+                        instance.unit = unit
+                        instance.save()
+                        if instance.issued_to:
+                            locker_inventory, created = LockerInventory.objects.get_or_create(
+                                locker=instance.issued_to,
+                                drug=instance.drug,
+                                defaults={'quantity': 0}
+                            )
+                            locker_inventory.quantity += instance.quantity
+                            locker_inventory.save()
+
+                    messages.success(request, 'Successfully Transfered')
+                    return redirect('unit_transfer', pk=unit_id)
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+    else:
+        formset = TransferFormSet(
+            queryset=TransferRecord.objects.none(),
+            issuing_unit=unit,
+            initial=[{'unit': unit}] * 2
+        )
+    return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})
 
 
 @login_required
@@ -1112,36 +1124,50 @@ def transfer_report(request, pk):
     # Initialize the filter with the queryset filtered by unit
     transferfilter = TransferFilter(
         request.GET,
-        queryset=UnitIssueRecord.objects.filter(unit=unit).annotate(
-            unit_price=ExpressionWrapper(
-                models.F('drug__selling_price') / models.F('drug__pack_size'),
-                output_field=DecimalField(max_digits=10, decimal_places=2)
-            ),
-            total_price=ExpressionWrapper(
-                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
-                output_field=DecimalField(max_digits=10, decimal_places=2)
-            )
-        ).order_by('-date_issued')
+        queryset=UnitIssueRecord.objects.filter(unit=unit),
+        current_unit=unit  # Pass the current unit to exclude from issued_to choices
     )
     
-    transferfilter.form.initial['unit'] = pk
-    
-    # Use the filtered queryset
     filtered_queryset = transferfilter.qs
     
-    # Calculate totals
-    totals = filtered_queryset.aggregate(
+    # Calculate totals per drug
+    drug_summaries = filtered_queryset.values(
+        'drug__id',
+        'drug__trade_name',
+        'drug__selling_price',
+        'drug__pack_size',
+        'issued_to__name'  # Include receiving unit name
+    ).annotate(
         total_quantity=models.Sum('quantity'),
-        total_price=ExpressionWrapper(
-            models.Sum(
-                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
-            ),
-            output_field=DecimalField(max_digits=10, decimal_places=2)
-        ),
+        total_appearances=models.Count('id')
     )
+
+    # Process the summaries to include calculated fields
+    processed_summaries = []
+    total_price = 0
+    total_quantity = 0
     
-    total_quantity = totals['total_quantity'] or 0
-    total_price = totals['total_price'] or 0
+    for summary in drug_summaries:
+        # Skip if missing required values
+        if not all([summary['drug__selling_price'], summary['drug__pack_size']]):
+            continue
+            
+        quantity = summary['total_quantity'] or 0
+        unit_price = summary['drug__selling_price'] / summary['drug__pack_size']
+        subtotal = quantity * unit_price
+        
+        processed_summaries.append({
+            'drug_name': summary['drug__trade_name'],
+            'receiving_unit': summary['issued_to__name'],
+            'total_quantity': quantity,
+            'unit_price': round(unit_price, 2),
+            'subtotal': round(subtotal, 2),
+            'total_appearances': summary['total_appearances']
+        })
+        
+        total_price += subtotal
+        total_quantity += quantity
+
     total_appearance = filtered_queryset.count()
 
     # Pagination
@@ -1153,8 +1179,9 @@ def transfer_report(request, pk):
         'unit': unit,
         'transferfilter': transferfilter,
         'total_appearance': total_appearance,
-        'total_price': total_price,
+        'total_price': round(total_price, 2),
         'total_quantity': total_quantity,
+        'drug_summaries': processed_summaries,
         'po': po
     }
     return render(request, 'store/transfer_report.html', context)
@@ -1163,36 +1190,52 @@ def transfer_report(request, pk):
 def transfer_pdf(request, pk):
     unit = get_object_or_404(Unit, id=pk)
     
-    # Use the same filtering logic with annotated fields
+    # Initialize filter with the same logic as the report view
     transferfilter = TransferFilter(
         request.GET,
-        queryset=UnitIssueRecord.objects.filter(unit=unit).annotate(
-            unit_price=ExpressionWrapper(
-                models.F('drug__selling_price') / models.F('drug__pack_size'),
-                output_field=DecimalField(max_digits=10, decimal_places=2)
-            ),
-            total_price=ExpressionWrapper(
-                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
-                output_field=DecimalField(max_digits=10, decimal_places=2)
-            )
-        ).order_by('-date_issued')
+        queryset=UnitIssueRecord.objects.filter(unit=unit),
+        current_unit=unit
     )
     
     filtered_queryset = transferfilter.qs
     
-    # Calculate totals using the same annotations
-    totals = filtered_queryset.aggregate(
+    # Calculate totals per drug
+    drug_summaries = filtered_queryset.values(
+        'drug__id',
+        'drug__trade_name',
+        'drug__selling_price',
+        'drug__pack_size',
+        'issued_to__name'
+    ).annotate(
         total_quantity=models.Sum('quantity'),
-        total_price=ExpressionWrapper(
-            models.Sum(
-                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
-            ),
-            output_field=DecimalField(max_digits=10, decimal_places=2)
-        ),
+        total_appearances=models.Count('id')
     )
+
+    # Process the summaries
+    processed_summaries = []
+    total_price = 0
+    total_quantity = 0
     
-    total_quantity = totals['total_quantity'] or 0
-    total_price = totals['total_price'] or 0
+    for summary in drug_summaries:
+        if not all([summary['drug__selling_price'], summary['drug__pack_size']]):
+            continue
+            
+        quantity = summary['total_quantity'] or 0
+        unit_price = summary['drug__selling_price'] / summary['drug__pack_size']
+        subtotal = quantity * unit_price
+        
+        processed_summaries.append({
+            'drug_name': summary['drug__trade_name'],
+            'receiving_unit': summary['issued_to__name'],
+            'total_quantity': quantity,
+            'unit_price': round(unit_price, 2),
+            'subtotal': round(subtotal, 2),
+            'total_appearances': summary['total_appearances']
+        })
+        
+        total_price += subtotal
+        total_quantity += quantity
+
     total_appearance = filtered_queryset.count()
     
     # Generate PDF metadata
@@ -1208,8 +1251,9 @@ def transfer_pdf(request, pk):
         'result': result,
         'keys': keys,
         'total_appearance': total_appearance,
-        'total_price': total_price,
+        'total_price': round(total_price, 2),
         'total_quantity': total_quantity,
+        'drug_summaries': processed_summaries,
         'unit': unit,
     }
     
@@ -1221,16 +1265,6 @@ def transfer_pdf(request, pk):
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
 
-
-class UnitIssueRecordListView(LoginRequiredMixin,UnitGroupRequiredMixin,ListView):
-    model = UnitIssueRecord
-    template_name = 'store/unitissuerecord_list.html'
-    context_object_name = 'unit_issue_records'
-    paginate_by = 10  # Optional: for pagination
-
-    def get_queryset(self):
-        return DispenseRecord.objects.all().order_by('-date_issued')
-    
 
 @login_required
 def dispenserecord(request, dispensary_id):
@@ -1401,41 +1435,6 @@ def dispense_pdf(request, pk):
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
 
-class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
-    model = Unit
-    template_name = 'store/unit_box.html'
-    context_object_name = 'store'
-    paginate_by = 10
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Fetch unit issue records where this unit is the issuing unit
-        unit_issue_records = UnitIssueRecord.objects.filter(
-            unit=self.object,
-            moved_to__isnull=False, 
-            issued_to_locker__isnull=True
-        ).order_by('-date_issued')
-        query = self.request.GET.get('q')
-        if query:
-            unit_issue_records = unit_issue_records.filter(
-                Q(drug__generic_name__icontains=query) |
-                Q(drug__trade_name__icontains=query)|
-                Q(drug__category__name__icontains=query)|
-                Q(drug__dosage_form__icontains=query)|
-                Q(drug__strength__icontains=query)|
-                Q(moved_to__icontains=query)
-            )        
-        # Paginate the results
-        paginator = Paginator(unit_issue_records, self.paginate_by)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-
-        context['unit_issue_records'] = page_obj
-        context['page_obj'] = page_obj
-        context['query'] = self.request.GET.get('q', '')       
-
-        return context
 
 @unit_group_required
 def boxrecord(request, unit_id):
@@ -1555,7 +1554,7 @@ class BoxView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
         
         # Calculate total price by summing (quantity * price) for each record
         total_price = sum(
-            record.quantity * (record.drug.piece_unit_selling_price or 0)
+            record.quantity * (record.drug.piece_unit_cost_price or 0)
             for record in self.filtered_queryset
         )
         
@@ -1610,7 +1609,7 @@ def box_pdf(request, pk):
     
     # Calculate total price by summing (quantity * price) for each record
     total_price = sum(
-        record.quantity * (record.drug.piece_unit_selling_price or 0)
+        record.quantity * (record.drug.piece_unit_cost_price or 0)
         for record in unit_issue_records
     )
     
@@ -1672,9 +1671,6 @@ def return_drug(request, unit_id):
     
     return render(request, 'store/return_drugs.html', {'formset': formset, 'unit': unit})
 
-
-from django.db.models import Q, Sum
-
 class ReturnedDrugsListView(ListView):
     model = ReturnedDrugs
     template_name = 'store/return_list.html'
@@ -1716,7 +1712,7 @@ class ReturnedDrugsListView(ListView):
         
         # Calculate total price by summing (quantity * price) for each item
         total_price = sum(
-            item.quantity * item.drug.piece_unit_selling_price 
+            item.quantity * item.drug.piece_unit_cost_price 
             for item in self.filtered_queryset.select_related('drug')
         )
         
@@ -1756,8 +1752,6 @@ def return_report(request, unit_id):
         'po': po
     }
     return render(request, 'store/return_drugs_report.html', context)
-
-
 
 class LoginActivityListView(LoginRequiredMixin, ListView):
     model = LoginActivity
@@ -2048,7 +2042,27 @@ class UnitDrugRequestListView(LoginRequiredMixin, UnitGroupRequiredMixin, ListVi
     def get_queryset(self):
         # Filter drug requests by the unit
         unit = self.kwargs.get('pk')  # Assuming `pk` is the Unit's primary key
-        return DrugRequest.objects.filter(unit_id=unit).select_related('unit', 'requested_by').order_by('-updated')
+        queryset= DrugRequest.objects.filter(unit_id=unit).select_related('unit', 'requested_by').order_by('-updated')
+        # Get search parameters
+        query = self.request.GET.get('q')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        # Apply text search filters
+        if query:
+            queryset = queryset.filter(
+                Q(drugs__icontains=query)|
+                Q(requested_by__username__icontains=query)
+            )
+
+        # Apply date filters
+        if start_date:
+            queryset = queryset.filter(request_date__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(request_date__lte=end_date)
+
+        self.filtered_queryset = queryset  # Save queryset for use in get_context_data
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
