@@ -1715,13 +1715,23 @@ class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
+        # Get date range parameters
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        
         # Fetch unit issue records where this unit is the issuing unit
         transfer_record = TransferRecord.objects.filter(
             unit=self.object,
             issued_to__isnull=False, 
         ).order_by('-date_issued')
 
-                # Store the base queryset for calculations
+        # Apply date range filter if provided
+        if date_from:
+            transfer_record = transfer_record.filter(updated_at__gte=date_from)
+        if date_to:
+            transfer_record = transfer_record.filter(updated_at__lte=date_to)
+
+        # Store the base queryset for calculations
         self.filtered_queryset = transfer_record
 
         query = self.request.GET.get('q')
@@ -1735,11 +1745,11 @@ class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
                 Q(drug__strength__icontains=query)
             )        
             self.filtered_queryset = transfer_record
-             # Calculate totals
+
+        # Calculate totals
         total_quantity = self.filtered_queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
         total_appearance = self.filtered_queryset.count()
         
-        # Calculate total price by summing (quantity * price) for each record
         total_price = sum(
             record.quantity * (record.drug.piece_unit_cost_price or 0)
             for record in self.filtered_queryset
@@ -1755,6 +1765,8 @@ class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
             'transfer_record': page_obj,
             'page_obj': page_obj,
             'query': self.request.GET.get('q', ''),
+            'date_from': date_from,
+            'date_to': date_to,
             'total_appearance': total_appearance,
             'total_quantity': total_quantity,
             'total_price': total_price
@@ -1765,17 +1777,30 @@ class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
 def transfer_pdf(request, pk):
     unit = get_object_or_404(Unit, id=pk)
     
+    # Get date range parameters
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
     # Fetch unit issue records with drug relationship
     transfer_record = TransferRecord.objects.filter(
         unit=unit,
         issued_to__isnull=False, 
     ).select_related('drug').order_by('-date_issued')
     
+    # Apply date range filter if provided
+    if date_from:
+        transfer_record = transfer_record.filter(updated_at__gte=date_from)
+    if date_to:
+        transfer_record = transfer_record.filter(updated_at__lte=date_to)
+    
     # Prepare filter keys
     keys = []
     query = request.GET.get('q')
     if query:
         keys.append(f": {query}")
+    if date_from or date_to:
+        date_range = f"Date range: {date_from or 'any'} to {date_to or 'any'}"
+        keys.append(date_range)
     
     # Apply search query if present
     if query:
@@ -1792,13 +1817,11 @@ def transfer_pdf(request, pk):
     total_quantity = transfer_record.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
     total_appearance = transfer_record.count()
     
-    # Calculate total price by summing (quantity * price) for each record
     total_price = sum(
         record.quantity * (record.drug.piece_unit_cost_price or 0)
         for record in transfer_record
     )
     
-    # Prepare context for PDF
     context = {
         'f': transfer_record,
         'total_quantity': total_quantity,
@@ -1810,13 +1833,11 @@ def transfer_pdf(request, pk):
         'orientation': 'Portrait',
     }
     
-    # Generate PDF
     pdf_buffer = generate_pdf(context, 'store/transfer_pdf.html')
     
     if pdf_buffer is None:
         return HttpResponse('Error generating PDF', status=500)
     
-    # Prepare response
     ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
@@ -1833,11 +1854,22 @@ class UnitReceivedRecordsView(LoginRequiredMixin, UnitGroupRequiredMixin, Detail
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # Get date range parameters
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+
         # Fetch unit issue records where this unit is the receiving unit
         received_records = TransferRecord.objects.filter(
             issued_to=self.object
         ).order_by('-date_issued')
-                # Store the base queryset for calculations
+
+        # Apply date range filter if provided
+        if date_from:
+            received_records = received_records.filter(updated_at__gte=date_from)
+        if date_to:
+            received_records = received_records.filter(updated_at__lte=date_to)
+
+        # Store the base queryset for calculations
         self.filtered_queryset = received_records
 
         query = self.request.GET.get('q')
@@ -1851,11 +1883,11 @@ class UnitReceivedRecordsView(LoginRequiredMixin, UnitGroupRequiredMixin, Detail
                 Q(drug__strength__icontains=query)
             )
         self.filtered_queryset = received_records
-             # Calculate totals
+
+        # Calculate totals
         total_quantity = self.filtered_queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
         total_appearance = self.filtered_queryset.count()
         
-        # Calculate total price by summing (quantity * price) for each record
         total_price = sum(
             record.quantity * (record.drug.piece_unit_cost_price or 0)
             for record in self.filtered_queryset
@@ -1871,6 +1903,8 @@ class UnitReceivedRecordsView(LoginRequiredMixin, UnitGroupRequiredMixin, Detail
             'received_records': page_obj,
             'page_obj': page_obj,
             'query': self.request.GET.get('q', ''),
+            'date_from': date_from,
+            'date_to': date_to,
             'total_appearance': total_appearance,
             'total_quantity': total_quantity,
             'total_price': total_price
@@ -1881,17 +1915,29 @@ class UnitReceivedRecordsView(LoginRequiredMixin, UnitGroupRequiredMixin, Detail
 def received_pdf(request, pk):
     unit = get_object_or_404(Unit, id=pk)
     
+    # Get date range parameters
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
     # Fetch unit issue records with drug relationship
     transfer_record = TransferRecord.objects.filter(
-        unit=unit,
-        issued_to__isnull=False, 
+        issued_to=unit
     ).select_related('drug').order_by('-date_issued')
+    
+    # Apply date range filter if provided
+    if date_from:
+        transfer_record = transfer_record.filter(updated_at__gte=date_from)
+    if date_to:
+        transfer_record = transfer_record.filter(updated_at__lte=date_to)
     
     # Prepare filter keys
     keys = []
     query = request.GET.get('q')
     if query:
         keys.append(f": {query}")
+    if date_from or date_to:
+        date_range = f"Date range: {date_from or 'any'} to {date_to or 'any'}"
+        keys.append(date_range)
     
     # Apply search query if present
     if query:
@@ -1901,20 +1947,18 @@ def received_pdf(request, pk):
             Q(drug__category__name__icontains=query) |
             Q(drug__dosage_form__icontains=query)|
             Q(drug__strength__icontains=query)|
-            Q(issued_to__name__icontains=query)
+            Q(unit__name__icontains=query)  # Changed from issued_to to unit
         )
     
     # Calculate totals
     total_quantity = transfer_record.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
     total_appearance = transfer_record.count()
     
-    # Calculate total price by summing (quantity * price) for each record
     total_price = sum(
         record.quantity * (record.drug.piece_unit_cost_price or 0)
         for record in transfer_record
     )
     
-    # Prepare context for PDF
     context = {
         'f': transfer_record,
         'total_quantity': total_quantity,
@@ -1926,13 +1970,11 @@ def received_pdf(request, pk):
         'orientation': 'Portrait',
     }
     
-    # Generate PDF
     pdf_buffer = generate_pdf(context, 'store/receive_pdf.html')
     
     if pdf_buffer is None:
         return HttpResponse('Error generating PDF', status=500)
     
-    # Prepare response
     ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')

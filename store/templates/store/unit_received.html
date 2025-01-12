@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
-{% block title %}{{ store.name }} - DRUG TRANSFERS {% endblock %}
+{% block title %}{{ store.name }} - DRUG TRANSFER-IN {% endblock %}
 {% block content %}
     <div class="container mx-auto p-4">
         <div class="flex justify-center p-4 gap-4 text-xl">
@@ -14,31 +14,45 @@
         <div class=" flex flex-wrap justify-center items-center mb-1 space-x-2 gap-2">
           
                                                 <!-- Search Form -->
-                                                <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 ">
-                                                    <div class="flex items-center w-full sm:w-auto">
-                                                        <label for="q" class="sr-only">Search</label>
-                                                        <input type="text" name="q" id="q" value="{{ query|default_if_none:'' }}" placeholder="Search Drugs, Class or Dosage Form..."
-                                                            class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-60">
+                                                <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                                                    <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                                                        <div class="w-full sm:w-auto">
+                                                            <label for="q" class="sr-only">Search</label>
+                                                            <input type="text" name="q" id="q" value="{{ query|default_if_none:'' }}" placeholder="Search..."
+                                                                class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-60">
+                                                        </div>
+                                                        <div class="flex space-x-2 w-full sm:w-auto">
+                                                            <input type="date" name="date_from" value="{{ date_from|default:'' }}" 
+                                                                class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-auto"
+                                                                placeholder="From Date">
+                                                            <input type="date" name="date_to" value="{{ date_to|default:'' }}" 
+                                                                class="focus:ring-amber-500 focus:border-amber-500 block shadow-sm text-xs border-gray-300 rounded-md w-full sm:w-auto"
+                                                                placeholder="To Date">
+                                                        </div>
                                                     </div>
-                                                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
-                                                        <i class="fas fa-search"></i>
-                                                    </button>
-                                                    {% if request.GET.urlencode %}
-                                                    <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
-                                                        <i class="fas fa-rotate"></i>
-                                                    </a>
-                                                    <a href="{% url 'receive_pdf' pk=object.pk %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
-                                                        <i class="fa-solid fa-file-pdf"></i>
-                                                    </a>
-                                                    {% endif %}
-                                        
+                                                    
+                                                    <div class="flex space-x-2">
+                                                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
+                                                            <i class="fas fa-search"></i>
+                                                        </button>
+                                                        
+                                                        {% if request.GET.urlencode %}
+                                                        <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                                                            <i class="fas fa-rotate"></i>
+                                                        </a>
+                                                        <a href="{% url 'transfer_pdf' pk=object.pk %}?{% if request.GET.q %}q={{ request.GET.q }}{% endif %}{% if request.GET.date_from %}&date_from={{ request.GET.date_from }}{% endif %}{% if request.GET.date_to %}&date_to={{ request.GET.date_to }}{% endif %}" 
+                                                           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
+                                                            <i class="fa-solid fa-file-pdf"></i>
+                                                        </a>
+                                                        {% endif %}
+                                                    </div>
                                                 </form>
             </div>
                  <!-- Unit Transfer Records Table -->
                  {% if request.GET.urlencode %}
                  <p class="p-2 whitespace-nowrap text-sm text-center">
                      <span class="text-green-700 font-semibold">
-                         Transferred: 
+                         Received: 
                          {% if total_appearance == 1 %}
                              once
                          {% else %}
