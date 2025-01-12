@@ -909,9 +909,13 @@ class UnitIssueRecordListView(ListView):
         self.total_price = total_price
 
         return queryset
+    
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+    # Add paginated object as 'po' for the template
+        context['po'] = context.get('page_obj')
+        context['paginator'] = context.get('paginator') 
         # Fetch the unit info from the URL (unit_id)
         unit_id = self.kwargs.get("unit_id")
         if unit_id:

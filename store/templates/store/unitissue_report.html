@@ -65,6 +65,7 @@
 
         </div>
     </div>
+    {% if request.GET.urlencode %}
     <p class="p-2 whitespace-nowrap text-sm text-center">
         <span class="text-green-700 font-semibold">
             Moved: 
@@ -83,7 +84,7 @@
             Value: &#x20A6;{{ total_price|floatformat:2 }}
         </span>
     </p>
-
+{%endif%}
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
         <div class="overflow-x-auto max-h-[70vh]">
             <table class="min-w-full divide-y divide-gray-200">
