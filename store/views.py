@@ -1662,8 +1662,15 @@ class UnitDrugRequestListView(LoginRequiredMixin, UnitGroupRequiredMixin, ListVi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Add the current unit to the context
         context['unit'] = Unit.objects.get(pk=self.kwargs.get('pk'))
+        # Add the query parameter to the context
+        context['query'] = self.request.GET.get('q', '').strip()  # Default to an empty string if not provided
+        # Add the date filters to the context
+        context['start_date'] = self.request.GET.get('start_date', '')
+        context['end_date'] = self.request.GET.get('end_date', '')
         return context
+
 
 @unit_group_required
 def transferecord(request, unit_id):
