@@ -150,10 +150,10 @@ h1 {
                     {{ forloop.counter }}
                 </td>
                 <td class="text-center mid-column">
-                    {{ r.issued_to|default_if_none:'' }}
+                    {{ r.unit|default_if_none:'' }}
                 </td>
                 <td class="text-center mid-column">
-                    {{ r.unit|default_if_none:'' }}
+                    {{ r.issued_to|default_if_none:'' }}
                 </td>
                 <td class="text-center">
                     {{ r.date_issued|default_if_none:'' }}
