@@ -151,7 +151,7 @@ h1 {
                 {{ r.unit|default_if_none:'' }}
             </td>    
             <td class="text-center mid-column">
-                {{ r.moved_to|default_if_none:'' }}
+                {{ r.moved_to|default_if_none:''|upper }}
             </td>    
             <td class="text-center">
                 {{r.date_issued|default_if_none:''}}<br>

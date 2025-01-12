@@ -19,11 +19,11 @@
         {% if request.GET.urlencode %}
             <a href="{% url 'dispense_pdf' dispensary_locker.unit.id %}?{{ request.GET.urlencode }}" 
                class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-rose-500">
-                GENERATE<i class="ml-2 fa-solid fa-file-pdf fa-2x"></i>
+                GENERATE<i class="ml-2 fa-solid fa-file-pdf fa-1x"></i>
             </a>
             <a href="?" 
                class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-amber-500">
-                <i class="fa-solid fa-rotate fa-2x"></i>
+                <i class="fa-solid fa-rotate fa-1x"></i>
             </a>
         {% endif %}
     </div>

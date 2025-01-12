@@ -1212,7 +1212,7 @@ def boxrecord(request, unit_id):
         formset = UnitIssueFormSet(
             queryset=UnitIssueRecord.objects.none(),
             issuing_unit=unit,
-            initial=[{'unit': unit}] * 2
+            initial=[{'unit': unit}] * 5
         )
     return render(request, 'store/boxrecord_form.html', {'formset': formset, 'unit': unit})
 
