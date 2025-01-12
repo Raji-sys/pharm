@@ -37,30 +37,23 @@ urlpatterns=[
     path('stores/bulk-locker/<int:pk>/', UnitBulkLockerDetailView.as_view(), name='unit_bulk_locker'),
     path('stores/dispensary-locker/<int:pk>/', UnitDispensaryLockerView.as_view(), name='unit_dispensary'),
 
-    path('stores/drug-transfer/<int:pk>/', UnitTransferView.as_view(), name='unit_transfer'),
-    path('unit/<int:pk>/received-records/', UnitReceivedRecordsView.as_view(), name='unit_received_records'),
-
     path('stores/box/<int:pk>/', BoxView.as_view(), name='unit_box'),
     
-
     path('store/locker/<int:unit_id>/', views.dispensaryissuerecord, name='dispensary_record'),
     path('expiry-date-notification/', ExpiryNotificationView.as_view(), name='expiry_notification'),
-    
 
+    path('transfer/<int:unit_id>/', views.transferecord, name='unit_issue_record_create'),    
+    path('stores/drug-transfer/<int:pk>/', UnitTransferView.as_view(), name='unit_transfer'),
+    path('transfer/<int:pk>/pdf/', views.transfer_pdf, name='transfer_pdf'),
+
+    path('unit/<int:pk>/received-records/', UnitReceivedRecordsView.as_view(), name='unit_received_records'),
+    path('receive/<int:pk>/pdf/', views.received_pdf, name='receive_pdf'),
+    
     path('box/new/<int:unit_id>/', views.boxrecord, name='box_record_create'),
-    
-    path('transfer-report/<int:pk>/', views.transfer_report, name='transfer_report'),
-    path('transfer/<int:pk>/pdf/', transfer_pdf, name='transfer_pdf'),
-
-    path('unit/<int:pk>/receive-report/', receive_report, name='receive_report'),
-    path('receive/<int:pk>/pdf/', receive_pdf, name='receive_pdf'),
-    
     path('box/update/<int:pk>/', BoxUpdateView.as_view(), name='box_update'),
-    # path('box-pdf/', views.box_pdf, name='box_pdf'),
     path('box_pdf/<int:pk>/', views.box_pdf, name='box_pdf'),
 
     path('worth/', InventoryWorthView.as_view(), name='worth'),
-    
     path('main-store-worth/', StoreWorthView.as_view(), name='main_store_value'),
     path('unit-worth/<int:pk>/', UnitWorthView.as_view(), name='unit_value'),
 
@@ -76,7 +69,6 @@ urlpatterns=[
     
     path('unit/<int:unit_id>/return-drug/', return_drug, name='return_drug'),
     path('returned-drugs/<int:unit_id>/', ReturnedDrugsListView.as_view(), name='return_drugs_list'),
-    path('return-report/<int:unit_id>/', views.return_report, name='return_report'),
 
     path('get_drugs_by_category/<int:category_id>/', views.get_drugs_by_category, name='get_drugs_by_category'),
     path('',include('django.contrib.auth.urls')),

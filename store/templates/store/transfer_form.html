@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ unit }} | DRUG STOCKING{% endblock %}
+{% block title %}{{ unit }} | DRUG TRANSFER{% endblock %}
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
@@ -9,7 +9,7 @@
                 <a href="{% url 'unit_transfer' unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
             </div>
             <div>
-                <h2 class="text-center text-teal-700 uppercase text-lg">{{ unit }} BULK LOCKER TO OTHER UNIT TRANSFER FORM</h2>
+                <h2 class="text-center text-teal-700 uppercase text-lg">{{ unit }} TRANSFER TO OTHER UNIT FORM</h2>
             </div>
         {% endif %}
         </div>

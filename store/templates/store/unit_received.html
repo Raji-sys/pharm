@@ -13,10 +13,6 @@
         </div>
         <div class=" flex flex-wrap justify-center items-center mb-1 space-x-2 gap-2">
           
-            <a href="{% url 'receive_report' store.pk %}"
-            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <i class="fas fa-file-pdf mr-2 fa-2xl"></i> Transfer-In Report
-                </a>
                                                 <!-- Search Form -->
                                                 <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 ">
                                                     <div class="flex items-center w-full sm:w-auto">
@@ -31,12 +27,34 @@
                                                     <a href="?" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
                                                         <i class="fas fa-rotate"></i>
                                                     </a>
+                                                    <a href="{% url 'receive_pdf' pk=object.pk %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500">
+                                                        <i class="fa-solid fa-file-pdf"></i>
+                                                    </a>
                                                     {% endif %}
                                         
                                                 </form>
             </div>
-        <!-- Unit Issue Records Table -->
-<!-- Unit Received Records Table -->
+                 <!-- Unit Transfer Records Table -->
+                 {% if request.GET.urlencode %}
+                 <p class="p-2 whitespace-nowrap text-sm text-center">
+                     <span class="text-green-700 font-semibold">
+                         Transferred: 
+                         {% if total_appearance == 1 %}
+                             once
+                         {% else %}
+                             {{ total_appearance }} times
+                         {% endif %}
+                     </span>
+                     <span class="mx-2 text-gray-400">|</span>
+                     <span class="text-blue-700 font-semibold">
+                         Quantity: {{ total_quantity }}
+                     </span>
+                     <span class="mx-2 text-gray-400">|</span>
+                     <span class="text-purple-700 font-semibold">
+                         Value: &#x20A6;{{ total_price|floatformat:2 }}
+                     </span>
+                 </p>
+                 {% endif %}
 <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
     <div class="overflow-x-auto max-h-[65vh]">
         <table class="min-w-full divide-y divide-gray-300">

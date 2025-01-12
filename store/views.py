@@ -807,79 +807,6 @@ class UnitDispensaryLockerView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
         return context
 
 
-class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
-    model = Unit
-    template_name = 'store/unit_transfer.html'
-    context_object_name = 'store'
-    paginate_by = 10
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        
-        # Fetch unit issue records where this unit is the issuing unit
-        transfer_record = TransferRecord.objects.filter(
-            unit=self.object,
-            issued_to__isnull=False, 
-            issued_to_locker__isnull=True
-        ).order_by('-date_issued')
-        query = self.request.GET.get('q')
-        if query:
-            transfer_record = transfer_record.filter(
-                Q(drug__generic_name__icontains=query) |
-                Q(drug__trade_name__icontains=query)|
-                Q(drug__category__name__icontains=query)|
-                Q(issued_to__name__icontains=query)|
-                Q(drug__dosage_form__icontains=query)|
-                Q(drug__strength__icontains=query)
-            )        
-        # Paginate the results
-        paginator = Paginator(transfer_record, self.paginate_by)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-
-        context['transfer_record'] = page_obj
-        context['page_obj'] = page_obj
-        context['query'] = self.request.GET.get('q', '')       
-
-        return context
-
-class UnitReceivedRecordsView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
-    model = Unit
-    template_name = 'store/unit_received.html'
-    context_object_name = 'store'
-    paginate_by = 10
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # Fetch unit issue records where this unit is the receiving unit
-        received_records = TransferRecord.objects.filter(
-            issued_to=self.object
-        ).order_by('-date_issued')
-
-        query = self.request.GET.get('q')
-        if query:
-            received_records = received_records.filter(
-                Q(drug__generic_name__icontains=query) |
-                Q(drug__trade_name__icontains=query) |
-                Q(drug__category__name__icontains=query) |
-                Q(unit__name__icontains=query) |
-                Q(drug__dosage_form__icontains=query) |
-                Q(drug__strength__icontains=query)
-            )
-
-        # Paginate the results
-        paginator = Paginator(received_records, self.paginate_by)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-
-        context['received_records'] = page_obj
-        context['page_obj'] = page_obj
-        context['query'] = self.request.GET.get('q', '')
-
-        return context
-
-
 @unit_group_required
 def dispensaryissuerecord(request, unit_id):
     unit = get_object_or_404(Unit, id=unit_id)
@@ -1061,208 +988,6 @@ def unit_issue_record_pdf(request, unit_id):
     filename = datetime.now().strftime('unit_issue_%d_%m_%Y.pdf')
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
-
-
-@unit_group_required
-def transferecord(request, unit_id):
-    unit = get_object_or_404(Unit, id=unit_id)
-    
-    # Create a custom formset that passes the issuing_unit to each form
-    class CustomUnitIssueFormSet(BaseModelFormSet):
-        def __init__(self, *args, **kwargs):
-            self.issuing_unit = kwargs.pop('issuing_unit', None)
-            super().__init__(*args, **kwargs)
-
-        def _construct_form(self, i, **kwargs):
-            kwargs['issuing_unit'] = self.issuing_unit
-            return super()._construct_form(i, **kwargs)
-    
-    TransferFormSet = modelformset_factory(
-        TransferRecord,
-        form=TransferForm,
-        formset=CustomUnitIssueFormSet,
-        extra=5
-        )
-
-    if request.method == 'POST':
-        formset = TransferFormSet(request.POST, issuing_unit=unit)
-        if formset.is_valid():
-            try:
-                with transaction.atomic():
-                    instances = formset.save(commit=False)
-                    for instance in instances:
-                        instance.issued_by = request.user
-                        instance.unit = unit
-                        instance.save()
-                        if instance.issued_to:
-                            locker_inventory, created = LockerInventory.objects.get_or_create(
-                                locker=instance.issued_to,
-                                drug=instance.drug,
-                                defaults={'quantity': 0}
-                            )
-                            locker_inventory.quantity += instance.quantity
-                            locker_inventory.save()
-
-                    messages.success(request, 'Successfully Transfered')
-                    return redirect('unit_transfer', pk=unit_id)
-            except Exception as e:
-                messages.error(request, f"An error occurred: {str(e)}")
-    else:
-        formset = TransferFormSet(
-            queryset=TransferRecord.objects.none(),
-            issuing_unit=unit,
-            initial=[{'unit': unit}] * 2
-        )
-    return render(request, 'store/unitissuerecord_form.html', {'formset': formset, 'unit': unit})
-
-
-@login_required
-def transfer_report(request, pk):
-    unit = get_object_or_404(Unit, id=pk)
-    
-    # Initialize the filter with the queryset filtered by unit
-    transferfilter = TransferFilter(
-        request.GET,
-        queryset=UnitIssueRecord.objects.filter(unit=unit),
-        current_unit=unit  # Pass the current unit to exclude from issued_to choices
-    )
-    
-    filtered_queryset = transferfilter.qs
-    
-    # Calculate totals per drug
-    drug_summaries = filtered_queryset.values(
-        'drug__id',
-        'drug__trade_name',
-        'drug__selling_price',
-        'drug__pack_size',
-        'issued_to__name'  # Include receiving unit name
-    ).annotate(
-        total_quantity=models.Sum('quantity'),
-        total_appearances=models.Count('id')
-    )
-
-    # Process the summaries to include calculated fields
-    processed_summaries = []
-    total_price = 0
-    total_quantity = 0
-    
-    for summary in drug_summaries:
-        # Skip if missing required values
-        if not all([summary['drug__selling_price'], summary['drug__pack_size']]):
-            continue
-            
-        quantity = summary['total_quantity'] or 0
-        unit_price = summary['drug__selling_price'] / summary['drug__pack_size']
-        subtotal = quantity * unit_price
-        
-        processed_summaries.append({
-            'drug_name': summary['drug__trade_name'],
-            'receiving_unit': summary['issued_to__name'],
-            'total_quantity': quantity,
-            'unit_price': round(unit_price, 2),
-            'subtotal': round(subtotal, 2),
-            'total_appearances': summary['total_appearances']
-        })
-        
-        total_price += subtotal
-        total_quantity += quantity
-
-    total_appearance = filtered_queryset.count()
-
-    # Pagination
-    pgn = Paginator(filtered_queryset, 10)
-    pn = request.GET.get('page')
-    po = pgn.get_page(pn)
-
-    context = {
-        'unit': unit,
-        'transferfilter': transferfilter,
-        'total_appearance': total_appearance,
-        'total_price': round(total_price, 2),
-        'total_quantity': total_quantity,
-        'drug_summaries': processed_summaries,
-        'po': po
-    }
-    return render(request, 'store/transfer_report.html', context)
-
-@login_required
-def transfer_pdf(request, pk):
-    unit = get_object_or_404(Unit, id=pk)
-    
-    # Initialize filter with the same logic as the report view
-    transferfilter = TransferFilter(
-        request.GET,
-        queryset=UnitIssueRecord.objects.filter(unit=unit),
-        current_unit=unit
-    )
-    
-    filtered_queryset = transferfilter.qs
-    
-    # Calculate totals per drug
-    drug_summaries = filtered_queryset.values(
-        'drug__id',
-        'drug__trade_name',
-        'drug__selling_price',
-        'drug__pack_size',
-        'issued_to__name'
-    ).annotate(
-        total_quantity=models.Sum('quantity'),
-        total_appearances=models.Count('id')
-    )
-
-    # Process the summaries
-    processed_summaries = []
-    total_price = 0
-    total_quantity = 0
-    
-    for summary in drug_summaries:
-        if not all([summary['drug__selling_price'], summary['drug__pack_size']]):
-            continue
-            
-        quantity = summary['total_quantity'] or 0
-        unit_price = summary['drug__selling_price'] / summary['drug__pack_size']
-        subtotal = quantity * unit_price
-        
-        processed_summaries.append({
-            'drug_name': summary['drug__trade_name'],
-            'receiving_unit': summary['issued_to__name'],
-            'total_quantity': quantity,
-            'unit_price': round(unit_price, 2),
-            'subtotal': round(subtotal, 2),
-            'total_appearances': summary['total_appearances']
-        })
-        
-        total_price += subtotal
-        total_quantity += quantity
-
-    total_appearance = filtered_queryset.count()
-    
-    # Generate PDF metadata
-    ndate = datetime.now()
-    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
-    keys = [key for key, value in request.GET.items() if value]
-    result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
-    
-    context = {
-        'f': filtered_queryset,
-        'pagesize': 'A4',
-        'orientation': 'Portrait',
-        'result': result,
-        'keys': keys,
-        'total_appearance': total_appearance,
-        'total_price': round(total_price, 2),
-        'total_quantity': total_quantity,
-        'drug_summaries': processed_summaries,
-        'unit': unit,
-    }
-    
-    pdf_buffer = generate_pdf(context, 'store/transfer_pdf.html')
-    if pdf_buffer is None:
-        return HttpResponse('Error generating PDF', status=500)
-    
-    response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
 
 
@@ -1732,26 +1457,6 @@ class ReturnedDrugsListView(ListView):
         })
         return context
 
-@login_required
-def return_report(request, unit_id):
-    unit = get_object_or_404(Unit, id=unit_id)
-    returnfilter = ReturnDrugFilter(request.GET, queryset=ReturnedDrugs.objects.filter(unit=unit).order_by('-updated'))
-    filtered_queryset = returnfilter.qs
-    total_quantity = filtered_queryset.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
-    total_appearance = filtered_queryset.count()
-
-    pgn = Paginator(filtered_queryset, 10)
-    pn = request.GET.get('page')
-    po = pgn.get_page(pn)
-
-    context = {
-        'unit': unit,
-        'returnfilter': returnfilter,
-        'total_appearance': total_appearance,
-        'total_quantity': total_quantity,
-        'po': po
-    }
-    return render(request, 'store/return_drugs_report.html', context)
 
 class LoginActivityListView(LoginRequiredMixin, ListView):
     model = LoginActivity
@@ -1827,119 +1532,6 @@ class LoginActivityListView(LoginRequiredMixin, ListView):
 
         return context
 
-
-@login_required
-def receive_report(request, pk):
-   unit = get_object_or_404(Unit, id=pk)
-   
-   # Initialize the filter with annotated queryset
-   receivefilter = ReceiveFilter(
-       request.GET,
-       queryset=UnitIssueRecord.objects.filter(issued_to=unit).annotate(
-           unit_price=ExpressionWrapper(
-               models.F('drug__selling_price') / models.F('drug__pack_size'),
-               output_field=DecimalField(max_digits=10, decimal_places=2)
-           ),
-           total_price=ExpressionWrapper(
-               models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
-               output_field=DecimalField(max_digits=10, decimal_places=2)
-           )
-       ).order_by('-date_issued')
-   )
-   
-   receivefilter.form.initial['issued_to'] = pk
-   filtered_queryset = receivefilter.qs
-   
-   # Calculate totals using annotated fields
-   totals = filtered_queryset.aggregate(
-       total_quantity=models.Sum('quantity'),
-       total_price=ExpressionWrapper(
-           models.Sum(
-               models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
-           ),
-           output_field=DecimalField(max_digits=10, decimal_places=2)
-       ),
-   )
-   
-   total_quantity = totals['total_quantity'] or 0
-   total_price = totals['total_price'] or 0
-   total_appearance = filtered_queryset.count()
-
-   paginator = Paginator(filtered_queryset, 10)
-   page_number = request.GET.get('page')
-   page_obj = paginator.get_page(page_number)
-
-   context = {
-       'unit': unit,
-       'receivefilter': receivefilter,
-       'total_appearance': total_appearance,
-       'total_price': total_price,
-       'total_quantity': total_quantity,
-       'page_obj': page_obj,
-   }
-   return render(request, 'store/received_report.html', context)
-
-@login_required
-def receive_pdf(request, pk):
-   unit = get_object_or_404(Unit, id=pk)
-   
-   # Use the same filtering logic with annotated fields
-   receivefilter = ReceiveFilter(
-       request.GET,
-       queryset=UnitIssueRecord.objects.filter(issued_to=unit).annotate(
-           unit_price=ExpressionWrapper(
-               models.F('drug__selling_price') / models.F('drug__pack_size'),
-               output_field=DecimalField(max_digits=10, decimal_places=2)
-           ),
-           total_price=ExpressionWrapper(
-               models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size')),
-               output_field=DecimalField(max_digits=10, decimal_places=2)
-           )
-       ).order_by('-date_issued')
-   )
-   
-   filtered_queryset = receivefilter.qs
-   
-   # Calculate totals using the same annotations
-   totals = filtered_queryset.aggregate(
-       total_quantity=models.Sum('quantity'),
-       total_price=ExpressionWrapper(
-           models.Sum(
-               models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
-           ),
-           output_field=DecimalField(max_digits=10, decimal_places=2)
-       ),
-   )
-   
-   total_quantity = totals['total_quantity'] or 0
-   total_price = totals['total_price'] or 0
-   total_appearance = filtered_queryset.count()
-
-   # Generate PDF metadata
-   ndate = datetime.now()
-   filename = ndate.strftime('received_on_%d_%m_%Y_at_%I_%M%p.pdf')
-   keys = [key for key, value in request.GET.items() if value]
-   result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"
-
-   context = {
-       'f': filtered_queryset,
-       'pagesize': 'A4',
-       'orientation': 'Portrait',
-       'result': result,
-       'keys': keys,
-       'total_appearance': total_appearance,
-       'total_price': total_price,
-       'total_quantity': total_quantity,
-       'unit': unit,
-   }
-   
-   pdf_buffer = generate_pdf(context, 'store/receive_pdf.html')
-   if pdf_buffer is None:
-       return HttpResponse('Error generating PDF', status=500)
-       
-   response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
-   response['Content-Disposition'] = f'attachment; filename="{filename}"'
-   return response
 
 class DrugRequestCreateView(LoginRequiredMixin, CreateView):
     model = DrugRequest
@@ -2068,3 +1660,281 @@ class UnitDrugRequestListView(LoginRequiredMixin, UnitGroupRequiredMixin, ListVi
         context = super().get_context_data(**kwargs)
         context['unit'] = Unit.objects.get(pk=self.kwargs.get('pk'))
         return context
+
+@unit_group_required
+def transferecord(request, unit_id):
+    unit = get_object_or_404(Unit, id=unit_id)
+    
+    class CustomUnitIssueFormSet(BaseModelFormSet):
+        def __init__(self, *args, **kwargs):
+            self.issuing_unit = kwargs.pop('issuing_unit', None)
+            super().__init__(*args, **kwargs)
+            
+        def _construct_form(self, i, **kwargs):
+            kwargs['issuing_unit'] = self.issuing_unit
+            return super()._construct_form(i, **kwargs)
+    
+    TransferFormSet = modelformset_factory(
+        TransferRecord,
+        form=TransferForm,
+        formset=CustomUnitIssueFormSet,
+        extra=5
+    )
+    
+    if request.method == 'POST':
+        formset = TransferFormSet(request.POST, issuing_unit=unit)
+        if formset.is_valid():
+            try:
+                with transaction.atomic():
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        instance.issued_by = request.user
+                        instance.unit = unit
+                        instance.save()  # This will handle the UnitStore updates
+                    
+                messages.success(request, 'Successfully Transferred')
+                return redirect('unit_transfer', pk=unit_id)
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
+    else:
+        formset = TransferFormSet(
+            queryset=TransferRecord.objects.none(),
+            issuing_unit=unit,
+            initial=[{'unit': unit}] * 5
+        )
+    
+    return render(request, 'store/transfer_form.html', {'formset': formset, 'unit': unit})
+
+
+class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
+    model = Unit
+    template_name = 'store/unit_transfer.html'
+    context_object_name = 'store'
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Fetch unit issue records where this unit is the issuing unit
+        transfer_record = TransferRecord.objects.filter(
+            unit=self.object,
+            issued_to__isnull=False, 
+        ).order_by('-date_issued')
+
+                # Store the base queryset for calculations
+        self.filtered_queryset = transfer_record
+
+        query = self.request.GET.get('q')
+        if query:
+            transfer_record = transfer_record.filter(
+                Q(drug__generic_name__icontains=query) |
+                Q(drug__trade_name__icontains=query)|
+                Q(drug__category__name__icontains=query)|
+                Q(issued_to__name__icontains=query)|
+                Q(drug__dosage_form__icontains=query)|
+                Q(drug__strength__icontains=query)
+            )        
+            self.filtered_queryset = transfer_record
+             # Calculate totals
+        total_quantity = self.filtered_queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        total_appearance = self.filtered_queryset.count()
+        
+        # Calculate total price by summing (quantity * price) for each record
+        total_price = sum(
+            record.quantity * (record.drug.piece_unit_cost_price or 0)
+            for record in self.filtered_queryset
+        )
+
+        # Paginate the results
+        paginator = Paginator(transfer_record, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        # Update context with all data
+        context.update({
+            'transfer_record': page_obj,
+            'page_obj': page_obj,
+            'query': self.request.GET.get('q', ''),
+            'total_appearance': total_appearance,
+            'total_quantity': total_quantity,
+            'total_price': total_price
+        })
+        return context
+
+@login_required
+def transfer_pdf(request, pk):
+    unit = get_object_or_404(Unit, id=pk)
+    
+    # Fetch unit issue records with drug relationship
+    transfer_record = TransferRecord.objects.filter(
+        unit=unit,
+        issued_to__isnull=False, 
+    ).select_related('drug').order_by('-date_issued')
+    
+    # Prepare filter keys
+    keys = []
+    query = request.GET.get('q')
+    if query:
+        keys.append(f": {query}")
+    
+    # Apply search query if present
+    if query:
+        transfer_record = transfer_record.filter(
+            Q(drug__generic_name__icontains=query) |
+            Q(drug__trade_name__icontains=query) |
+            Q(drug__category__name__icontains=query) |
+            Q(drug__dosage_form__icontains=query)|
+            Q(drug__strength__icontains=query)|
+            Q(issued_to__name__icontains=query)
+        )
+    
+    # Calculate totals
+    total_quantity = transfer_record.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    total_appearance = transfer_record.count()
+    
+    # Calculate total price by summing (quantity * price) for each record
+    total_price = sum(
+        record.quantity * (record.drug.piece_unit_cost_price or 0)
+        for record in transfer_record
+    )
+    
+    # Prepare context for PDF
+    context = {
+        'f': transfer_record,
+        'total_quantity': total_quantity,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'keys': keys,
+        'result': f"GENERATED ON: {datetime.now().strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}",
+        'pagesize': 'A4',
+        'orientation': 'Portrait',
+    }
+    
+    # Generate PDF
+    pdf_buffer = generate_pdf(context, 'store/transfer_pdf.html')
+    
+    if pdf_buffer is None:
+        return HttpResponse('Error generating PDF', status=500)
+    
+    # Prepare response
+    ndate = datetime.now()
+    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
+    response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
+    return response
+
+
+class UnitReceivedRecordsView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
+    model = Unit
+    template_name = 'store/unit_received.html'
+    context_object_name = 'store'
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Fetch unit issue records where this unit is the receiving unit
+        received_records = TransferRecord.objects.filter(
+            issued_to=self.object
+        ).order_by('-date_issued')
+                # Store the base queryset for calculations
+        self.filtered_queryset = received_records
+
+        query = self.request.GET.get('q')
+        if query:
+            received_records = received_records.filter(
+                Q(drug__generic_name__icontains=query) |
+                Q(drug__trade_name__icontains=query) |
+                Q(drug__category__name__icontains=query) |
+                Q(unit__name__icontains=query) |
+                Q(drug__dosage_form__icontains=query) |
+                Q(drug__strength__icontains=query)
+            )
+        self.filtered_queryset = received_records
+             # Calculate totals
+        total_quantity = self.filtered_queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
+        total_appearance = self.filtered_queryset.count()
+        
+        # Calculate total price by summing (quantity * price) for each record
+        total_price = sum(
+            record.quantity * (record.drug.piece_unit_cost_price or 0)
+            for record in self.filtered_queryset
+        )
+
+        # Paginate the results
+        paginator = Paginator(received_records, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        # Update context with all data
+        context.update({
+            'received_records': page_obj,
+            'page_obj': page_obj,
+            'query': self.request.GET.get('q', ''),
+            'total_appearance': total_appearance,
+            'total_quantity': total_quantity,
+            'total_price': total_price
+        })
+        return context    
+
+@login_required
+def received_pdf(request, pk):
+    unit = get_object_or_404(Unit, id=pk)
+    
+    # Fetch unit issue records with drug relationship
+    transfer_record = TransferRecord.objects.filter(
+        unit=unit,
+        issued_to__isnull=False, 
+    ).select_related('drug').order_by('-date_issued')
+    
+    # Prepare filter keys
+    keys = []
+    query = request.GET.get('q')
+    if query:
+        keys.append(f": {query}")
+    
+    # Apply search query if present
+    if query:
+        transfer_record = transfer_record.filter(
+            Q(drug__generic_name__icontains=query) |
+            Q(drug__trade_name__icontains=query) |
+            Q(drug__category__name__icontains=query) |
+            Q(drug__dosage_form__icontains=query)|
+            Q(drug__strength__icontains=query)|
+            Q(issued_to__name__icontains=query)
+        )
+    
+    # Calculate totals
+    total_quantity = transfer_record.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
+    total_appearance = transfer_record.count()
+    
+    # Calculate total price by summing (quantity * price) for each record
+    total_price = sum(
+        record.quantity * (record.drug.piece_unit_cost_price or 0)
+        for record in transfer_record
+    )
+    
+    # Prepare context for PDF
+    context = {
+        'f': transfer_record,
+        'total_quantity': total_quantity,
+        'total_appearance': total_appearance,
+        'total_price': total_price,
+        'keys': keys,
+        'result': f"GENERATED ON: {datetime.now().strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}",
+        'pagesize': 'A4',
+        'orientation': 'Portrait',
+    }
+    
+    # Generate PDF
+    pdf_buffer = generate_pdf(context, 'store/receive_pdf.html')
+    
+    if pdf_buffer is None:
+        return HttpResponse('Error generating PDF', status=500)
+    
+    # Prepare response
+    ndate = datetime.now()
+    filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
+    response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
+    return response

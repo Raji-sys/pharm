@@ -119,13 +119,12 @@ h1 {
     <div class="logo-container">
         <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
     </div>
-    <h1> NOHD PHARMACY TRANSFER REPORT</h1>
+    <h1> NOHD PHARMACY TRANSFER-IN REPORT</h1>
     <div class="result">
         {{ result|upper }}
     </div>
     <hr>
     <div class="summary">
-        <b>FILTERED BY:</b> {% for key in keys %}{{ key|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}
         <b>RECEIVED: {{ total_appearance }}</b>
         <b>QUANTITY: {{ total_quantity }}</b>
         <b>WORTH: N{{ total_price }}</b>
@@ -151,10 +150,10 @@ h1 {
                     {{ forloop.counter }}
                 </td>
                 <td class="text-center mid-column">
-                    {{ r.unit|default_if_none:'' }}
+                    {{ r.issued_to|default_if_none:'' }}
                 </td>
                 <td class="text-center mid-column">
-                    {{ r.issued_to|default_if_none:'' }}
+                    {{ r.unit|default_if_none:'' }}
                 </td>
                 <td class="text-center">
                     {{ r.date_issued|default_if_none:'' }}

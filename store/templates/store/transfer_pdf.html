@@ -119,14 +119,13 @@ h1 {
     <div class="logo-container">
         <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
     </div>
-    <h1> NOHD PHARMACY TRANSFER REPORT</h1>
+    <h1> NOHD PHARMACY TRANSFER-OUT REPORT</h1>
     <div class="result">
       {{ result|upper }}
     </div>
     <hr>
     <div class="summary">
-        <b>FILTERED BY:</b> {% for key in keys %}{{ key|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}
-        <b>ISSUED: {{ total_appearance }}</b>
+        <b>TRANSFERED: {{ total_appearance }}</b>
         <b>QUANTITY: {{ total_quantity }}</b>
         <b>WORTH: N{{ total_price }}</b>
     </div>

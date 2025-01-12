@@ -125,7 +125,6 @@ h1 {
     </div>
     <hr>
     <div class="summary">
-        <b>FILTERED BY:</b> {% for key in keys %}{{ key|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}
         <b>ISSUED: {{ total_appearance }}</b>
         <b>QUANTITY: {{ total_quantity }}</b>
         <b>WORTH: N{{ total_price }}</b>
