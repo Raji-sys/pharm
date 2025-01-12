@@ -91,7 +91,7 @@
                     <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.strength|default_if_none:'N/A'|upper }}</td>
                     <td class="px-4 py-2 font-medium text-gray-800">{{ r.drug.trade_name|default_if_none:'N/A'|upper }}</td>
                     <td class="px-4 py-2 font-medium text-gray-800">{{ r.quantity|default_if_none:''|upper }}</td>
-                    <td class="px-4 py-2 text-gray-700">{{ r.unit.name|default_if_none:'N/A'|upper }}</td>
+                    <td class="px-4 py-2 text-gray-700">{{ r.unit|default_if_none:'N/A'|upper }}</td>
                     <td class="px-4 py-2 text-gray-700">{{ r.date_issued }}</td>
                 </tr>
                 {% endfor %}

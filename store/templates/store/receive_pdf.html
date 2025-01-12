@@ -119,7 +119,9 @@ h1 {
     <div class="logo-container">
         <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
     </div>
-    <h1> NOHD PHARMACY TRANSFER-IN REPORT</h1>
+    <h1> NOHD {{unit}} PHARMACY TRANSFER-IN REPORT</h1>
+    <div class="queryset-data">
+    </div>
     <div class="result">
         {{ result|upper }}
     </div>
@@ -149,7 +151,7 @@ h1 {
                     {{ forloop.counter }}
                 </td>
                 <td class="text-center mid-column">
-                    {{ r.unit.name|default_if_none:'' }}
+                    {{ r.unit|default_if_none:'' }}
                 </td>
                 <td class="text-center">
                     {{ r.date_issued|default_if_none:'' }}

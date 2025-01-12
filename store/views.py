@@ -1842,6 +1842,8 @@ def transfer_pdf(request, pk):
         'result': f"GENERATED ON: {datetime.now().strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}",
         'pagesize': 'A4',
         'orientation': 'Portrait',
+        'unit': unit,  # Add the unit to the context
+
     }
     
     pdf_buffer = generate_pdf(context, 'store/transfer_pdf.html')
@@ -1979,6 +1981,7 @@ def received_pdf(request, pk):
         'result': f"GENERATED ON: {datetime.now().strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}",
         'pagesize': 'A4',
         'orientation': 'Portrait',
+        'unit': unit,  # Add the unit to the context
     }
     
     pdf_buffer = generate_pdf(context, 'store/receive_pdf.html')

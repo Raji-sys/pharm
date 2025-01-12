@@ -119,7 +119,7 @@ h1 {
     <div class="logo-container">
         <img class="logo-image" src="{% static "images/logo.jpg" %}" alt="">
     </div>
-    <h1> NOHD PHARMACY TRANSFER-OUT REPORT</h1>
+    <h1> NOHD {{unit}} PHARMACY TRANSFER-OUT REPORT</h1>
     <div class="result">
       {{ result|upper }}
     </div>
@@ -134,8 +134,7 @@ h1 {
         <thead>
             <tr>
                 <th class="small-column">#</th>
-                <th class="mid-column">FROM</th>
-                <th class="">TO</th>
+                <th class="">TRANSFERRED TO</th>
                 <th class="">DATE ISSUED</th>
                 <th class="">DRUG INFO</th>
                 <th class="">SUPPLIER</th>
@@ -147,10 +146,7 @@ h1 {
             <td class="small-column text-center">
                 {{forloop.counter}}
             </td>    
-            <td class="text-center mid-column">
-                {{ r.unit|default_if_none:'' }}
-            </td>    
-            <td class="text-center mid-column">
+            <td class="text-center">
                 {{ r.issued_to|default_if_none:'' }}
             </td>    
             <td class="text-center">
