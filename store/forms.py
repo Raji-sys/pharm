@@ -256,12 +256,22 @@ class DispensaryIssueRecordForm(forms.ModelForm):
         return cleaned_data
     
 
+class PatientForm(forms.ModelForm):
+    class Meta:
+        model = Patient
+        fields = ['name', 'file_no', 'age', 'phone']
+
+    def __init__(self, *args, **kwargs):
+        super(PatientForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = False
+            field.widget.attrs.update({'class': 'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
 
 class DispenseRecordForm(forms.ModelForm):
     class Meta:
         model = DispenseRecord
         # fields = ['category','drug', 'quantity', 'patient_info']
-        fields = ['date_issued','category','drug', 'quantity', 'patient_info']
+        fields = ['date_issued','category','drug', 'quantity']
         widgets = {
             'date_issued': forms.DateInput(attrs={'type': 'date'}),
         }

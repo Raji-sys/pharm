@@ -999,15 +999,22 @@ def unit_issue_record_pdf(request, unit_id):
 def dispenserecord(request, dispensary_id):
     dispensary = get_object_or_404(DispensaryLocker, id=dispensary_id)
     DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=5)
-    
+
     if request.method == 'POST':
+        patient_form = PatientForm(request.POST)
         formset = DispensaryFormSet(request.POST, queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})
-        if formset.is_valid():
+        
+        if patient_form.is_valid() and formset.is_valid():
             try:
                 with transaction.atomic():
+                    # Save patient information
+                    patient_info = patient_form.save()
+
+                    # Save all dispense records linked to this patient
                     instances = formset.save(commit=False)
                     for instance in instances:
                         instance.dispensary = dispensary
+                        instance.patient_info = patient_info
                         instance.dispensed_by = request.user
                         instance.save()
 
@@ -1016,9 +1023,14 @@ def dispenserecord(request, dispensary_id):
             except Exception as e:
                 messages.error(request, f"An error occurred: {str(e)}")
     else:
+        patient_form = PatientForm()
         formset = DispensaryFormSet(queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})
-    return render(request, 'store/dispense_form.html', {'formset': formset, 'dispensary': dispensary})
 
+    return render(request, 'store/dispense_form.html', {
+        'patient_form': patient_form,
+        'formset': formset,
+        'dispensary': dispensary
+    })
 
 class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
     model = DispenseRecord

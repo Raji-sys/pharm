@@ -3,14 +3,6 @@
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-        <div class="flex justify-center p-4 gap-4 text-xl">
-            <div>
-                <a href="{% url 'unit_dispensary' dispensary.unit.id %}"><i class="fa-solid fa-arrow-left"></i></a>
-            </div>
-            <div>
-                <h2 class="text-lg text-center text-teal-700 uppercase">{{ dispensary.unit.name }} dispense form</h2>
-            </div>
-        </div>
         {% if messages %}
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             {% for message in messages %}
@@ -18,37 +10,48 @@
             {% endfor %}
         </div>
         {% endif %}
-        <form method="post" class="bg-white p-2 rounded-lg shadow-md uppercase">
+        <form method="post" class="bg-white px-8 py-2 rounded-lg shadow-md">
+            <h2 class="text-lg text-center text-teal-700 uppercase mt-10"><a href="{% url 'unit_dispensary' dispensary.unit.id %}"><i class="fa-solid fa-arrow-left mr-2"></i></a> {{ dispensary.unit.name }} dispense form</h2>
+                    
             {% csrf_token %}
+            <h2 class="text-sm text-center font-bold mb-4 text-teal-700 uppercase border-t border-gray-400 p-4">Patient Information</h2>
+            <div class="grid grid-cols-2 gap-4 md:grid-cols-4 mb-6">
+                {% for field in patient_form.visible_fields %}
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <p class="text-red-600 text-sm">{{ field.errors }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        
+            <div class="mb-1">
+            <h2 class="text-sm text-center font-bold mb-4 text-teal-700 uppercase border-t border-gray-400 p-4">Drugs to Dispense</h2>
             {{ formset.management_form }}
             {% for form in formset %}
-            <div class="mb-4 last:mb-0">
-                {% if form.non_field_errors %}
-                <div class="text-red-600 text-xs mb-4">
-                    {{ form.non_field_errors }}
-                </div>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-4 border-t p-4">
+                {% for field in form.visible_fields %}
+                <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="text-red-600 text-sm">{{ field.errors }}</p>
                 {% endif %}
-                <div class="grid grid-cols-1 gap-2 md:grid-cols-5 border-t p-2">
-                    {% for field in form.visible_fields %}
-                    <div class="space-y-1">
-                        <label class="block text-xs font-medium text-gray-700">{{ field.label }}</label>
-                        <div class="mt-1">
-                            {{ field }}
-                        </div>
-                        {% if field.errors %}
-                        <p class="text-red-600 text-xs mt-1">{{ field.errors }}</p>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
             </div>
             {% endfor %}
+            </div>
+        
             <div class="mt-8 flex justify-center">
-                <button type="submit" class="bg-fuchsia-600 text-white font-bold py-3 px-6 rounded hover:bg-blue-700 text-xs inline-flex items-center justify-center">
-                    <i class="fas fa-save mr-2"></i> Save
-                </button>
+            <button type="submit" class="bg-teal-600 text-white font-bold py-3 px-6 rounded hover:bg-teal-700">
+                <i class="fas fa-save mr-2"></i> Save
+            </button>
             </div>
         </form>
+        
     </div>
 </div>
 <script>

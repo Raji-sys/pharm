@@ -401,13 +401,19 @@ class TransferRecord(models.Model):
             receiving_store.save()
         super().save(*args, **kwargs)
 
+class Patient(models.Model):
+    name = models.CharField(max_length=100)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    file_no = models.CharField(max_length=100, null=True, blank=True)
+    phone = models.CharField(max_length=100, null=True, blank=True)
 
 class DispenseRecord(models.Model):
     dispensary = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, related_name='issuing_dispensary')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='dispensary_category')
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='dispense_drugs')
-    quantity = models.PositiveIntegerField('QTY ISSUED', null=True, blank=True)
-    patient_info = models.CharField(max_length=100,null=True)
+    quantity = models.PositiveIntegerField(null=True, blank=True)
+    patient_info = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='dispense_records',null=True, blank=True)
+    # patient_info = models.CharField(max_length=100,null=True)
     dispensed_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     dispense_date = models.DateTimeField(auto_now=True)
     updated = models.DateField(auto_now=True)
@@ -591,8 +597,8 @@ def log_user_logout(sender, request, user, **kwargs):
 
 
 class DrugRequest(models.Model):
-    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='request_drug')
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='request_drug',null=True)
     drugs = models.TextField(null=True, blank=True)
-    updated = models.DateTimeField(auto_now=True)
+    updated = models.DateTimeField(auto_now=True,null=True)
     requested_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     request_date = models.DateField(auto_now=True,null=True)

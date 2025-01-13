@@ -19,7 +19,7 @@
         {% if request.GET.urlencode %}
             <a href="{% url 'dispense_pdf' dispensary_locker.unit.id %}?{{ request.GET.urlencode }}" 
                class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-rose-600 hover:bg-rose-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-rose-500">
-                GENERATE<i class="ml-2 fa-solid fa-file-pdf fa-1x"></i>
+                Report<i class="ml-2 fa-solid fa-file-pdf fa-1x"></i>
             </a>
             <a href="?" 
                class="inline-flex items-center p-2 border border-transparent text-xs font-medium rounded-md text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-amber-500">
@@ -122,8 +122,8 @@
                 <thead class="bg-emerald-500 sticky top-0">
                     <tr class="text-left">
                         <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">#</th>                
-                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Patient</th>
-                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Drug</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Patient Information</th>
+                        <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Generic Drug</th>
                         <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Trade Name</th>
                         <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Strength</th>
                         <th class="p-2 text-xs font-medium text-white uppercase tracking-wider sticky top-0">Cost Price</th>
@@ -139,7 +139,21 @@
                     {% for d in dispensed_list %}
                     <tr class="hover:bg-emerald-50 transition-colors duration-300 text-xs text-left">
                         <td class="p-3 whitespace-nowrap text-gray-700">{{forloop.counter}}</td>
-                        <td class="p-3 whitespace-nowrap text-gray-700">{{ d.patient_info|default_if_none:'' }}</td>
+                        <td class="p-3 whitespace-nowrap text-gray-700">
+                                name: <span class="font-semibold">
+                                {{ d.patient_info.name|default_if_none:'' }}
+                                 </span><br>
+                                file_no: <span class="font-semibold">
+                                      {{ d.patient_info.file_no|default_if_none:'' }} 
+                                 </span><br>
+                                age:<span class="font-semibold">
+                                      {{ d.patient_info.age|default_if_none:'' }}
+                                 </span> <br>
+                                phone:<span class="font-semibold">
+                                      {{ d.patient_info.phone|default_if_none:'' }}
+                                 </span>
+
+                        </td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.generic_name|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.trade_name|default_if_none:'' }}</td>
                         <td class="p-3 whitespace-nowrap text-gray-700">{{ d.drug.strength|default_if_none:'N/A' }}</td>

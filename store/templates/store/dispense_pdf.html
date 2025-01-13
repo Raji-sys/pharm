@@ -153,9 +153,13 @@ h1 {
                 {{r.dispense_date|default_if_none:''}}<br>
             </td>    
             <td class="text-center">
-                {{r.patient_info|default_if_none:''|upper}}<br>
+                {{r.patient_info.name|default_if_none:''|upper}}<br>
+                {{r.patient_info.file_no|default_if_none:''|upper}}<br>
+                {{r.patient_info.age|default_if_none:''}}<br>
+                {{r.patient_info.phone|default_if_none:''}}<br>
             </td>    
             <td>
+                {{r.drug.generic_name|default_if_none:''|upper}} <br>
                 {{r.drug.trade_name|default_if_none:''|upper}} <br>
                <small class="t">{{r.drug.strength|default_if_none:''|upper}}</small> 
             </td>

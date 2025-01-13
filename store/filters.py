@@ -173,7 +173,7 @@ class DispenseFilter(django_filters.FilterSet):
     )
     patient_info = django_filters.CharFilter(
         label="PATIENT INFO",
-        field_name='patient_info',
+        field_name='patient_info__name',
         lookup_expr='icontains'
     )
 
