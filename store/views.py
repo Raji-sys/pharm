@@ -33,6 +33,7 @@ from .models import LoginActivity
 from datetime import datetime
 from django.urls import reverse
 
+
 def group_required(group_name):
     def decorator(view_func):
         @login_required
@@ -63,7 +64,8 @@ class UnitGroupRequiredMixin(UserPassesTestMixin):
         else:
             unit = get_object_or_404(Unit, pk=self.kwargs['pk'])
         return self.request.user.groups.filter(name=unit.name).exists()
-    
+
+
 class CustomLoginView(LoginView):
     template_name='login.html'
     success_url=reverse_lazy('/')
@@ -95,6 +97,11 @@ class StoreGroupRequiredMixin(UserPassesTestMixin):
         return self.request.user.groups.filter(name='STORE').exists()
     
 
+class UnitHeadRequiredMixin(LoginRequiredMixin,UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.groups.filter(name='UNIT HEAD').exists()
+    
+
 class MainStoreDashboardView(LoginRequiredMixin, StoreGroupRequiredMixin, TemplateView):
     template_name = 'store/main_store_dashboard.html'
 
@@ -117,7 +124,6 @@ class MainStoreDashboardView(LoginRequiredMixin, StoreGroupRequiredMixin, Templa
         context['recent_drug_request_count'] = recent_drug_request_count
         
         return context
-
 
 
 @group_required('STORE')
@@ -709,7 +715,7 @@ class UnitDashboardView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
     context_object_name = 'store'
 
 
-class UnitBulkLockerDetailView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):
+class UnitBulkLockerDetailView(UnitHeadRequiredMixin, DetailView):
     model = Unit
     template_name = 'store/unit_bulk_locker.html'
     context_object_name = 'store'
@@ -930,12 +936,6 @@ class UnitIssueRecordListView(ListView):
         context['total_price'] = self.total_price
         return context
 
-
-from django.http import StreamingHttpResponse
-
-from django.db.models import Q, Sum
-from django.http import StreamingHttpResponse
-from datetime import datetime
 
 @login_required
 def unit_issue_record_pdf(request, unit_id):

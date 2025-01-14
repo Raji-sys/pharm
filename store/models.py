@@ -418,7 +418,7 @@ class DispenseRecord(models.Model):
     dispense_date = models.DateTimeField(auto_now=True)
     updated = models.DateField(auto_now=True)
     balance_quantity = models.PositiveIntegerField(default=0)  # New field to store balance quantity
-    date_issued = models.DateField(null=True)
+    date_issued = models.DateField(auto_now=True, null=True)
     
     def clean(self):
         pass    
