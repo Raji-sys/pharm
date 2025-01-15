@@ -220,14 +220,28 @@ class DispenseRecordAdmin(admin.ModelAdmin):
     search_fields=('dispensary','category','drug','dispensed_by','dispense_date',)
     list_filter=('dispensary','dispensed_by','dispense_date',)
 
+@admin.register(UnitStore)
+class UnitStoreAdmin(admin.ModelAdmin):
+    list_display=('unit','drug','quantity','updated_at',)
+    search_fields=('unit','drug','updated_at',)
+    list_filter=('unit','updated_at')
+
+
+@admin.register(LockerInventory)
+class LockerAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
+    list_display=('locker','drug','quantity','updated',)
+    search_fields=('locker','updated',)
+    list_filter=('locker','updated',)
+
 
 class CategoryResource(resources.ModelResource):
-        class Meta:
-            model = Category
-            fields = ('id', 'name')
-            import_id_fields = ('id',)
-            skip_unchanged = True
-            report_skipped = False
+    class Meta:
+        model = Category
+        fields = ('id', 'name')
+        import_id_fields = ('id',)
+        skip_unchanged = True
+        report_skipped = False
+
 
 @admin.register(Category)
 class CategoryAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):

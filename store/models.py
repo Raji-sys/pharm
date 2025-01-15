@@ -180,9 +180,8 @@ class Drug(models.Model):
             return round(self.selling_price / self.pack_size, 2)
         return self.selling_price  # Default to selling price if pack size is invalid
 
-
     def __str__(self):
-        return self.generic_name
+        return self.trade_name
 
     @classmethod
     def total_store_quantity(cls):
