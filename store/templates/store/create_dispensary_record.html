@@ -54,34 +54,37 @@
     </div>
 </div>
 <script>
-    function initializePage() {
-      function load_drugs(index) {
-        const categoryId = document.getElementsByName(`form-${index}-category`)[0].value;
-        const url = `/get_drugs_by_category/${categoryId}/`;
-    
-        fetch(url)
-          .then(response => response.json())
-          .then(data => {
-            const drugSelect = document.getElementsByName(`form-${index}-drug`)[0];
-            drugSelect.innerHTML = '';  // Clear existing options
-    
-            data.drugs.forEach(drug => {
-              const option = document.createElement('option');
-              option.value = drug.id;
-              option.text = drug.name;
-              drugSelect.add(option);
-            });
-          })
-          .catch(error => console.error('Error:', error));
-      }
-    
-      {% for form in formset %}
-      document.getElementsByName('{{ form.category.html_name }}')[0].addEventListener('change', function() {
-        load_drugs('{{ forloop.counter0 }}');
-      });
-      {% endfor %}
-    }
-    
-    window.addEventListener('load', initializePage);
+function initializePage() {
+  function load_drugs(index) {
+    const categoryId = document.getElementsByName(`form-${index}-category`)[0].value;
+    const url = `/get_drugs_by_category/${categoryId}/`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const drugSelect = document.getElementsByName(`form-${index}-drug`)[0];
+        drugSelect.innerHTML = '';  // Clear existing options
+
+        data.drugs.forEach(drug => {
+          const option = document.createElement('option');
+          option.value = drug.id;
+          
+          const strength = drug.strength === 'N/A' ? '' : ` - ${drug.strength}`;
+          const dosageForm = drug.dosage_form ? ` ${drug.dosage_form} - ` : '';
+          option.text = `${dosageForm}${drug.name}${strength}`.trim();          
+          drugSelect.add(option);
+        });
+      })
+      .catch(error => console.error('Error:', error));
+  }
+
+  {% for form in formset %}
+  document.getElementsByName('{{ form.category.html_name }}')[0].addEventListener('change', function() {
+    load_drugs('{{ forloop.counter0 }}');
+  });
+  {% endfor %}
+}
+
+window.addEventListener('load', initializePage);
     </script>
 {% endblock %}

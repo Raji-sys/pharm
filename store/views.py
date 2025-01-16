@@ -359,9 +359,16 @@ class RecordUpdateView(LoginRequiredMixin, UpdateView):
 
 def get_drugs_by_category(request, category_id):
     drugs = Drug.objects.filter(category_id=category_id)
-    drug_list = [{'id': drug.id, 'name': drug.trade_name} for drug in drugs]
+    drug_list = [
+        {
+            'id': drug.id, 
+            'name': drug.trade_name,
+            'strength': drug.strength if drug.strength else 'N/A',
+            'dosage_form': drug.dosage_form if drug.dosage_form else 'N/A', 
+        } 
+        for drug in drugs
+    ]
     return JsonResponse({'drugs': drug_list})
-
 
 @group_required('STORE')
 def record_report(request):

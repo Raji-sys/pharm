@@ -88,6 +88,7 @@
                         <th class="px-4 py-2">Category</th>
                         <th class="px-4 py-2">Generic Name</th>
                         <th class="px-4 py-2">Trade Name</th>
+                        <th class="px-4 py-2">Strength</th>
                         <th class="px-4 py-2">Quantity</th>
                     </tr>
                 </thead>
@@ -102,6 +103,7 @@
                         <td class=" px-4 py-2">{{ drug.category.name }}</td>
                         <td class=" px-4 py-2">{{ drug.drug.generic_name }}</td>
                         <td class=" px-4 py-2">{{ drug.drug.trade_name }}</td>
+                        <td class=" px-4 py-2">{{ drug.drug.strength }}</td>
                         <td class=" px-4 py-2">{{ drug.quantity }}</td>
                     </tr>
                     {% empty %}

@@ -96,7 +96,10 @@ function initializePage() {
         data.drugs.forEach(drug => {
           const option = document.createElement('option');
           option.value = drug.id;
-          option.text = drug.name;
+          
+          const strength = drug.strength === 'N/A' ? '' : ` - ${drug.strength}`;
+          const dosageForm = drug.dosage_form ? ` ${drug.dosage_form} - ` : '';
+          option.text = `${dosageForm}${drug.name}${strength}`.trim();          
           drugSelect.add(option);
         });
       })

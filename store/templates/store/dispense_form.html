@@ -31,7 +31,7 @@
             <h2 class="text-sm text-center font-bold mb-4 text-teal-700 uppercase border-t border-gray-400 p-4">Drugs to Dispense</h2>
             {{ formset.management_form }}
             {% for form in formset %}
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3 border-t p-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-4 border-t p-4">
                 {% for field in form.visible_fields %}
                 <div class="space-y-2">
                 <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
@@ -55,34 +55,37 @@
     </div>
 </div>
 <script>
-    function initializePage() {
-      function load_drugs(index) {
-        const categoryId = document.getElementsByName(`form-${index}-category`)[0].value;
-        const url = `/get_drugs_by_category/${categoryId}/`;
-    
-        fetch(url)
-          .then(response => response.json())
-          .then(data => {
-            const drugSelect = document.getElementsByName(`form-${index}-drug`)[0];
-            drugSelect.innerHTML = '';  // Clear existing options
-    
-            data.drugs.forEach(drug => {
-              const option = document.createElement('option');
-              option.value = drug.id;
-              option.text = drug.name;
-              drugSelect.add(option);
-            });
-          })
-          .catch(error => console.error('Error:', error));
-      }
-    
-      {% for form in formset %}
-      document.getElementsByName('{{ form.category.html_name }}')[0].addEventListener('change', function() {
-        load_drugs('{{ forloop.counter0 }}');
-      });
-      {% endfor %}
-    }
-    
-    window.addEventListener('load', initializePage);
+function initializePage() {
+  function load_drugs(index) {
+    const categoryId = document.getElementsByName(`form-${index}-category`)[0].value;
+    const url = `/get_drugs_by_category/${categoryId}/`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const drugSelect = document.getElementsByName(`form-${index}-drug`)[0];
+        drugSelect.innerHTML = '';  // Clear existing options
+
+        data.drugs.forEach(drug => {
+          const option = document.createElement('option');
+          option.value = drug.id;
+          
+          const strength = drug.strength === 'N/A' ? '' : ` - ${drug.strength}`;
+          const dosageForm = drug.dosage_form ? ` ${drug.dosage_form} - ` : '';
+          option.text = `${dosageForm}${drug.name}${strength}`.trim();          
+          drugSelect.add(option);
+        });
+      })
+      .catch(error => console.error('Error:', error));
+  }
+
+  {% for form in formset %}
+  document.getElementsByName('{{ form.category.html_name }}')[0].addEventListener('change', function() {
+    load_drugs('{{ forloop.counter0 }}');
+  });
+  {% endfor %}
+}
+
+window.addEventListener('load', initializePage);
     </script>
 {% endblock %}
