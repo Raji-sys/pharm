@@ -14,7 +14,7 @@
 
         <div class="flex justify-between items-center m-2 space-x-2 gap-14">
             <div>
-              <h3 class="text-sm uppercase">locker worth: <span class="text-green-700">&#x20A6;{{total_worth}}</span></h3>
+              <h3 class="text-sm uppercase">locker worth: <span class="text-green-700">&#x20A6;{{total_worth|floatformat:2|intcomma}}</span></h3>
             </div>
                                             <!-- Search Form -->
                                             <form method="get" class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2 ">

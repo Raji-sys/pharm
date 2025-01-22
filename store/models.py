@@ -12,6 +12,7 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.utils.timezone import now
 from user_agents import parse
 from django.db.models import F, ExpressionWrapper, DecimalField
+from django.core.validators import MinValueValidator
 
 
 class Unit(models.Model):
@@ -24,18 +25,6 @@ class Unit(models.Model):
         super().save(*args, **kwargs)
         if creating:
             DispensaryLocker.objects.create(unit=self)
-
-    # def total_unit_value(self):
-    #     store_value = sum(
-    #         store.total_value for store in self.unit_store.all()
-    #         if store.total_value is not None
-    #     )
-    #     locker_value = 0
-    #     if hasattr(self, 'dispensary_locker'):
-    #         locker_value = self.dispensary_locker.inventory.aggregate(
-    #             total=Sum(F('drug__cost_price') * F('quantity'))
-    #         )['total'] or 0
-    #     return store_value + locker_value
 
     def total_unit_value(self):
         store_value = sum(
@@ -150,7 +139,8 @@ class Drug(models.Model):
     dosage=(('TABLET','TABLET'),('CAPSULE','CAPSULE'),('SYRUP','SYRUP'),('INJECTION','INJECTION'),('INFUSION','INFUSION'),('SUSPENSION','SUSPENSION'),('SOLUTION','SOLUTION'),('CONSUMABLE','CONSUMABLE'),('POWDER','POWDER'),('GRANULE','GRANULE'),('PELLET','PELLET'),
             ('EMULSION','EMULSION'),('TINCTURE','TINCTURE'),('OINTMENT','OINMENT'),('CREAM','CREAM'),('GEL','GEL'),('SUPPOSITORY','SUPPOSITORY'),('INHALER','INHALER'),('IMPLANT','IMPLANT'),('LOZENGE','LOZENGEN'),('SPRAY','SPRAY'),('TRANSDERMAL PATCH','TRANSDERMAL PATCH'))
     dosage_form = models.CharField(choices=dosage,max_length=100, null=True, blank=True)
-    pack_size = models.IntegerField('PACK SIZE', null=True, blank=True)
+    pack_size = models.PositiveIntegerField('PACK SIZE', validators=[MinValueValidator(1)], default=1)
+
     cost_price = models.DecimalField('COST PRICE',max_digits=10, decimal_places=2, null=True, blank=True)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     total_purchased_quantity = models.PositiveIntegerField('TOTAL QTY PURCHASED',default=0)
@@ -160,25 +150,23 @@ class Drug(models.Model):
     updated_at = models.DateTimeField('DATE UPDATED',auto_now=True)
 
     def save(self, *args, **kwargs):
-        if self.expiration_date:
-            six_months_before = self.expiration_date - timedelta(days=180)
-            if timezone.now().date() >= six_months_before and not self.entered_expiry_period:
-                self.entered_expiry_period = timezone.now()
-        super().save(*args, **kwargs)
+       if self.expiration_date:
+           six_months_before = self.expiration_date - timedelta(days=180)
+           if timezone.now().date() >= six_months_before and not self.entered_expiry_period:
+               self.entered_expiry_period = timezone.now()
+       super().save(*args, **kwargs)
 
     @property
     def piece_unit_cost_price(self):
-        """Calculate unit cost price based on pack size, rounded to two decimal places."""
-        if self.pack_size and self.pack_size > 0 and self.cost_price:
+        if self.pack_size and self.cost_price:
             return round(self.cost_price / self.pack_size, 2)
-        return self.cost_price  # Default to cost price if pack size is invalid
+        return self.cost_price
 
     @property
     def piece_unit_selling_price(self):
-        """Calculate unit selling price based on pack size, rounded to two decimal places."""
-        if self.pack_size and self.pack_size > 0 and self.selling_price:
+        if self.pack_size and self.selling_price:
             return round(self.selling_price / self.pack_size, 2)
-        return self.selling_price  # Default to selling price if pack size is invalid
+        return self.selling_price
 
     def __str__(self):
         return self.trade_name
@@ -193,8 +181,7 @@ class Drug(models.Model):
 
     @classmethod
     def total_store_value(cls):
-        total_store_value = sum(drug.total_value for drug in cls.objects.all() if drug.total_value is not None)
-        return total_store_value
+        return sum(drug.total_value for drug in cls.objects.all() if drug.total_value is not None)
 
     @property
     def total_issued(self):
@@ -206,26 +193,15 @@ class Drug(models.Model):
     
     @property
     def total_items_purchased(self):
-        """Calculate the total number of items purchased, considering pack size."""
-        if self.total_purchased_quantity > 0:
-            return self.total_purchased_quantity * (self.pack_size or 1)
-        return 0
+        return self.total_purchased_quantity * (self.pack_size or 1) if self.total_purchased_quantity > 0 else 0
 
     @property
     def total_items_issued(self):
-        """Calculate the total number of items issued, considering pack size."""
         return self.total_issued * (self.pack_size or 1)
 
     @property
     def items_in_stock(self):
-        if not self.pack_size or self.pack_size <= 0:
-            # Treat issued quantity as packs directly
-            return self.total_issued  # No conversion to pieces
-        return self.total_issued * self.pack_size
-
-
-    class Meta:
-        verbose_name_plural = 'drugs'
+        return self.current_balance * (self.pack_size or 1)
     
 
 class Record(models.Model):
@@ -457,91 +433,91 @@ class ReturnedDrugs(models.Model):
         verbose_name_plural = 'returned drugs record'
 
 
-class LoginActivity(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    login_time = models.DateTimeField(auto_now_add=True)
-    logout_time = models.DateTimeField(null=True, blank=True)
-    session_key = models.CharField(max_length=40, null=True, blank=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user_agent = models.TextField(null=True, blank=True)
-    browser = models.CharField(max_length=255, null=True, blank=True)
-    os = models.CharField(max_length=255, null=True, blank=True)
-    device_type = models.CharField(max_length=50, default='pc')
-    updated = models.DateTimeField(auto_now=True)
+# class LoginActivity(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     login_time = models.DateTimeField(auto_now_add=True)
+#     logout_time = models.DateTimeField(null=True, blank=True)
+#     session_key = models.CharField(max_length=40, null=True, blank=True)
+#     ip_address = models.GenericIPAddressField(null=True, blank=True)
+#     user_agent = models.TextField(null=True, blank=True)
+#     browser = models.CharField(max_length=255, null=True, blank=True)
+#     os = models.CharField(max_length=255, null=True, blank=True)
+#     device_type = models.CharField(max_length=50, default='pc')
+#     updated = models.DateTimeField(auto_now=True)
     
-    def get_browser_name(self):
-        ua_lower = self.user_agent.lower() if self.user_agent else ''
-        if 'chrome' in ua_lower:
-            return 'Chrome'
-        elif 'firefox' in ua_lower:
-            return 'Firefox'
-        elif 'safari' in ua_lower and 'chrome' not in ua_lower:
-            return 'Safari'
-        elif 'edge' in ua_lower:
-            return 'Edge'
-        elif 'opera' in ua_lower:
-            return 'Opera'
-        return 'Unknown'
+#     def get_browser_name(self):
+#         ua_lower = self.user_agent.lower() if self.user_agent else ''
+#         if 'chrome' in ua_lower:
+#             return 'Chrome'
+#         elif 'firefox' in ua_lower:
+#             return 'Firefox'
+#         elif 'safari' in ua_lower and 'chrome' not in ua_lower:
+#             return 'Safari'
+#         elif 'edge' in ua_lower:
+#             return 'Edge'
+#         elif 'opera' in ua_lower:
+#             return 'Opera'
+#         return 'Unknown'
 
-    def get_os_name(self):
-        ua_lower = self.user_agent.lower() if self.user_agent else ''
-        if 'windows' in ua_lower:
-            return 'Windows'
-        elif 'macintosh' in ua_lower or 'mac os' in ua_lower:
-            return 'MacOS'
-        elif 'linux' in ua_lower:
-            return 'Linux'
-        elif 'android' in ua_lower:
-            return 'Android'
-        elif 'iphone' in ua_lower or 'ipad' in ua_lower:
-            return 'iOS'
-        return 'Unknown'
+#     def get_os_name(self):
+#         ua_lower = self.user_agent.lower() if self.user_agent else ''
+#         if 'windows' in ua_lower:
+#             return 'Windows'
+#         elif 'macintosh' in ua_lower or 'mac os' in ua_lower:
+#             return 'MacOS'
+#         elif 'linux' in ua_lower:
+#             return 'Linux'
+#         elif 'android' in ua_lower:
+#             return 'Android'
+#         elif 'iphone' in ua_lower or 'ipad' in ua_lower:
+#             return 'iOS'
+#         return 'Unknown'
 
-    def get_device_type(self):
-        ua_lower = self.user_agent.lower() if self.user_agent else ''
+#     def get_device_type(self):
+#         ua_lower = self.user_agent.lower() if self.user_agent else ''
         
-        # Check for mobile devices
-        if any(mobile in ua_lower for mobile in ['mobile', 'android', 'iphone', 'ipad', 'ipod']):
-            if 'tablet' in ua_lower or 'ipad' in ua_lower:
-                return 'tablet'
-            return 'mobile'
-        return 'pc'
+#         # Check for mobile devices
+#         if any(mobile in ua_lower for mobile in ['mobile', 'android', 'iphone', 'ipad', 'ipod']):
+#             if 'tablet' in ua_lower or 'ipad' in ua_lower:
+#                 return 'tablet'
+#             return 'mobile'
+#         return 'pc'
 
-    def get_device_icon(self):
-        device_type = self.get_device_type()
-        if device_type == 'mobile':
-            return 'fas fa-mobile-alt'
-        elif device_type == 'tablet':
-            return 'fas fa-tablet-alt'
-        return 'fas fa-desktop'
+#     def get_device_icon(self):
+#         device_type = self.get_device_type()
+#         if device_type == 'mobile':
+#             return 'fas fa-mobile-alt'
+#         elif device_type == 'tablet':
+#             return 'fas fa-tablet-alt'
+#         return 'fas fa-desktop'
 
-    def get_os_icon(self):
-        os_name = self.get_os_name()
-        if os_name == 'Windows':
-            return 'fab fa-windows'
-        elif os_name == 'MacOS':
-            return 'fab fa-apple'
-        elif os_name == 'Linux':
-            return 'fab fa-linux'
-        elif os_name == 'Android':
-            return 'fab fa-android'
-        elif os_name == 'iOS':
-            return 'fab fa-apple'
-        return 'fas fa-desktop'
+#     def get_os_icon(self):
+#         os_name = self.get_os_name()
+#         if os_name == 'Windows':
+#             return 'fab fa-windows'
+#         elif os_name == 'MacOS':
+#             return 'fab fa-apple'
+#         elif os_name == 'Linux':
+#             return 'fab fa-linux'
+#         elif os_name == 'Android':
+#             return 'fab fa-android'
+#         elif os_name == 'iOS':
+#             return 'fab fa-apple'
+#         return 'fas fa-desktop'
 
-    def get_browser_icon(self):
-        browser_name = self.get_browser_name()
-        if browser_name == 'Chrome':
-            return 'fab fa-chrome'
-        elif browser_name == 'Firefox':
-            return 'fab fa-firefox'
-        elif browser_name == 'Safari':
-            return 'fab fa-safari'
-        elif browser_name == 'Edge':
-            return 'fab fa-edge'
-        elif browser_name == 'Opera':
-            return 'fab fa-opera'
-        return 'fas fa-globe'
+#     def get_browser_icon(self):
+#         browser_name = self.get_browser_name()
+#         if browser_name == 'Chrome':
+#             return 'fab fa-chrome'
+#         elif browser_name == 'Firefox':
+#             return 'fab fa-firefox'
+#         elif browser_name == 'Safari':
+#             return 'fab fa-safari'
+#         elif browser_name == 'Edge':
+#             return 'fab fa-edge'
+#         elif browser_name == 'Opera':
+#             return 'fab fa-opera'
+#         return 'fas fa-globe'
 
 # @receiver(user_logged_in)
 # def log_user_login(sender, request, user, **kwargs):
@@ -556,44 +532,44 @@ class LoginActivity(models.Model):
 #         user_agent=user_agent,
 #         device_type='pc'
 #     )
-@receiver(user_logged_in)
-def log_user_login(sender, request, user, **kwargs):
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
-    ip_address = request.META.get('REMOTE_ADDR')
+# @receiver(user_logged_in)
+# def log_user_login(sender, request, user, **kwargs):
+#     user_agent = request.META.get('HTTP_USER_AGENT', '')
+#     ip_address = request.META.get('REMOTE_ADDR')
     
-    # Create the activity instance first
-    activity = LoginActivity(
-        user=user,
-        session_key=request.session.session_key,
-        ip_address=ip_address,
-        user_agent=user_agent,
-        browser='Unknown',  # Set to unknown by default
-        os='Unknown',  # Set to unknown by default
-        device_type='Unknown'  # Set to unknown by default
-    )
+#     # Create the activity instance first
+#     activity = LoginActivity(
+#         user=user,
+#         session_key=request.session.session_key,
+#         ip_address=ip_address,
+#         user_agent=user_agent,
+#         browser='Unknown',  # Set to unknown by default
+#         os='Unknown',  # Set to unknown by default
+#         device_type='Unknown'  # Set to unknown by default
+#     )
     
-    # Now set browser, OS and device type using the instance methods
-    activity.browser = activity.get_browser_name()
-    activity.os = activity.get_os_name()
-    activity.device_type = activity.get_device_type()
+#     # Now set browser, OS and device type using the instance methods
+#     activity.browser = activity.get_browser_name()
+#     activity.os = activity.get_os_name()
+#     activity.device_type = activity.get_device_type()
     
-    # Save the instance
-    activity.save()
+#     # Save the instance
+#     activity.save()
     
-    # Now set browser and OS using the instance methods
-    activity.browser = activity.get_browser_name()
-    activity.os = activity.get_os_name()
+#     # Now set browser and OS using the instance methods
+#     activity.browser = activity.get_browser_name()
+#     activity.os = activity.get_os_name()
     
-    # Save the instance
-    activity.save()
+#     # Save the instance
+#     activity.save()
 
-@receiver(user_logged_out)
-def log_user_logout(sender, request, user, **kwargs):
-    LoginActivity.objects.filter(
-        user=user,
-        logout_time__isnull=True,
-        session_key=request.session.session_key
-    ).update(logout_time=timezone.now())
+# @receiver(user_logged_out)
+# def log_user_logout(sender, request, user, **kwargs):
+#     LoginActivity.objects.filter(
+#         user=user,
+#         logout_time__isnull=True,
+#         session_key=request.session.session_key
+#     ).update(logout_time=timezone.now())
 
 
 class DrugRequest(models.Model):

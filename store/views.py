@@ -23,15 +23,17 @@ from datetime import timedelta
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Case, When, Value, CharField, Q, Sum, F
+from django.db.models.functions import Coalesce
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 from .models import Unit
 from decimal import Decimal
 from django.utils.timezone import now, timedelta
-from .models import LoginActivity
+# from .models import LoginActivity
 from datetime import datetime
 from django.urls import reverse
+from decimal import Decimal
 
 
 def group_required(group_name):
@@ -793,11 +795,17 @@ class UnitDispensaryLockerView(LoginRequiredMixin, UnitGroupRequiredMixin, Detai
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         dispensary_drugs = LockerInventory.objects.filter(locker__unit=self.object).select_related('drug').order_by('-updated')
-
-        total_worth = round(sum(
-            ((drug.drug.cost_price or 0) / (drug.drug.pack_size or 1)) * drug.quantity
-            for drug in dispensary_drugs
-        ), 2)
+         # Use Decimal for precise calculation
+        total_worth = Decimal('0.00')
+        
+        for drug in dispensary_drugs:
+            if drug.drug.piece_unit_cost_price:
+                # Convert to Decimal if needed
+                quantity = Decimal(str(drug.quantity))
+                piece_price = Decimal(str(drug.drug.piece_unit_cost_price))
+                total_worth += quantity * piece_price
+        
+        context['total_worth'] = round(total_worth, 2)
         query = self.request.GET.get('q')
         if query:
             dispensary_drugs = dispensary_drugs.filter(
@@ -1040,53 +1048,60 @@ def dispenserecord(request, dispensary_id):
     })
 
 class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
-    model = DispenseRecord
-    template_name = 'store/dispensed_list.html'
-    context_object_name = 'dispensed_list'
-    paginate_by = 10
+   model = DispenseRecord 
+   template_name = 'store/dispensed_list.html'
+   context_object_name = 'dispensed_list'
+   paginate_by = 10
 
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.dispensary_locker = get_object_or_404(DispensaryLocker, pk=kwargs['pk'])
-        self.unit = self.dispensary_locker.unit
+   def setup(self, request, *args, **kwargs):
+       super().setup(request, *args, **kwargs)
+       self.dispensary_locker = get_object_or_404(DispensaryLocker, pk=kwargs['pk'])
+       self.unit = self.dispensary_locker.unit
 
-    def get_queryset(self):
-        queryset = DispenseRecord.objects.filter(dispensary=self.dispensary_locker).order_by('-dispense_date')
-        self.filterset = DispenseFilter(self.request.GET, queryset=queryset)
-        self.filterset.form.initial['dispensary'] = self.dispensary_locker.pk
-        return self.filterset.qs
+   def get_queryset(self):
+       queryset = DispenseRecord.objects.filter(dispensary=self.dispensary_locker).order_by('-dispense_date')
+       self.filterset = DispenseFilter(self.request.GET, queryset=queryset)
+       self.filterset.form.initial['dispensary'] = self.dispensary_locker.pk
+       return self.filterset.qs
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        filtered_queryset = self.get_queryset()
-        
-        context['total_dispensed'] = filtered_queryset.count()
-                
-        price_totals = filtered_queryset.aggregate(
-            total_cost=Sum(F('quantity') * (F('drug__cost_price') / F('drug__pack_size'))),
-            total_selling=Sum(F('quantity') * (F('drug__selling_price') / F('drug__pack_size'))),
-            total_quantity=Sum('quantity')
-        )
+   def get_context_data(self, **kwargs):
+       context = super().get_context_data(**kwargs)
+       filtered_queryset = self.get_queryset()
+       
+       context['total_dispensed'] = filtered_queryset.count()
+               
+       price_totals = filtered_queryset.filter(
+           drug__pack_size__gt=0
+       ).aggregate(
+           total_cost=Sum(F('quantity') * (F('drug__cost_price') / Coalesce(F('drug__pack_size'), 1))),
+           total_selling=Sum(F('quantity') * (F('drug__selling_price') / Coalesce(F('drug__pack_size'), 1))),
+           total_quantity=Sum('quantity')
+       ) or {
+           'total_cost': Decimal('0.00'),
+           'total_selling': Decimal('0.00'),
+           'total_quantity': 0
+       }
 
-        context['total_cost_price'] = price_totals['total_cost'] or Decimal('0.00')
-        context['total_piece_unit_selling_price'] = price_totals['total_selling'] or Decimal('0.00')
-        context['total_profit'] = context['total_piece_unit_selling_price'] - context['total_cost_price']
+       context['total_cost_price'] = price_totals['total_cost'] or Decimal('0.00')
+       context['total_piece_unit_selling_price'] = price_totals['total_selling'] or Decimal('0.00')
+       context['total_profit'] = context['total_piece_unit_selling_price'] - context['total_cost_price']
+       
+       # Avoid division by zero for percentage calculation
+       if context['total_cost_price'] > 0:
+           context['percentage'] = (context['total_profit'] / context['total_cost_price']) * 100
+       else:
+           context['percentage'] = Decimal('0.00')
+           
+       context['total_quantity'] = price_totals['total_quantity'] or 0
+       context['total_price'] = context['total_piece_unit_selling_price']
+       
+       context['dispensary_locker'] = self.dispensary_locker
+       context['dispensefilter'] = self.filterset
+       
+       return context
 
-        context['percentage'] = (
-            (context['total_profit'] / context['total_cost_price']) * 100
-        ) if context['total_cost_price'] > 0 else Decimal('0.00')
-
-        context['total_quantity'] = price_totals['total_quantity'] or 0
-
-        context['total_price'] = context['total_piece_unit_selling_price']
-        
-        context['dispensary_locker'] = self.dispensary_locker
-        context['dispensefilter'] = self.filterset
-        
-        return context
-
-    def get_unit_for_mixin(self):
-        return self.unit
+   def get_unit_for_mixin(self):
+       return self.unit
     
 @login_required
 def dispense_report(request, pk):
@@ -1481,79 +1496,79 @@ class ReturnedDrugsListView(ListView):
         return context
 
 
-class LoginActivityListView(LoginRequiredMixin, ListView):
-    model = LoginActivity
-    template_name = 'store/login_activity_list.html'
-    context_object_name = 'logs'
-    paginate_by = 10
+# class LoginActivityListView(LoginRequiredMixin, ListView):
+#     model = LoginActivity
+#     template_name = 'store/login_activity_list.html'
+#     context_object_name = 'logs'
+#     paginate_by = 10
 
-    def get_queryset(self):
-        queryset = super().get_queryset().order_by('-login_time')
-        query = self.request.GET.get('q')
-        if query:
-            queryset = queryset.filter(
-                Q(user__username__icontains=query) |
-                Q(user__first_name__icontains=query) |
-                Q(user__last_name__icontains=query) |
-                Q(ip_address__icontains=query)
-            )
+#     def get_queryset(self):
+#         queryset = super().get_queryset().order_by('-login_time')
+#         query = self.request.GET.get('q')
+#         if query:
+#             queryset = queryset.filter(
+#                 Q(user__username__icontains=query) |
+#                 Q(user__first_name__icontains=query) |
+#                 Q(user__last_name__icontains=query) |
+#                 Q(ip_address__icontains=query)
+#             )
 
-        def format_duration(seconds):
-            if seconds < 60:
-                return f"{seconds} seconds"
-            elif seconds < 3600:
-                minutes, seconds = divmod(seconds, 60)
-                return f"{minutes} minutes, {seconds} seconds"
-            elif seconds < 86400:
-                hours, remainder = divmod(seconds, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{hours} hours, {minutes} minutes, {seconds} seconds"
-            elif seconds < 604800:
-                days, remainder = divmod(seconds, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-            elif seconds < 2592000:
-                weeks, remainder = divmod(seconds, 604800)
-                days, remainder = divmod(remainder, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-            elif seconds < 31536000:
-                months, remainder = divmod(seconds, 2592000)
-                weeks, remainder = divmod(remainder, 604800)
-                days, remainder = divmod(remainder, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-            else:
-                years, remainder = divmod(seconds, 31536000)
-                months, remainder = divmod(remainder, 2592000)
-                weeks, remainder = divmod(remainder, 604800)
-                days, remainder = divmod(remainder, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{years} years, {months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+#         def format_duration(seconds):
+#             if seconds < 60:
+#                 return f"{seconds} seconds"
+#             elif seconds < 3600:
+#                 minutes, seconds = divmod(seconds, 60)
+#                 return f"{minutes} minutes, {seconds} seconds"
+#             elif seconds < 86400:
+#                 hours, remainder = divmod(seconds, 3600)
+#                 minutes, seconds = divmod(remainder, 60)
+#                 return f"{hours} hours, {minutes} minutes, {seconds} seconds"
+#             elif seconds < 604800:
+#                 days, remainder = divmod(seconds, 86400)
+#                 hours, remainder = divmod(remainder, 3600)
+#                 minutes, seconds = divmod(remainder, 60)
+#                 return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+#             elif seconds < 2592000:
+#                 weeks, remainder = divmod(seconds, 604800)
+#                 days, remainder = divmod(remainder, 86400)
+#                 hours, remainder = divmod(remainder, 3600)
+#                 minutes, seconds = divmod(remainder, 60)
+#                 return f"{weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+#             elif seconds < 31536000:
+#                 months, remainder = divmod(seconds, 2592000)
+#                 weeks, remainder = divmod(remainder, 604800)
+#                 days, remainder = divmod(remainder, 86400)
+#                 hours, remainder = divmod(remainder, 3600)
+#                 minutes, seconds = divmod(remainder, 60)
+#                 return f"{months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+#             else:
+#                 years, remainder = divmod(seconds, 31536000)
+#                 months, remainder = divmod(remainder, 2592000)
+#                 weeks, remainder = divmod(remainder, 604800)
+#                 days, remainder = divmod(remainder, 86400)
+#                 hours, remainder = divmod(remainder, 3600)
+#                 minutes, seconds = divmod(remainder, 60)
+#                 return f"{years} years, {months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
 
-        for log in queryset:
-            if log.logout_time:
-                duration = log.logout_time - log.login_time
-            else:
-                duration = timezone.now() - log.login_time
+#         for log in queryset:
+#             if log.logout_time:
+#                 duration = log.logout_time - log.login_time
+#             else:
+#                 duration = timezone.now() - log.login_time
 
-            seconds = int(duration.total_seconds())
-            log.duration = format_duration(seconds)
+#             seconds = int(duration.total_seconds())
+#             log.duration = format_duration(seconds)
 
 
-        return queryset
+#         return queryset
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')
-        # Count the number of logged-in users
-        context['logged_in_users_count'] = LoginActivity.objects.filter(logout_time__isnull=True).values('user_id').distinct().count()
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['query'] = self.request.GET.get('q', '')
+#         # Count the number of logged-in users
+#         context['logged_in_users_count'] = LoginActivity.objects.filter(logout_time__isnull=True).values('user_id').distinct().count()
 
-        return context
+#         return context
 
 
 class DrugRequestCreateView(LoginRequiredMixin, CreateView):
