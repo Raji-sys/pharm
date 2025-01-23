@@ -216,8 +216,8 @@ class UnitAdmin(admin.ModelAdmin):
 
 @admin.register(DispenseRecord)
 class DispenseRecordAdmin(admin.ModelAdmin):
-    list_display=('date_issued','dispensary','drug','quantity','balance_quantity','dispensed_by','dispense_date',)
-    search_fields=('dispensary','category','drug','dispensed_by','dispense_date',)
+    list_display=('patient_info','date_issued','dispensary','drug','quantity','balance_quantity','dispensed_by','dispense_date',)
+    search_fields=('patient_info__file_no','dispensary__name','drug__trade_name','drug__generic_name','dispensed_by__username','dispense_date',)
     list_filter=('dispensary','dispensed_by','dispense_date',)
 
 

@@ -382,6 +382,9 @@ class Patient(models.Model):
     file_no = models.CharField(max_length=100, null=True, blank=True)
     phone = models.CharField(max_length=100, null=True, blank=True)
 
+    def __str__(self):
+        return f"{self.name} No: {self.file_no}"
+    
 class DispenseRecord(models.Model):
     dispensary = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, related_name='issuing_dispensary')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='dispensary_category')
