@@ -220,18 +220,103 @@ class DispenseRecordAdmin(admin.ModelAdmin):
     search_fields=('dispensary','category','drug','dispensed_by','dispense_date',)
     list_filter=('dispensary','dispensed_by','dispense_date',)
 
+
 @admin.register(UnitStore)
 class UnitStoreAdmin(admin.ModelAdmin):
-    list_display=('unit','drug','quantity','updated_at',)
-    search_fields=('unit','drug','updated_at',)
-    list_filter=('unit','updated_at')
+    def get_dosage_form(self, obj):
+        return obj.drug.dosage_form if obj.drug else '-'
+    get_dosage_form.short_description = 'Dosage Form'
 
+    def get_trade_name(self, obj):
+        return obj.drug.trade_name if obj.drug else '-'
+    get_trade_name.short_description = 'Trade Name'
+
+    def get_generic_name(self, obj):
+        return obj.drug.generic_name if obj.drug else '-'
+    get_generic_name.short_description = 'Generic Name'
+ 
+    def get_strength(self, obj):
+        return obj.drug.strength if obj.drug else '-'
+    get_strength.short_description = 'Strength'
+
+    def get_category(self, obj):
+        return obj.drug.category.name if obj.drug and obj.drug.category else '-'
+    get_category.short_description = 'Category'
+
+    list_display = (
+        'unit', 
+        'drug', 
+        'get_generic_name', 
+        'get_trade_name', 
+        'get_dosage_form', 
+        'get_strength',
+        'get_category', 
+        'quantity', 
+        'updated_at'
+    )
+    
+    search_fields = (
+        'unit__name', 
+        'drug__trade_name', 
+        'drug__generic_name', 
+        'drug__dosage_form'
+    )
+    
+    list_filter = (
+        'unit', 
+        'drug__dosage_form', 
+        'drug__category', 
+        'updated_at'
+    )
 
 @admin.register(LockerInventory)
 class LockerAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
-    list_display=('locker','drug','quantity','updated',)
-    search_fields=('locker','updated',)
-    list_filter=('locker','updated',)
+    def get_dosage_form(self, obj):
+        return obj.drug.dosage_form if obj.drug else '-'
+    get_dosage_form.short_description = 'Dosage Form'
+
+    def get_trade_name(self, obj):
+        return obj.drug.trade_name if obj.drug else '-'
+    get_trade_name.short_description = 'Trade Name'
+
+    def get_generic_name(self, obj):
+        return obj.drug.generic_name if obj.drug else '-'
+    get_generic_name.short_description = 'Generic Name'
+
+    def get_strength(self, obj):
+        return obj.drug.strength if obj.drug else '-'
+    get_strength.short_description = 'Strength'
+
+    def get_category(self, obj):
+        return obj.drug.category.name if obj.drug and obj.drug.category else '-'
+    get_category.short_description = 'Category'
+
+    list_display = (
+        'locker', 
+        'drug', 
+        'get_generic_name', 
+        'get_trade_name', 
+        'get_dosage_form', 
+        'get_strength',
+        'get_category', 
+        'quantity', 
+        'updated'
+    )
+    
+    search_fields = (
+        'locker__name', 
+        'drug__trade_name', 
+        'drug__generic_name', 
+        'drug__dosage_form'
+    )
+    
+    list_filter = (
+        'locker', 
+        'drug__dosage_form', 
+        'drug__category', 
+        'updated'
+    )
+
 
 
 class CategoryResource(resources.ModelResource):
