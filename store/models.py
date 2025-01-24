@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.utils.timezone import now
-from user_agents import parse
+# from user_agents import parse
 from django.db.models import F, ExpressionWrapper, DecimalField
 from django.core.validators import MinValueValidator
 
@@ -376,6 +376,7 @@ class TransferRecord(models.Model):
             receiving_store.save()
         super().save(*args, **kwargs)
 
+
 class Patient(models.Model):
     name = models.CharField(max_length=100)
     age = models.PositiveIntegerField(null=True, blank=True)
@@ -385,6 +386,7 @@ class Patient(models.Model):
     def __str__(self):
         return f"{self.name} No: {self.file_no}"
     
+
 class DispenseRecord(models.Model):
     dispensary = models.ForeignKey(DispensaryLocker, on_delete=models.CASCADE, related_name='issuing_dispensary')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='dispensary_category')

@@ -267,6 +267,7 @@ class PatientForm(forms.ModelForm):
             field.required = False
             field.widget.attrs.update({'class': 'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
 
+
 class DispenseRecordForm(forms.ModelForm):
     class Meta:
         model = DispenseRecord
@@ -296,19 +297,18 @@ class DispenseRecordForm(forms.ModelForm):
 
         if not drug or not quantity:
             return cleaned_data
-
+    
         if quantity <= 0:
-            raise forms.ValidationError("Quantity must be greater than zero.")
-
+            self.add_error('quantity', "Quantity must be greater than zero.")
+    
         try:
             inventory = LockerInventory.objects.get(locker=self.dispensary, drug=drug)
             if quantity > inventory.quantity:
-                raise forms.ValidationError(f"Not enough {drug} in inventory. Available: {inventory.quantity}")
+                self.add_error('quantity', f"Not enough {drug} in inventory. Available: {inventory.quantity}")
         except LockerInventory.DoesNotExist:
-            raise forms.ValidationError(f"{drug} is not available in this dispensary.")
+            self.add_error('drug', f"{drug} is not available in this dispensary.")
 
-        return cleaned_data
-    
+        return cleaned_data    
 
 class ReturnDrugForm(forms.ModelForm):
     class Meta:

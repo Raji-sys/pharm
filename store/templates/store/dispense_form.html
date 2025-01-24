@@ -31,19 +31,22 @@
             <h2 class="text-sm text-center font-bold mb-4 text-teal-700 uppercase border-t border-gray-400 p-4">Drugs to Dispense</h2>
             {{ formset.management_form }}
             {% for form in formset %}
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-4 border-t p-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-4 border-t p-4 {% if form.errors %}bg-red-100{% endif %}">
                 {% for field in form.visible_fields %}
                 <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                <p class="text-red-600 text-sm">{{ field.errors }}</p>
-                {% endif %}
+                    <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                        <p class="text-red-600 text-sm font-bold">
+                            <i class="fas fa-exclamation-circle mr-1"></i>{{ error }}
+                        </p>
+                        {% endfor %}
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
             {% endfor %}
-            </div>
         
             <div class="mt-8 flex justify-center">
             <button type="submit" class="bg-teal-600 text-white font-bold py-3 px-6 rounded hover:bg-teal-700">
