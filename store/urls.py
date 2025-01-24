@@ -73,3 +73,4 @@ urlpatterns=[
     path('get_drugs_by_category/<int:category_id>/', views.get_drugs_by_category, name='get_drugs_by_category'),
     path('',include('django.contrib.auth.urls')),
 ]
+        

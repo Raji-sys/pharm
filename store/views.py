@@ -628,6 +628,7 @@ class StoreWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context['total_store_quantity'] = Drug.total_store_quantity()
         return context
 
+
 class UnitWorthView(LoginRequiredMixin, DetailView):
     model = Unit
     template_name = 'store/unit_value.html'
@@ -638,22 +639,22 @@ class UnitWorthView(LoginRequiredMixin, DetailView):
         unit = self.object
         context['today'] = timezone.now()
 
-        # Calculate store values using Python, not ORM
-        store_value = sum(
-            ((store.drug.cost_price or 0) / (store.drug.pack_size or 1)) * (store.quantity or 0)
+        # Calculate store values using Decimal for precise calculations
+        store_value = Decimal(sum(
+            Decimal(str((store.drug.cost_price or 0) / (store.drug.pack_size or 1))) * Decimal(str(store.quantity or 0))
             for store in unit.unit_store.all()
-        )
-        store_quantity = sum(store.quantity for store in unit.unit_store.all())
+        ))
+        store_quantity = Decimal(sum(store.quantity or 0 for store in unit.unit_store.all()))
 
-        locker_value = 0
-        locker_quantity = 0
+        locker_value = Decimal('0.00')
+        locker_quantity = Decimal('0.00')
         if hasattr(unit, 'dispensary_locker'):
-            # Calculate locker values dynamically in Python
-            locker_value = sum(
-                ((inventory.drug.cost_price or 0) / (inventory.drug.pack_size or 1)) * (inventory.quantity or 0)
+            # Calculate locker values dynamically with Decimal
+            locker_value = Decimal(sum(
+                Decimal(str((inventory.drug.cost_price or 0) / (inventory.drug.pack_size or 1))) * Decimal(str(inventory.quantity or 0))
                 for inventory in unit.dispensary_locker.inventory.all()
-            )
-            locker_quantity = sum(inventory.quantity for inventory in unit.dispensary_locker.inventory.all())
+            ))
+            locker_quantity = Decimal(sum(inventory.quantity or 0 for inventory in unit.dispensary_locker.inventory.all()))
 
         context['unit_worth'] = {
             'store_value': store_value,
@@ -733,9 +734,9 @@ class UnitBulkLockerDetailView(UnitHeadRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         unit_store_drugs = UnitStore.objects.filter(unit=self.object).select_related('drug').order_by('drug__dosage_form')
-        context['unit_store_drugs'] = unit_store_drugs
         context['drug_requests_url'] = reverse('unit_drug_requests', kwargs={'pk': self.object.pk})
-        
+
+        # Search filter
         query = self.request.GET.get('q')
         if query:
             unit_store_drugs = unit_store_drugs.filter(
@@ -745,6 +746,7 @@ class UnitBulkLockerDetailView(UnitHeadRequiredMixin, DetailView):
                 Q(drug__dosage_form__icontains=query)|
                 Q(drug__strength__icontains=query)
             )        
+        
         # Pagination
         paginator = Paginator(unit_store_drugs, self.paginate_by)
         page_number = self.request.GET.get('page')
@@ -755,13 +757,20 @@ class UnitBulkLockerDetailView(UnitHeadRequiredMixin, DetailView):
         three_months_later = today + timedelta(days=90)
         six_months_later = today + timedelta(days=180)
         
-        total_worth = 0
+        unit = self.object
+        # Calculate locker value using Python
+        total_worth = Decimal(sum(
+            (
+                Decimal(drug.drug.cost_price or 0) / Decimal(drug.drug.pack_size or 1)
+            ) * Decimal(drug.quantity or 0)
+            for drug in unit.unit_store.all()
+        ))
+        
         total_expiring_in_1_month = 0
         total_expiring_in_3_months = 0
         total_expiring_in_6_months = 0
         
         for unit_store_drug in page_obj:
-            total_worth += float(unit_store_drug.total_value)
             unit_store_drug.restock_info = Restock.objects.filter(drug=unit_store_drug.drug).order_by('-date').first()
             
             if unit_store_drug.drug.expiration_date:
@@ -1199,6 +1208,7 @@ def dispense_pdf(request, pk):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
+    
 
 @unit_group_required
 def boxrecord(request, unit_id):
