@@ -271,10 +271,10 @@ class PatientForm(forms.ModelForm):
 class DispenseRecordForm(forms.ModelForm):
     class Meta:
         model = DispenseRecord
-        fields = ['category','drug', 'quantity','date_issued']
-        widgets = {
-            'date_issued': forms.DateInput(attrs={'type': 'date'}),
-        }
+        fields = ['category','drug', 'quantity']
+        # widgets = {
+        #     'date_issued': forms.DateInput(attrs={'type': 'date'}),
+        # }
     def __init__(self, *args, **kwargs):
         self.dispensary = kwargs.pop('dispensary', None)
         super(DispenseRecordForm, self).__init__(*args, **kwargs)
