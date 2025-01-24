@@ -1156,19 +1156,21 @@ def dispense_pdf(request, pk):
     
     filtered_queryset = dispensefilter.qs
     
-    # Calculate totals using annotate for accurate price calculations
-    totals = filtered_queryset.aggregate(
-        total_quantity=models.Sum('quantity'),
-        total_price=ExpressionWrapper(
-            models.Sum(
-                models.F('quantity') * (models.F('drug__selling_price') / models.F('drug__pack_size'))
-            ),
+    # Calculate totals using annotate with CoalesceWrapper to handle zero pack_size
+    totals = filtered_queryset.annotate(
+        unit_selling_price=ExpressionWrapper(
+            models.F('drug__selling_price') / Coalesce(models.F('drug__pack_size'), 1),
             output_field=DecimalField(max_digits=10, decimal_places=2)
+        )
+    ).aggregate(
+        total_quantity=models.Sum('quantity'),
+        total_price=models.Sum(
+            models.F('quantity') * models.F('unit_selling_price')
         )
     )
     
     total_quantity = totals['total_quantity'] or 0
-    total_price = totals['total_price'] or 0
+    total_price = totals['total_price'] or Decimal('0.00')
     total_appearance = filtered_queryset.count()
 
     # Generate PDF metadata
@@ -1197,7 +1199,6 @@ def dispense_pdf(request, pk):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
-
 
 @unit_group_required
 def boxrecord(request, unit_id):
