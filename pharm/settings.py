@@ -49,6 +49,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.static',
             ],
         },
     },
@@ -105,3 +106,8 @@ LOGIN_URL="/login/"
 
 STATIC_URL = 'static/'
 STATIC_ROOT=os.path.join(BASE_DIR,'static/')
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Ends session when the browser closes
+SESSION_COOKIE_AGE = 120  # 2 minutes session timeout for testing
+SESSION_SAVE_EVERY_REQUEST = True  # Extends session on every request
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS

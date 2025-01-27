@@ -382,7 +382,6 @@ class DrugRequestForm(forms.ModelForm):
             raise forms.ValidationError("Quantity must be greater than zero.")
         return quantity
 
-
 class TransferForm(forms.ModelForm):
     class Meta:
         model = TransferRecord
@@ -393,11 +392,25 @@ class TransferForm(forms.ModelForm):
         super(TransferForm, self).__init__(*args, **kwargs)
         self.fields['unit'].widget.attrs['readonly'] = True
         self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
+        
         if self.issuing_unit:
+            # Exclude the issuing unit from receiving units
             self.fields['issued_to'].queryset = Unit.objects.exclude(id=self.issuing_unit.id)
+            
+            # Filter drugs based on what's available in the dispensary locker
+            if 'drug' in self.fields:
+                available_drugs = Drug.objects.filter(
+                    lockerinventory__locker=self.issuing_unit.dispensary_locker,
+                    lockerinventory__quantity__gt=0
+                ).distinct()
+                self.fields['drug'].queryset = available_drugs
+        
+        # Apply custom styling to all fields
         for field in self.fields.values():
             field.required = False
-            field.widget.attrs.update({'class':'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
+            field.widget.attrs.update({
+                'class': 'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'
+            })
 
     def clean_quantity(self):
         quantity = self.cleaned_data.get('quantity')
@@ -421,11 +434,69 @@ class TransferForm(forms.ModelForm):
         if not all([unit, drug, quantity]):
             return cleaned_data
 
-        # Validate that the unit has enough of the drug available
-        unit_store = UnitStore.objects.filter(unit=unit, drug=drug).first()
-        if not unit_store:
-            self.add_error('drug', f"{drug.generic_name} is not available in {unit.name}'s store.")
-        elif unit_store.quantity < quantity:
-            self.add_error('quantity', f"Not enough {drug.generic_name} in {unit.name}'s store. Available: {unit_store.quantity}")
+        # Validate that the dispensary locker has enough of the drug available
+        try:
+            locker_inventory = LockerInventory.objects.get(
+                locker=unit.dispensary_locker,
+                drug=drug
+            )
+            if locker_inventory.quantity < quantity:
+                self.add_error(
+                    'quantity', 
+                    f"Not enough {drug.generic_name} in {unit.name}'s dispensary locker. Available: {locker_inventory.quantity}"
+                )
+        except LockerInventory.DoesNotExist:
+            self.add_error(
+                'drug', 
+                f"{drug.generic_name} is not available in {unit.name}'s dispensary locker."
+            )
 
         return cleaned_data
+
+
+# class TransferForm(forms.ModelForm):
+#     class Meta:
+#         model = TransferRecord
+#         fields = ['unit', 'category', 'drug', 'quantity', 'issued_to']
+
+#     def __init__(self, *args, **kwargs):
+#         self.issuing_unit = kwargs.pop('issuing_unit', None)
+#         super(TransferForm, self).__init__(*args, **kwargs)
+#         self.fields['unit'].widget.attrs['readonly'] = True
+#         self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
+#         if self.issuing_unit:
+#             self.fields['issued_to'].queryset = Unit.objects.exclude(id=self.issuing_unit.id)
+#         for field in self.fields.values():
+#             field.required = False
+#             field.widget.attrs.update({'class':'text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 sm:p-3 rounded shadow-lg hover:shadow-xl p-2'})
+
+#     def clean_quantity(self):
+#         quantity = self.cleaned_data.get('quantity')
+#         if quantity is None:
+#             raise forms.ValidationError("Quantity is required.")
+#         if quantity <= 0:
+#             raise forms.ValidationError("Quantity must be greater than zero.")
+#         return quantity
+
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         unit = cleaned_data.get('unit')
+#         issued_to = cleaned_data.get('issued_to')
+#         drug = cleaned_data.get('drug')
+#         quantity = cleaned_data.get('quantity')
+
+#         if unit and issued_to and unit == issued_to:
+#             self.add_error(None, "A unit cannot issue drugs to itself.")
+
+#         # Skip validation if any required field is missing
+#         if not all([unit, drug, quantity]):
+#             return cleaned_data
+
+#         # Validate that the unit has enough of the drug available
+#         unit_store = UnitStore.objects.filter(unit=unit, drug=drug).first()
+#         if not unit_store:
+#             self.add_error('drug', f"{drug.generic_name} is not available in {unit.name}'s store.")
+#         elif unit_store.quantity < quantity:
+#             self.add_error('quantity', f"Not enough {drug.generic_name} in {unit.name}'s store. Available: {unit_store.quantity}")
+
+#         return cleaned_data

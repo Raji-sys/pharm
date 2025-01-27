@@ -28,13 +28,13 @@ class Unit(models.Model):
 
     def total_unit_value(self):
         store_value = sum(
-            store.quantity * store.drug.piece_unit_cost_price for store in self.unit_store.all()
+            store.quantity * (store.drug.piece_unit_cost_price or 0) for store in self.unit_store.all()
         )
 
         locker_value = 0
         if hasattr(self, 'dispensary_locker'):
             locker_value = sum(
-                item.quantity * item.drug.piece_unit_cost_price for item in self.dispensary_locker.inventory.all()
+                item.quantity * (item.drug.piece_unit_cost_price or 0) for item in self.dispensary_locker.inventory.all()
             )
 
         return store_value + locker_value
@@ -348,32 +348,74 @@ class UnitIssueRecord(models.Model):
         super().save(*args, **kwargs)
 
 
+# class TransferRecord(models.Model):
+#     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='transfer_unit')
+#     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='transfer_category')
+#     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='transfer_drugs')
+#     quantity = models.PositiveIntegerField(null=True, blank=True)
+#     date_issued = models.DateTimeField(auto_now_add=True,null=True)
+#     issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
+#     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+#     updated_at = models.DateField(auto_now=True)
+    
+    
+#     def save(self, *args, **kwargs):
+#         unit_store = UnitStore.objects.get(unit=self.unit, drug=self.drug)
+        
+#         if self.quantity > unit_store.quantity:
+#             raise ValidationError(_("Not enough drugs in the unit store."), code='invalid_quantity')
+        
+#         # Deduct from the issuing unit's store
+#         unit_store.quantity -= self.quantity
+#         unit_store.save()
+
+#         # Add to the receiving unit's store if applicable
+#         if self.issued_to:
+#             receiving_store, created = UnitStore.objects.get_or_create(unit=self.issued_to, drug=self.drug)
+#             receiving_store.quantity += self.quantity
+#             receiving_store.save()
+#         super().save(*args, **kwargs)
+
 class TransferRecord(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='transfer_unit')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True, related_name='transfer_category')
     drug = models.ForeignKey(Drug, on_delete=models.CASCADE, related_name='transfer_drugs')
     quantity = models.PositiveIntegerField(null=True, blank=True)
-    date_issued = models.DateTimeField(auto_now_add=True,null=True)
+    date_issued = models.DateTimeField(auto_now_add=True, null=True)
     issued_to = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='receiving_unit', null=True, blank=True)
     issued_by = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     updated_at = models.DateField(auto_now=True)
     
-    
+    @transaction.atomic
     def save(self, *args, **kwargs):
-        unit_store = UnitStore.objects.get(unit=self.unit, drug=self.drug)
+        # Get the dispensary locker for the issuing unit
+        issuing_locker = self.unit.dispensary_locker
+        issuing_inventory = LockerInventory.objects.filter(
+            locker=issuing_locker,
+            drug=self.drug
+        ).first()
         
-        if self.quantity > unit_store.quantity:
-            raise ValidationError(_("Not enough drugs in the unit store."), code='invalid_quantity')
+        if not issuing_inventory:
+            raise ValidationError(_("Drug not found in the dispensary locker."))
+            
+        if self.quantity > issuing_inventory.quantity:
+            raise ValidationError(_("Not enough drugs in the dispensary locker."))
         
-        # Deduct from the issuing unit's store
-        unit_store.quantity -= self.quantity
-        unit_store.save()
+        # Deduct from the issuing unit's dispensary locker
+        issuing_inventory.quantity -= self.quantity
+        issuing_inventory.save()
 
-        # Add to the receiving unit's store if applicable
+        # Add to the receiving unit's dispensary locker if applicable
         if self.issued_to:
-            receiving_store, created = UnitStore.objects.get_or_create(unit=self.issued_to, drug=self.drug)
-            receiving_store.quantity += self.quantity
-            receiving_store.save()
+            receiving_locker = self.issued_to.dispensary_locker
+            receiving_inventory, created = LockerInventory.objects.get_or_create(
+                locker=receiving_locker,
+                drug=self.drug,
+                defaults={'quantity': 0}
+            )
+            receiving_inventory.quantity += self.quantity
+            receiving_inventory.save()
+            
         super().save(*args, **kwargs)
 
 

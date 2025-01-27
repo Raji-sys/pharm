@@ -688,14 +688,14 @@ class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         for unit in units:
             store_value = sum(
-                unit_store.drug.piece_unit_cost_price * unit_store.quantity
+                (unit_store.drug.piece_unit_cost_price or 0) * unit_store.quantity
                 for unit_store in unit.unit_store.all()
             )
 
             locker_value = 0
             if hasattr(unit, 'dispensary_locker'):
                 locker_value = sum(
-                    inventory.drug.piece_unit_cost_price * inventory.quantity
+                    (inventory.drug.piece_unit_cost_price or 0) * inventory.quantity
                     for inventory in unit.dispensary_locker.inventory.all()
                 )
 
@@ -704,6 +704,7 @@ class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 'locker_value': locker_value,
                 'total_value': store_value + locker_value
             }
+
 
         context['unit_worths'] = unit_worths
         return context
@@ -1135,6 +1136,9 @@ def dispense_report(request, pk):
     }
     return render(request, 'store/dispense_report.html', context)
 
+from django.db.models import Case, When, Value, DecimalField
+from django.db.models.functions import Coalesce
+
 @login_required
 def dispense_pdf(request, pk):
     dispensary = get_object_or_404(DispensaryLocker, id=pk)
@@ -1147,10 +1151,11 @@ def dispense_pdf(request, pk):
     
     filtered_queryset = dispensefilter.qs
     
-    # Calculate totals using annotate with CoalesceWrapper to handle zero pack_size
+    # Safely calculate totals using Case and When for pack_size
     totals = filtered_queryset.annotate(
-        unit_selling_price=ExpressionWrapper(
-            models.F('drug__selling_price') / Coalesce(models.F('drug__pack_size'), 1),
+        unit_selling_price=Case(
+            When(drug__pack_size__gt=0, then=models.F('drug__selling_price') / models.F('drug__pack_size')),
+            default=Value(0),
             output_field=DecimalField(max_digits=10, decimal_places=2)
         )
     ).aggregate(
@@ -1190,7 +1195,7 @@ def dispense_pdf(request, pk):
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="gen_by_{request.user}_{filename}"'
     return response
-    
+
 
 @unit_group_required
 def boxrecord(request, unit_id):
@@ -1698,7 +1703,6 @@ class UnitDrugRequestListView(LoginRequiredMixin, UnitGroupRequiredMixin, ListVi
         context['end_date'] = self.request.GET.get('end_date', '')
         return context
 
-
 @unit_group_required
 def transferecord(request, unit_id):
     unit = get_object_or_404(Unit, id=unit_id)
@@ -1726,12 +1730,15 @@ def transferecord(request, unit_id):
                 with transaction.atomic():
                     instances = formset.save(commit=False)
                     for instance in instances:
-                        instance.issued_by = request.user
-                        instance.unit = unit
-                        instance.save()  # This will handle the UnitStore updates
+                        if instance.quantity is not None:  # Only save if quantity is provided
+                            instance.issued_by = request.user
+                            instance.unit = unit
+                            instance.save()  # This will handle the LockerInventory updates
                     
                 messages.success(request, 'Successfully Transferred')
                 return redirect('unit_transfer', pk=unit_id)
+            except ValidationError as e:
+                messages.error(request, str(e))
             except Exception as e:
                 messages.error(request, f"An error occurred: {str(e)}")
     else:
@@ -1741,7 +1748,57 @@ def transferecord(request, unit_id):
             initial=[{'unit': unit}] * 5
         )
     
-    return render(request, 'store/transfer_form.html', {'formset': formset, 'unit': unit})
+    context = {
+        'formset': formset,
+        'unit': unit,
+        'unit_name': unit.name,  # Added for template display
+    }
+    
+    return render(request, 'store/transfer_form.html', context)
+
+# @unit_group_required
+# def transferecord(request, unit_id):
+#     unit = get_object_or_404(Unit, id=unit_id)
+    
+#     class CustomUnitIssueFormSet(BaseModelFormSet):
+#         def __init__(self, *args, **kwargs):
+#             self.issuing_unit = kwargs.pop('issuing_unit', None)
+#             super().__init__(*args, **kwargs)
+            
+#         def _construct_form(self, i, **kwargs):
+#             kwargs['issuing_unit'] = self.issuing_unit
+#             return super()._construct_form(i, **kwargs)
+    
+#     TransferFormSet = modelformset_factory(
+#         TransferRecord,
+#         form=TransferForm,
+#         formset=CustomUnitIssueFormSet,
+#         extra=5
+#     )
+    
+#     if request.method == 'POST':
+#         formset = TransferFormSet(request.POST, issuing_unit=unit)
+#         if formset.is_valid():
+#             try:
+#                 with transaction.atomic():
+#                     instances = formset.save(commit=False)
+#                     for instance in instances:
+#                         instance.issued_by = request.user
+#                         instance.unit = unit
+#                         instance.save()  # This will handle the UnitStore updates
+                    
+#                 messages.success(request, 'Successfully Transferred')
+#                 return redirect('unit_transfer', pk=unit_id)
+#             except Exception as e:
+#                 messages.error(request, f"An error occurred: {str(e)}")
+#     else:
+#         formset = TransferFormSet(
+#             queryset=TransferRecord.objects.none(),
+#             issuing_unit=unit,
+#             initial=[{'unit': unit}] * 5
+#         )
+    
+#     return render(request, 'store/transfer_form.html', {'formset': formset, 'unit': unit})
 
 
 class UnitTransferView(LoginRequiredMixin, UnitGroupRequiredMixin, DetailView):

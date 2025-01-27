@@ -146,6 +146,15 @@
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
+
+         // Set the session duration and warning time
+    const sessionAge = {{ session_cookie_age|default:300 }} * 1000; // Total session duration in milliseconds
+    const warningTime = sessionAge - 60000; // Show warning 1 minute before expiration
+
+    // Display a warning 1 minute before the session expires
+    setTimeout(() => {
+        alert("Your session will expire in 1 minute. Please save your work or refresh the page to stay logged in.");
+    }, warningTime);
     </script>
 </body>
 </html>
