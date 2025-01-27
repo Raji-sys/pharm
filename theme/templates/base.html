@@ -127,6 +127,7 @@
         {% block content %}
         
         {% endblock %}
+        
     </main>
 
     <!-- <footer class="bg-green-50 text-gray-700 py-2 mt-1">
@@ -141,20 +142,61 @@
             </p>
         </div>
     </footer> -->
-    
+    <div id="session-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg w-96 p-6 text-center">
+            <div class="text-yellow-500 text-4xl">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h2 class="mt-4 text-lg font-semibold text-gray-800">
+                Session Expiring Soon
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Your session will expire in <span id="time-left" class="font-bold">1 minute</span>. Please save your work or refresh the page to stay logged in.
+            </p>
+            <div class="mt-4">
+                <button id="stay-logged-in" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Stay Logged In
+                </button>
+            </div>
+        </div>
+    </div>
+        
     <script>
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
+        const sessionAge = 15 * 60 * 1000; // 15 minutes in milliseconds
+        const warningTime = sessionAge - 120000; // Show warning 2 minutes before expiration
 
-         // Set the session duration and warning time
-    const sessionAge = {{ session_cookie_age|default:300 }} * 1000; // Total session duration in milliseconds
-    const warningTime = sessionAge - 60000; // Show warning 1 minute before expiration
+        const modal = document.getElementById("session-modal");
+        const timeLeftSpan = document.getElementById("time-left");
+        const stayLoggedInButton = document.getElementById("stay-logged-in");
 
-    // Display a warning 1 minute before the session expires
+    // Show modal 1 minute before session expires
     setTimeout(() => {
-        alert("Your session will expire in 1 minute. Please save your work or refresh the page to stay logged in.");
+        modal.classList.remove("hidden");
+        startCountdown(60); // Start countdown (60 seconds)
     }, warningTime);
+
+    // Refresh the page when the user clicks "Stay Logged In"
+    stayLoggedInButton.addEventListener("click", () => {
+        location.reload(); // Reload to keep the session active
+    });
+
+    // Countdown timer inside the modal
+    function startCountdown(seconds) {
+        let timeLeft = seconds;
+        const countdown = setInterval(() => {
+            timeLeft -= 1;
+            timeLeftSpan.textContent = `${timeLeft} second${timeLeft > 1 ? "s" : ""}`;
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                // Optionally log out the user if no action is taken
+                window.location.href = "/logout/"; // Adjust the logout URL if needed
+            }
+        }, 1000);
+    }
     </script>
 </body>
+
 </html>

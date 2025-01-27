@@ -107,7 +107,8 @@ LOGIN_URL="/login/"
 STATIC_URL = 'static/'
 STATIC_ROOT=os.path.join(BASE_DIR,'static/')
 
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Ends session when the browser closes
-SESSION_COOKIE_AGE = 120  # 2 minutes session timeout for testing
-SESSION_SAVE_EVERY_REQUEST = True  # Extends session on every request
+
+SESSION_COOKIE_AGE = 900  # 15 minutes (in seconds)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Log out when browser closes
+SESSION_SAVE_EVERY_REQUEST = True  # Reset session timeout on activity
 SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
