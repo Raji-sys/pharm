@@ -908,53 +908,45 @@ class UnitIssueRecordListView(ListView):
         query = self.request.GET.get("q", "").strip()
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
-
-        # Get the unit id from the URL (you will pass this as part of the URL)
         unit_id = self.kwargs.get("unit_id")
+        
         if unit_id:
-            # Filter by the unit in the UnitIssueRecord model
             queryset = queryset.filter(unit__id=unit_id)
-        # Apply search filter
         if query:
             queryset = queryset.filter(
                 Q(drug__generic_name__icontains=query) |
                 Q(drug__trade_name__icontains=query) |
                 Q(issued_by__username__icontains=query)
             )
-
-        # Apply date filters
         if start_date:
             queryset = queryset.filter(updated_at__gte=start_date)
         if end_date:
             queryset = queryset.filter(updated_at__lte=end_date)
-
-        # Calculate the total appearance, total quantity, and total price
-        total_appearance = queryset.count()  # Total number of records in queryset
+        
+        total_appearance = queryset.count()
         total_quantity = queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
-        total_price = sum(issue.drug.piece_unit_cost_price * issue.quantity for issue in queryset)
-
-        # Add the calculated values to the context
+        total_price = sum(
+            (issue.drug.piece_unit_cost_price or 0) * (issue.quantity or 0)
+            for issue in queryset
+        )
         self.total_appearance = total_appearance
         self.total_quantity = total_quantity
         self.total_price = total_price
-
+        
         return queryset
-    
-
+ 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-    # Add paginated object as 'po' for the template
         context['po'] = context.get('page_obj')
         context['paginator'] = context.get('paginator') 
-        # Fetch the unit info from the URL (unit_id)
+    
         unit_id = self.kwargs.get("unit_id")
         if unit_id:
             unit = get_object_or_404(Unit, id=unit_id)
-            context['unit'] = unit  # Add unit to context
+            context['unit'] = unit
         context['query'] = self.request.GET.get("q", "").strip()
         context['start_date'] = self.request.GET.get("start_date", '')
         context['end_date'] = self.request.GET.get("end_date", '')
-        # Add the total calculations to context
         context['total_appearance'] = self.total_appearance
         context['total_quantity'] = self.total_quantity
         context['total_price'] = self.total_price
@@ -963,15 +955,11 @@ class UnitIssueRecordListView(ListView):
 
 @login_required
 def unit_issue_record_pdf(request, unit_id):
-    # Base queryset for the unit
     queryset = UnitIssueRecord.objects.filter(unit_id=unit_id)
-
-    # Retrieve filter parameters from the GET request
     query = request.GET.get("q", "").strip()
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
 
-    # Apply search filter
     if query:
         queryset = queryset.filter(
             Q(drug__generic_name__icontains=query) |
@@ -979,13 +967,11 @@ def unit_issue_record_pdf(request, unit_id):
             Q(issued_by__username__icontains=query)
         )
 
-    # Apply date range filters
     if start_date:
         queryset = queryset.filter(updated_at__gte=start_date)
     if end_date:
         queryset = queryset.filter(updated_at__lte=end_date)
 
-    # Calculate totals
     total_quantity = queryset.aggregate(Sum('quantity'))['quantity__sum'] or 0
     total_appearance = queryset.count()
     total_price = sum(
@@ -993,7 +979,6 @@ def unit_issue_record_pdf(request, unit_id):
         for record in queryset
     )
 
-    # Prepare context for the PDF
     context = {
         'f': queryset,
         'total_quantity': total_quantity,
@@ -1007,12 +992,9 @@ def unit_issue_record_pdf(request, unit_id):
         'orientation': 'Portrait',
     }
 
-    # Generate the PDF
     pdf_buffer = generate_pdf(context, 'store/unitissue_pdf.html')
     if pdf_buffer is None:
         return HttpResponse('Error generating PDF', status=500)
-
-    # Prepare the response
     filename = datetime.now().strftime('unit_issue_%d_%m_%Y.pdf')
     response = StreamingHttpResponse(pdf_generator(pdf_buffer), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
