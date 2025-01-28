@@ -1,4 +1,4 @@
-Pharmacy Inventory and Dispensary Management System for hospitals and Pharmacies
+Pharmacy Inventory and Dispensary Management System for hospitals and Pharmacies Built with Django
 
   Main Pharmacy Store Management:
   New Drugs,
