@@ -434,7 +434,7 @@ class RestockUpdateView(LoginRequiredMixin, StoreGroupRequiredMixin,UpdateView):
     form_class=RestockForm
     template_name='store/update_restock.html'
     success_url=reverse_lazy('restocked')
-    success_message = "Drug restocked successfully."
+    success_message = "Drug restock updated successfully."
     
     def form_valid(self, form):
         form.instance.restocked_by = self.request.user

@@ -125,7 +125,7 @@ h1 {
     <div class="summary">
         <b>ISSUED: {{ total_appearance }}</b>
         <b>QUANTITY: {{ total_quantity }}</b>
-        <b>WORTH: N{{ total_price }}</b>
+        <b>WORTH: N{{ total_price|floatformat:2 }}</b>
     </div>
 
   <table>

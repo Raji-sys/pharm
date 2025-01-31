@@ -207,6 +207,12 @@ class RecordAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
     issued_by_username.short_description = "Issued By"
 
 
+@admin.register(Patient)
+class PatientAdmin(admin.ModelAdmin):
+    list_display = ('name', 'file_no', 'age','phone')
+    search_fields = ('name','file_no')
+
+
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
     list_display = ('name', 'update', 'total_unit_value')
