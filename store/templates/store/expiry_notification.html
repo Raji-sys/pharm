@@ -72,10 +72,10 @@
                 {% for drug in drugs %}
                 <tr class="hover:bg-yellow-50 transition ease-in-out duration-150 text-xs">
                     <td class="p-2 whitespace-nowrap text-center font-medium text-gray-900">{{ forloop.counter }}</td>
-                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.generic_name }}</td>
-                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.trade_name }}</td>
-                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.strength }}</td>
-                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.expiration_date }}</td>
+                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.generic_name|default_if_none:'' }}</td>
+                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.trade_name|default_if_none:'' }}</td>
+                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.strength|default_if_none:'' }}</td>
+                    <td class="p-2 whitespace-nowrap  text-gray-600">{{ drug.expiration_date|default_if_none:'' }}</td>
                     <td class="p-2 whitespace-nowrap text-center">
                         {% if drug.status == 'expired' %}
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-rose-50 text-red-600">
