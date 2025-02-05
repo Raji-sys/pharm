@@ -905,7 +905,7 @@ class UnitIssueRecordListView(ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = UnitIssueRecord.objects.all()
+        queryset = UnitIssueRecord.objects.all().order_by('-updated_at')
         query = self.request.GET.get("q", "").strip()
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')

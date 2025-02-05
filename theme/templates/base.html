@@ -46,7 +46,7 @@
   
     </style>
 <body class="bg-gradient-to-r from-blue-50 to-sky-50 min-h-screen flex flex-col">
-    <header class="bg-gradient-to-r from-blue-600  to-sky-600 shadow-lg">
+    <header class="bg-gradient-to-r from-blue-600 to-sky-600 shadow-lg">
         <nav class="container mx-auto px-4">
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center space-x-4">
@@ -153,7 +153,7 @@
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             document.getElementById('mobile-menu').classList.toggle('hidden');
         });
-        const sessionAge = 15 * 60 * 1000; // 15 minutes in milliseconds
+        const sessionAge = 60 * 60 * 1000; // 1 hour in milliseconds
         const warningTime = sessionAge - 120000; // Show warning 2 minutes before expiration
 
         const modal = document.getElementById("session-modal");
