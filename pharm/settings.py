@@ -70,16 +70,16 @@ DATABASES = {
     }
 }
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-        "LOCATION": "127.0.0.1:11211",
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+#         "LOCATION": "127.0.0.1:11211",
+#     }
+# }
 
-CACHE_MIDDLEWARE_ALIAS= 'default'
-CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24
-CACHE_MIDDLEWARE_KEY_PREFIX = ''
+# CACHE_MIDDLEWARE_ALIAS= 'default'
+# CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24
+# CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 AUTH_PASSWORD_VALIDATORS = [
     {
