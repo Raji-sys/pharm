@@ -488,125 +488,47 @@ class LoginActivity(models.Model):
     user_agent = models.TextField(null=True, blank=True)
     browser = models.CharField(max_length=255, null=True, blank=True)
     os = models.CharField(max_length=255, null=True, blank=True)
-    device_type = models.CharField(max_length=50, default='pc')
+    device_type = models.CharField(max_length=50, default='Unknown')
     updated = models.DateTimeField(auto_now=True)
-    
+
     def get_browser_name(self):
-        ua_lower = self.user_agent.lower() if self.user_agent else ''
-        if 'chrome' in ua_lower:
-            return 'Chrome'
-        elif 'firefox' in ua_lower:
-            return 'Firefox'
-        elif 'safari' in ua_lower and 'chrome' not in ua_lower:
-            return 'Safari'
-        elif 'edge' in ua_lower:
-            return 'Edge'
-        elif 'opera' in ua_lower:
-            return 'Opera'
-        return 'Unknown'
+        if not self.user_agent:
+            return 'Unknown'
+        user_agent = parse(self.user_agent)
+        return user_agent.browser.family
 
     def get_os_name(self):
-        ua_lower = self.user_agent.lower() if self.user_agent else ''
-        if 'windows' in ua_lower:
-            return 'Windows'
-        elif 'macintosh' in ua_lower or 'mac os' in ua_lower:
-            return 'MacOS'
-        elif 'linux' in ua_lower:
-            return 'Linux'
-        elif 'android' in ua_lower:
-            return 'Android'
-        elif 'iphone' in ua_lower or 'ipad' in ua_lower:
-            return 'iOS'
-        return 'Unknown'
+        if not self.user_agent:
+            return 'Unknown'
+        user_agent = parse(self.user_agent)
+        return user_agent.os.family
 
     def get_device_type(self):
-        ua_lower = self.user_agent.lower() if self.user_agent else ''
-        
-        # Check for mobile devices
-        if any(mobile in ua_lower for mobile in ['mobile', 'android', 'iphone', 'ipad', 'ipod']):
-            if 'tablet' in ua_lower or 'ipad' in ua_lower:
-                return 'tablet'
+        if not self.user_agent:
+            return 'Unknown'
+        user_agent = parse(self.user_agent)
+        if user_agent.is_mobile:
             return 'mobile'
+        elif user_agent.is_tablet:
+            return 'tablet'
         return 'pc'
 
-    def get_device_icon(self):
-        device_type = self.get_device_type()
-        if device_type == 'mobile':
-            return 'fas fa-mobile-alt'
-        elif device_type == 'tablet':
-            return 'fas fa-tablet-alt'
-        return 'fas fa-desktop'
-
-    def get_os_icon(self):
-        os_name = self.get_os_name()
-        if os_name == 'Windows':
-            return 'fab fa-windows'
-        elif os_name == 'MacOS':
-            return 'fab fa-apple'
-        elif os_name == 'Linux':
-            return 'fab fa-linux'
-        elif os_name == 'Android':
-            return 'fab fa-android'
-        elif os_name == 'iOS':
-            return 'fab fa-apple'
-        return 'fas fa-desktop'
-
-    def get_browser_icon(self):
-        browser_name = self.get_browser_name()
-        if browser_name == 'Chrome':
-            return 'fab fa-chrome'
-        elif browser_name == 'Firefox':
-            return 'fab fa-firefox'
-        elif browser_name == 'Safari':
-            return 'fab fa-safari'
-        elif browser_name == 'Edge':
-            return 'fab fa-edge'
-        elif browser_name == 'Opera':
-            return 'fab fa-opera'
-        return 'fas fa-globe'
-
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
     user_agent = request.META.get('HTTP_USER_AGENT', '')
-    ip_address = request.META.get('REMOTE_ADDR')
+    ip_address = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
     
-    # Create the activity instance first
     activity = LoginActivity(
         user=user,
         session_key=request.session.session_key,
         ip_address=ip_address,
         user_agent=user_agent,
-        device_type='pc'
-    )
-@receiver(user_logged_in)
-def log_user_login(sender, request, user, **kwargs):
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
-    ip_address = request.META.get('REMOTE_ADDR')
-    
-    # Create the activity instance first
-    activity = LoginActivity(
-        user=user,
-        session_key=request.session.session_key,
-        ip_address=ip_address,
-        user_agent=user_agent,
-        browser='Unknown',  # Set to unknown by default
-        os='Unknown',  # Set to unknown by default
-        device_type='Unknown'  # Set to unknown by default
     )
     
-    # Now set browser, OS and device type using the instance methods
     activity.browser = activity.get_browser_name()
     activity.os = activity.get_os_name()
     activity.device_type = activity.get_device_type()
     
-    # Save the instance
-    activity.save()
-    
-    # Now set browser and OS using the instance methods
-    activity.browser = activity.get_browser_name()
-    activity.os = activity.get_os_name()
-    
-    # Save the instance
     activity.save()
 
 @receiver(user_logged_out)

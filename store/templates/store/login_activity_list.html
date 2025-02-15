@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load humanize %}
 {% load static %}
-{% block title %}Login Activity Log{% endblock %}
+{% block title %}Login Activity{% endblock %}
 {% block content %}
 <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
     <!-- Header Section -->
     <div class="mb-4 sm:mb-6">
-        <div class="text-sm sm:text-lg font-bold text-gray-800 mb-4 flex items-center  justify-between">
+        <div class="text-xs font-bold text-gray-800 mb-4 flex items-center justify-between">
             <div class="uppercase">
-                <i class="fas fa-lock mr-2 text-blue-500 text-sm "></i> 
+                <i class="fas fa-lock mr-2 text-blue-500 text-xs "></i> 
                 Login Activity
             </div> 
             <div>
@@ -29,7 +29,7 @@
                         type="text" 
                         name="q" 
                         value="{{ query }}" 
-                        class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                        class="text-xs w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
                         placeholder="Search by username, firstname or surname...">
                     <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                 </div>
@@ -57,7 +57,7 @@
                     <div class="flex justify-between items-start mb-2">
                         <div class="flex items-center">
                             <i class="fas fa-user-circle text-gray-400 mr-2"></i>
-                            <span class="font-medium uppercase">{{ l.user.first_name }}</span>
+                            <span class="font-medium uppercase"> {{ l.user.first_name }} {{l.user.last_name}}</span>
                         </div>
                         <span class="text-xs text-gray-500">#{{ forloop.counter }}</span>
                     </div>
@@ -93,17 +93,17 @@
                             </div>
                             
                             <div class="flex items-center" title="Device Type">
-                                <i class="{{ l.get_device_icon }} text-gray-600 mr-1"></i>
+                                <i class=" text-gray-600 mr-1"></i>
                                 <span class="text-gray-600">{{ l.device_type }}</span>
                             </div>
                             
                             <div class="flex items-center" title="OS: {{ l.os }}">
-                                <i class="{{ l.get_os_icon }} text-gray-600 mr-1"></i>
+                                <i class=" text-gray-600 mr-1"></i>
                                 <span class="text-gray-600">{{ l.os }}</span>
                             </div>
                             
                             <div class="flex items-center" title="Browser: {{ l.browser }}">
-                                <i class="{{ l.get_browser_icon }} text-gray-600 mr-1"></i>
+                                <i class=" text-gray-600 mr-1"></i>
                                 <span class="text-gray-600">{{ l.browser }}</span>
                             </div>
                         </div>
@@ -138,7 +138,7 @@
                         <td class="p-2 whitespace-nowrap">
                             <div class="flex items-center">
                                 <i class="fas fa-user-circle text-gray-400 mr-2"></i>
-                                <span class="text-xs font-medium text-gray-900">{{ l.user.first_name }}</span>
+                                <span class="text-xs font-medium text-gray-900">{{ l.user.first_name }} {{l.user.last_name}}</span>
                             </div>
                         </td>
                         <td class="p-2 whitespace-nowrap">
@@ -181,15 +181,15 @@
                                     <span class="text-xs text-gray-600">{{ l.ip_address }}</span>
                                 </div>
                                 <div class="flex items-center" title="Device Type">
-                                    <i class="{{ l.get_device_icon }} text-gray-600 mr-1"></i>
+                                    <i class=" text-gray-600 mr-1"></i>
                                     <span class="text-xs text-gray-600">{{ l.device_type }}</span>
                                 </div>
                                 <div class="flex items-center" title="OS: {{ l.os }}">
-                                    <i class="{{ l.get_os_icon }} text-gray-600 mr-1"></i>
+                                    <i class=" text-gray-600 mr-1"></i>
                                     <span class="text-xs text-gray-600">{{ l.os }}</span>
                                 </div>
                                 <div class="flex items-center" title="Browser: {{ l.browser }}">
-                                    <i class="{{ l.get_browser_icon }} text-gray-600 mr-1"></i>
+                                    <i class=" text-gray-600 mr-1"></i>
                                     <span class="text-xs text-gray-600">{{ l.browser }}</span>
                                 </div>
                             </div>

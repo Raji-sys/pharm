@@ -6,7 +6,7 @@ from .views import *
 urlpatterns=[
     path('',views.index, name='index'),
 
-    # path('login_activity_log/', views.LoginActivityListView.as_view(), name='login_activity_log'),
+    path('login-activity/', views.LoginActivityListView.as_view(), name='login_activity_log'),
     
     path('login/',CustomLoginView.as_view(), name='signin'),
     path('main-store/', MainStoreDashboardView.as_view(), name='main_store'),

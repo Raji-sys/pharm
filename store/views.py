@@ -34,7 +34,7 @@ from .models import LoginActivity
 from datetime import datetime
 from django.urls import reverse
 from decimal import Decimal
-
+import humanize
 
 def group_required(group_name):
     def decorator(view_func):
@@ -1510,59 +1510,26 @@ class LoginActivityListView(LoginRequiredMixin, ListView):
                 Q(user__last_name__icontains=query) |
                 Q(ip_address__icontains=query)
             )
+        return queryset
 
-        def format_duration(seconds):
-            if seconds < 60:
-                return f"{seconds} seconds"
-            elif seconds < 3600:
-                minutes, seconds = divmod(seconds, 60)
-                return f"{minutes} minutes, {seconds} seconds"
-            elif seconds < 86400:
-                hours, remainder = divmod(seconds, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{hours} hours, {minutes} minutes, {seconds} seconds"
-            elif seconds < 604800:
-                days, remainder = divmod(seconds, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-            elif seconds < 2592000:
-                weeks, remainder = divmod(seconds, 604800)
-                days, remainder = divmod(remainder, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-            elif seconds < 31536000:
-                months, remainder = divmod(seconds, 2592000)
-                weeks, remainder = divmod(remainder, 604800)
-                days, remainder = divmod(remainder, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-            else:
-                years, remainder = divmod(seconds, 31536000)
-                months, remainder = divmod(remainder, 2592000)
-                weeks, remainder = divmod(remainder, 604800)
-                days, remainder = divmod(remainder, 86400)
-                hours, remainder = divmod(remainder, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                return f"{years} years, {months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+    def format_duration(self, seconds):
+        """Formats a duration in seconds into a human-readable string using humanize."""
+        return humanize.precisedelta(seconds, format="%0.0f")
 
-        for log in queryset:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+
+        # Calculate duration for each log
+        for log in context['logs']:
             if log.logout_time:
                 duration = log.logout_time - log.login_time
             else:
                 duration = timezone.now() - log.login_time
 
             seconds = int(duration.total_seconds())
-            log.duration = format_duration(seconds)
+            log.duration = self.format_duration(seconds)
 
-
-        return queryset
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')
         # Count the number of logged-in users
         context['logged_in_users_count'] = LoginActivity.objects.filter(logout_time__isnull=True).values('user_id').distinct().count()
 
