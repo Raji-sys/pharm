@@ -93,17 +93,17 @@
                             </div>
                             
                             <div class="flex items-center" title="Device Type">
-                                <i class=" text-gray-600 mr-1"></i>
+                                <i class="{{ l.get_device_icon }} text-gray-600 mr-1"></i>
                                 <span class="text-gray-600">{{ l.device_type }}</span>
                             </div>
                             
                             <div class="flex items-center" title="OS: {{ l.os }}">
-                                <i class=" text-gray-600 mr-1"></i>
+                                <i class="{{ l.get_os_icon }} text-gray-600 mr-1"></i>
                                 <span class="text-gray-600">{{ l.os }}</span>
                             </div>
                             
                             <div class="flex items-center" title="Browser: {{ l.browser }}">
-                                <i class=" text-gray-600 mr-1"></i>
+                                <i class="{{ l.get_browser_icon }} text-gray-600 mr-1"></i>
                                 <span class="text-gray-600">{{ l.browser }}</span>
                             </div>
                         </div>
@@ -181,15 +181,15 @@
                                     <span class="text-xs text-gray-600">{{ l.ip_address }}</span>
                                 </div>
                                 <div class="flex items-center" title="Device Type">
-                                    <i class=" text-gray-600 mr-1"></i>
+                                    <i class="{{ l.get_device_icon }} text-gray-600 mr-1"></i>
                                     <span class="text-xs text-gray-600">{{ l.device_type }}</span>
                                 </div>
                                 <div class="flex items-center" title="OS: {{ l.os }}">
-                                    <i class=" text-gray-600 mr-1"></i>
+                                    <i class="{{ l.get_os_icon }} text-gray-600 mr-1"></i>
                                     <span class="text-xs text-gray-600">{{ l.os }}</span>
                                 </div>
                                 <div class="flex items-center" title="Browser: {{ l.browser }}">
-                                    <i class=" text-gray-600 mr-1"></i>
+                                    <i class="{{ l.get_browser_icon }} text-gray-600 mr-1"></i>
                                     <span class="text-xs text-gray-600">{{ l.browser }}</span>
                                 </div>
                             </div>

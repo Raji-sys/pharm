@@ -1529,9 +1529,14 @@ class LoginActivityListView(LoginRequiredMixin, ListView):
 
             seconds = int(duration.total_seconds())
             log.duration = self.format_duration(seconds)
+        # Define a timeout duration (e.g., 24 hours)
+        timeout_duration = timedelta(hours=24)
 
-        # Count the number of logged-in users
-        context['logged_in_users_count'] = LoginActivity.objects.filter(logout_time__isnull=True).values('user_id').distinct().count()
+        # Filter out stale sessions
+        context['logged_in_users_count'] = LoginActivity.objects.filter(
+            logout_time__isnull=True,
+            login_time__gte=timezone.now() - timeout_duration
+        ).values('user_id').distinct().count()
 
         return context
 

@@ -512,7 +512,43 @@ class LoginActivity(models.Model):
         elif user_agent.is_tablet:
             return 'tablet'
         return 'pc'
+    
+    def get_device_icon(self):
+        device_type = self.get_device_type()
+        if device_type == 'mobile':
+            return 'fas fa-mobile-alt'
+        elif device_type == 'tablet':
+            return 'fas fa-tablet-alt'
+        return 'fas fa-desktop'
 
+    def get_os_icon(self):
+        os_name = self.get_os_name()
+        if os_name == 'Windows':
+            return 'fab fa-windows'
+        elif os_name == 'MacOS':
+            return 'fab fa-apple'
+        elif os_name == 'Linux':
+            return 'fab fa-linux'
+        elif os_name == 'Android':
+            return 'fab fa-android'
+        elif os_name == 'iOS':
+            return 'fab fa-apple'
+        return 'fas fa-desktop'
+
+    def get_browser_icon(self):
+        browser_name = self.get_browser_name()
+        if browser_name == 'Chrome':
+            return 'fab fa-chrome'
+        elif browser_name == 'Firefox':
+            return 'fab fa-firefox'
+        elif browser_name == 'Safari':
+            return 'fab fa-safari'
+        elif browser_name == 'Edge':
+            return 'fab fa-edge'
+        elif browser_name == 'Opera':
+            return 'fab fa-opera'
+        return 'fas fa-globe'
+    
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
     user_agent = request.META.get('HTTP_USER_AGENT', '')
