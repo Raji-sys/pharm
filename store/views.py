@@ -30,7 +30,7 @@ from django.core.exceptions import PermissionDenied
 from .models import Unit
 from decimal import Decimal
 from django.utils.timezone import now, timedelta
-# from .models import LoginActivity
+from .models import LoginActivity
 from datetime import datetime
 from django.urls import reverse
 from decimal import Decimal
@@ -1494,79 +1494,79 @@ class ReturnedDrugsListView(ListView):
         return context
 
 
-# class LoginActivityListView(LoginRequiredMixin, ListView):
-#     model = LoginActivity
-#     template_name = 'store/login_activity_list.html'
-#     context_object_name = 'logs'
-#     paginate_by = 10
+class LoginActivityListView(LoginRequiredMixin, ListView):
+    model = LoginActivity
+    template_name = 'store/login_activity_list.html'
+    context_object_name = 'logs'
+    paginate_by = 10
 
-#     def get_queryset(self):
-#         queryset = super().get_queryset().order_by('-login_time')
-#         query = self.request.GET.get('q')
-#         if query:
-#             queryset = queryset.filter(
-#                 Q(user__username__icontains=query) |
-#                 Q(user__first_name__icontains=query) |
-#                 Q(user__last_name__icontains=query) |
-#                 Q(ip_address__icontains=query)
-#             )
+    def get_queryset(self):
+        queryset = super().get_queryset().order_by('-login_time')
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(user__username__icontains=query) |
+                Q(user__first_name__icontains=query) |
+                Q(user__last_name__icontains=query) |
+                Q(ip_address__icontains=query)
+            )
 
-#         def format_duration(seconds):
-#             if seconds < 60:
-#                 return f"{seconds} seconds"
-#             elif seconds < 3600:
-#                 minutes, seconds = divmod(seconds, 60)
-#                 return f"{minutes} minutes, {seconds} seconds"
-#             elif seconds < 86400:
-#                 hours, remainder = divmod(seconds, 3600)
-#                 minutes, seconds = divmod(remainder, 60)
-#                 return f"{hours} hours, {minutes} minutes, {seconds} seconds"
-#             elif seconds < 604800:
-#                 days, remainder = divmod(seconds, 86400)
-#                 hours, remainder = divmod(remainder, 3600)
-#                 minutes, seconds = divmod(remainder, 60)
-#                 return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-#             elif seconds < 2592000:
-#                 weeks, remainder = divmod(seconds, 604800)
-#                 days, remainder = divmod(remainder, 86400)
-#                 hours, remainder = divmod(remainder, 3600)
-#                 minutes, seconds = divmod(remainder, 60)
-#                 return f"{weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-#             elif seconds < 31536000:
-#                 months, remainder = divmod(seconds, 2592000)
-#                 weeks, remainder = divmod(remainder, 604800)
-#                 days, remainder = divmod(remainder, 86400)
-#                 hours, remainder = divmod(remainder, 3600)
-#                 minutes, seconds = divmod(remainder, 60)
-#                 return f"{months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-#             else:
-#                 years, remainder = divmod(seconds, 31536000)
-#                 months, remainder = divmod(remainder, 2592000)
-#                 weeks, remainder = divmod(remainder, 604800)
-#                 days, remainder = divmod(remainder, 86400)
-#                 hours, remainder = divmod(remainder, 3600)
-#                 minutes, seconds = divmod(remainder, 60)
-#                 return f"{years} years, {months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+        def format_duration(seconds):
+            if seconds < 60:
+                return f"{seconds} seconds"
+            elif seconds < 3600:
+                minutes, seconds = divmod(seconds, 60)
+                return f"{minutes} minutes, {seconds} seconds"
+            elif seconds < 86400:
+                hours, remainder = divmod(seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{hours} hours, {minutes} minutes, {seconds} seconds"
+            elif seconds < 604800:
+                days, remainder = divmod(seconds, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+            elif seconds < 2592000:
+                weeks, remainder = divmod(seconds, 604800)
+                days, remainder = divmod(remainder, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+            elif seconds < 31536000:
+                months, remainder = divmod(seconds, 2592000)
+                weeks, remainder = divmod(remainder, 604800)
+                days, remainder = divmod(remainder, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+            else:
+                years, remainder = divmod(seconds, 31536000)
+                months, remainder = divmod(remainder, 2592000)
+                weeks, remainder = divmod(remainder, 604800)
+                days, remainder = divmod(remainder, 86400)
+                hours, remainder = divmod(remainder, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                return f"{years} years, {months} months, {weeks} weeks, {days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
 
-#         for log in queryset:
-#             if log.logout_time:
-#                 duration = log.logout_time - log.login_time
-#             else:
-#                 duration = timezone.now() - log.login_time
+        for log in queryset:
+            if log.logout_time:
+                duration = log.logout_time - log.login_time
+            else:
+                duration = timezone.now() - log.login_time
 
-#             seconds = int(duration.total_seconds())
-#             log.duration = format_duration(seconds)
+            seconds = int(duration.total_seconds())
+            log.duration = format_duration(seconds)
 
 
-#         return queryset
+        return queryset
 
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['query'] = self.request.GET.get('q', '')
-#         # Count the number of logged-in users
-#         context['logged_in_users_count'] = LoginActivity.objects.filter(logout_time__isnull=True).values('user_id').distinct().count()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        # Count the number of logged-in users
+        context['logged_in_users_count'] = LoginActivity.objects.filter(logout_time__isnull=True).values('user_id').distinct().count()
 
-#         return context
+        return context
 
 
 class DrugRequestCreateView(LoginRequiredMixin, CreateView):
