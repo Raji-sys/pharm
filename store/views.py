@@ -30,6 +30,9 @@ from django.core.exceptions import PermissionDenied
 from .models import Unit
 from decimal import Decimal
 from django.utils.timezone import now, timedelta
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+from django.core.cache import cache
 from .models import LoginActivity
 from datetime import datetime
 from django.urls import reverse
@@ -612,23 +615,31 @@ def restock_pdf(request):
     return response
 
 
-class StoreWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    def test_func(self):
-        return self.request.user.is_superuser
 
-    def handle_no_permission(self):
-        return super().handle_no_permission()
-
-    template_name = 'store/main_store_value.html'
+@method_decorator(never_cache, name='dispatch')
+class StoreWorthView(LoginRequiredMixin, StoreGroupRequiredMixin, TemplateView):
+    template_name = 'store/main_store_value.html'  # Ensure you define a template
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['today'] = timezone.now()
-        context['total_store_value'] = Drug.total_store_value()
-        context['total_store_quantity'] = Drug.total_store_quantity()
+        cache_key = 'store_worth_data'
+        cached_data = cache.get(cache_key)
+
+        if cached_data is None:
+            cached_data = {
+                'total_store_value': Drug.total_store_value(),
+                'total_store_quantity': Drug.total_store_quantity(),
+            }
+            cache.set(cache_key, cached_data, timeout=3600)  # Cache for 1 hour
+
+        context.update({
+            'today': timezone.now(),
+            'total_store_value': cached_data['total_store_value'],
+            'total_store_quantity': cached_data['total_store_quantity'],
+        })
+        
         return context
-
-
+@method_decorator(never_cache, name='dispatch')
 class UnitWorthView(LoginRequiredMixin, DetailView):
     model = Unit
     template_name = 'store/unit_value.html'
@@ -637,36 +648,45 @@ class UnitWorthView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         unit = self.object
-        context['today'] = timezone.now()
-
-        # Calculate store values using Decimal for precise calculations
-        store_value = Decimal(sum(
-            Decimal(str((store.drug.cost_price or 0) / (store.drug.pack_size or 1))) * Decimal(str(store.quantity or 0))
-            for store in unit.unit_store.all()
-        ))
-        store_quantity = Decimal(sum(store.quantity or 0 for store in unit.unit_store.all()))
-
-        locker_value = Decimal('0.00')
-        locker_quantity = Decimal('0.00')
-        if hasattr(unit, 'dispensary_locker'):
-            # Calculate locker values dynamically with Decimal
-            locker_value = Decimal(sum(
-                Decimal(str((inventory.drug.cost_price or 0) / (inventory.drug.pack_size or 1))) * Decimal(str(inventory.quantity or 0))
-                for inventory in unit.dispensary_locker.inventory.all()
+        
+        # Create a unique cache key for this unit
+        cache_key = f'unit_worth_data_{unit.id}'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is None:
+            # Calculate store values using Decimal for precise calculations
+            store_value = Decimal(sum(
+                Decimal(str((store.drug.cost_price or 0) / (store.drug.pack_size or 1))) * Decimal(str(store.quantity or 0))
+                for store in unit.unit_store.all()
             ))
-            locker_quantity = Decimal(sum(inventory.quantity or 0 for inventory in unit.dispensary_locker.inventory.all()))
+            store_quantity = Decimal(sum(store.quantity or 0 for store in unit.unit_store.all()))
 
-        context['unit_worth'] = {
-            'store_value': store_value,
-            'store_quantity': store_quantity,
-            'locker_value': locker_value,
-            'locker_quantity': locker_quantity,
-            'total_value': store_value + locker_value,
-            'total_quantity': store_quantity + locker_quantity
-        }
+            locker_value = Decimal('0.00')
+            locker_quantity = Decimal('0.00')
+            if hasattr(unit, 'dispensary_locker'):
+                # Calculate locker values dynamically with Decimal
+                locker_value = Decimal(sum(
+                    Decimal(str((inventory.drug.cost_price or 0) / (inventory.drug.pack_size or 1))) * Decimal(str(inventory.quantity or 0))
+                    for inventory in unit.dispensary_locker.inventory.all()
+                ))
+                locker_quantity = Decimal(sum(inventory.quantity or 0 for inventory in unit.dispensary_locker.inventory.all()))
+            
+            cached_data = {
+                'store_value': store_value,
+                'store_quantity': store_quantity,
+                'locker_value': locker_value,
+                'locker_quantity': locker_quantity,
+                'total_value': store_value + locker_value,
+                'total_quantity': store_quantity + locker_quantity
+            }
+            cache.set(cache_key, cached_data, timeout=3600)  # Cache for 1 hour
+        
+        context['today'] = timezone.now()
+        context['unit_worth'] = cached_data
         return context
 
-class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+
+class InventoryWorthView(LoginRequiredMixin, TemplateView):
     template_name = 'store/worth.html'
 
     def test_func(self):
@@ -677,37 +697,129 @@ class InventoryWorthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['today'] = timezone.now()
-
-        context['total_store_value'] = Drug.total_store_value()
-        context['combined_unit_value'] = Unit.combined_unit_value()
-        context['grand_total_value'] = Unit.grand_total_value()
-
-        units = Unit.objects.all().prefetch_related('unit_store__drug').select_related('dispensary_locker')
-        unit_worths = {}
-
-        for unit in units:
-            store_value = sum(
-                (unit_store.drug.piece_unit_cost_price or 0) * unit_store.quantity
-                for unit_store in unit.unit_store.all()
-            )
-
-            locker_value = 0
-            if hasattr(unit, 'dispensary_locker'):
-                locker_value = sum(
-                    (inventory.drug.piece_unit_cost_price or 0) * inventory.quantity
-                    for inventory in unit.dispensary_locker.inventory.all()
+        
+        # Use Redis cache
+        cache_key = 'inventory_worth_data'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data is None:
+            total_store_value = Drug.total_store_value()
+            combined_unit_value = Unit.combined_unit_value()
+            grand_total_value = Unit.grand_total_value()
+            
+            units = Unit.objects.all().prefetch_related('unit_store__drug').select_related('dispensary_locker')
+            unit_worths = {}
+            
+            for unit in units:
+                store_value = sum(
+                    (unit_store.drug.piece_unit_cost_price or 0) * unit_store.quantity
+                    for unit_store in unit.unit_store.all()
                 )
-
-            unit_worths[unit.name] = {
-                'store_value': store_value,
-                'locker_value': locker_value,
-                'total_value': store_value + locker_value
+                
+                locker_value = 0
+                if hasattr(unit, 'dispensary_locker'):
+                    locker_value = sum(
+                        (inventory.drug.piece_unit_cost_price or 0) * inventory.quantity
+                        for inventory in unit.dispensary_locker.inventory.all()
+                    )
+                
+                unit_worths[unit.name] = {
+                    'store_value': store_value,
+                    'locker_value': locker_value,
+                    'total_value': store_value + locker_value
+                }
+            
+            cached_data = {
+                'total_store_value': total_store_value,
+                'combined_unit_value': combined_unit_value,
+                'grand_total_value': grand_total_value,
+                'unit_worths': unit_worths
             }
-
-
-        context['unit_worths'] = unit_worths
+            cache.set(cache_key, cached_data, timeout=3600)  # Cache for 1 hour
+        
+        context['today'] = timezone.now()
+        context.update(cached_data)
+        
         return context
+# class UnitWorthView(LoginRequiredMixin, DetailView):
+#     model = Unit
+#     template_name = 'store/unit_value.html'
+#     context_object_name = 'unit'
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         unit = self.object
+#         context['today'] = timezone.now()
+
+#         # Calculate store values using Decimal for precise calculations
+#         store_value = Decimal(sum(
+#             Decimal(str((store.drug.cost_price or 0) / (store.drug.pack_size or 1))) * Decimal(str(store.quantity or 0))
+#             for store in unit.unit_store.all()
+#         ))
+#         store_quantity = Decimal(sum(store.quantity or 0 for store in unit.unit_store.all()))
+
+#         locker_value = Decimal('0.00')
+#         locker_quantity = Decimal('0.00')
+#         if hasattr(unit, 'dispensary_locker'):
+#             # Calculate locker values dynamically with Decimal
+#             locker_value = Decimal(sum(
+#                 Decimal(str((inventory.drug.cost_price or 0) / (inventory.drug.pack_size or 1))) * Decimal(str(inventory.quantity or 0))
+#                 for inventory in unit.dispensary_locker.inventory.all()
+#             ))
+#             locker_quantity = Decimal(sum(inventory.quantity or 0 for inventory in unit.dispensary_locker.inventory.all()))
+
+#         context['unit_worth'] = {
+#             'store_value': store_value,
+#             'store_quantity': store_quantity,
+#             'locker_value': locker_value,
+#             'locker_quantity': locker_quantity,
+#             'total_value': store_value + locker_value,
+#             'total_quantity': store_quantity + locker_quantity
+#         }
+#         return context
+
+# class InventoryWorthView(LoginRequiredMixin, TemplateView):
+#     template_name = 'store/worth.html'
+
+#     def test_func(self):
+#         return self.request.user.is_superuser
+
+#     def handle_no_permission(self):
+#         return super().handle_no_permission()
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['today'] = timezone.now()
+
+#         context['total_store_value'] = Drug.total_store_value()
+#         context['combined_unit_value'] = Unit.combined_unit_value()
+#         context['grand_total_value'] = Unit.grand_total_value()
+
+#         units = Unit.objects.all().prefetch_related('unit_store__drug').select_related('dispensary_locker')
+#         unit_worths = {}
+
+#         for unit in units:
+#             store_value = sum(
+#                 (unit_store.drug.piece_unit_cost_price or 0) * unit_store.quantity
+#                 for unit_store in unit.unit_store.all()
+#             )
+
+#             locker_value = 0
+#             if hasattr(unit, 'dispensary_locker'):
+#                 locker_value = sum(
+#                     (inventory.drug.piece_unit_cost_price or 0) * inventory.quantity
+#                     for inventory in unit.dispensary_locker.inventory.all()
+#                 )
+
+#             unit_worths[unit.name] = {
+#                 'store_value': store_value,
+#                 'locker_value': locker_value,
+#                 'total_value': store_value + locker_value
+#             }
+
+
+#         context['unit_worths'] = unit_worths
+#         return context
 
     
 class StoreListView(LoginRequiredMixin, ListView):

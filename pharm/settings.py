@@ -24,12 +24,13 @@ INSTALLED_APPS = [
     'django_filters',
     'django_fastdev',
     'import_export',
+    'redisboard',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     "django.middleware.cache.UpdateCacheMiddleware",
+    'django.contrib.sessions.middleware.SessionMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.cache.FetchFromCacheMiddleware",
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -37,6 +38,19 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+    }
+}
+
+
+# # Cache settings
+CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes default cache
+CACHE_MIDDLEWARE_KEY_PREFIX = "pharm"
+CACHE_MIDDLEWARE_ALIAS = "default"
 
 ROOT_URLCONF = 'pharm.urls'
 
@@ -70,16 +84,6 @@ DATABASES = {
     }
 }
 
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-#         "LOCATION": "127.0.0.1:11211",
-#     }
-# }
-
-# CACHE_MIDDLEWARE_ALIAS= 'default'
-# CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24
-# CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -119,8 +123,24 @@ LOGIN_URL="/login/"
 STATIC_URL = 'static/'
 STATIC_ROOT=os.path.join(BASE_DIR,'static/')
 
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
-SESSION_COOKIE_AGE = 900  # 15 minutes (in seconds)
+SESSION_COOKIE_AGE = 3600  
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Log out when browser closes
 SESSION_SAVE_EVERY_REQUEST = True  # Reset session timeout on activity
 SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+
+
+
+# # Redis cache configuration
+
+# # views.py
+# @method_decorator(never_cache, name='dispatch')
+# class StoreWorthView(LoginRequiredMixin, StoreGroupRequiredMixin, TemplateView):
+#     # ... rest of your view stays the same
+
+# # Function-based views
+# @never_cache
+# def current_stock_level(request, drug_id):
+#     # Real-time stock check

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 from .models import *
-from import_export.admin import ImportMixin, ExportMixin
+from import_export.admin import ImportExportModelAdmin 
 from import_export import resources
 from datetime import datetime
 from django.utils.dateparse import parse_date
@@ -33,47 +33,49 @@ class CaseInsensitiveForeignKeyWidget(ForeignKeyWidget):
         )
 
 class DrugResource(resources.ModelResource):
-    expiration_date = fields.Field(attribute='expiration_date', column_name='expiration_date')
     category = fields.Field(
         attribute='category',
         column_name='category',
         widget=CaseInsensitiveForeignKeyWidget(Category, 'name')
     )
+    current_balance = fields.Field(column_name='current_balance')
 
     class Meta:
         model = Drug
         import_id_fields = ('id',)
-        fields = ('id','date_added', 'supply_date', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'expiration_date', 'added_by', 'entered_expiry_period', 'updated_at')
+        fields = ('id', 'strength', 'generic_name', 'trade_name', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'current_balance', )
+
+    def dehydrate_current_balance(self, drug):
+        # Ensure the computed property is included in the export
+        return drug.current_balance
 
     def before_import_row(self, row, **kwargs):
         if 'expiration_date' in row and row['expiration_date']:
             if isinstance(row['expiration_date'], datetime):
-                # If it's already a datetime object, just get the date
                 row['expiration_date'] = row['expiration_date'].date()
             elif isinstance(row['expiration_date'], str):
-                # Try parsing as date first
                 parsed_date = parse_date(row['expiration_date'])
                 if parsed_date:
                     row['expiration_date'] = parsed_date
                 else:
-                    # If parsing as date fails, try parsing as datetime
                     try:
                         expiration_datetime = datetime.strptime(row['expiration_date'], '%Y-%m-%d %H:%M:%S')
                         row['expiration_date'] = expiration_datetime.date()
                     except ValueError:
-                        # If all parsing attempts fail, set to None or handle as needed
                         row['expiration_date'] = None
                         
 @admin.register(Drug)
-class DrugAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
+class DrugAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     resource_class = DrugResource
     form = DrugAdminForm
     exclude = ('added_by', 'balance', 'total_value')
-    list_display = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','cost_price','selling_price','total_purchased_quantity','current_balance','total_value','expiration_date','added_by', 'supply_date','updated_at']
-    list_filter = ['supply_date','category','supplier','added_by']
+    list_display = ['generic_name', 'trade_name', 'strength', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'current_balance', 'total_value', 'expiration_date', 'added_by', 'supply_date', 'updated_at']
+    list_filter = ['supply_date', 'category', 'supplier', 'added_by']
     search_fields = ['generic_name']
-    list_per_page=10
-
+    list_per_page = 10
+    change_list_template = 'admin/change_list.html' 
+    autocomplete_fields = ['trade_name','generic_name','category','supplier']
+    
     def total_value(self, obj):
         return obj.total_value
 
@@ -81,9 +83,8 @@ class DrugAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not obj.added_by:
-            obj.added_by=request.user
+            obj.added_by = request.user
         obj.save()
-
 
 class DrugForeignKeyWidget(Widget):
     def __init__(self, model, field):
@@ -183,7 +184,7 @@ class RecordResource(resources.ModelResource):
 
             
 @admin.register(Record)
-class RecordAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
+class RecordAdmin(ImportExportModelAdmin,  admin.ModelAdmin):
     exclude = ('issued_by', 'balance')
     list_display = ['drug', 'unit_issued_to', 'issued_by_username', 'quantity', 'date_issued','updated_at']
     search_fields = ['drug', 'issued_to','drug__supplier','drug__supply_date']
@@ -211,6 +212,7 @@ class RecordAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
 class PatientAdmin(admin.ModelAdmin):
     list_display = ('name', 'file_no', 'age','phone')
     search_fields = ('name','file_no')
+    autocomplete_fields = ['name',]
 
 
 @admin.register(Unit)
@@ -276,7 +278,7 @@ class UnitStoreAdmin(admin.ModelAdmin):
     )
 
 @admin.register(LockerInventory)
-class LockerAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
+class LockerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     def get_dosage_form(self, obj):
         return obj.drug.dosage_form if obj.drug else '-'
     get_dosage_form.short_description = 'Dosage Form'
@@ -324,7 +326,6 @@ class LockerAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
     )
 
 
-
 class CategoryResource(resources.ModelResource):
     class Meta:
         model = Category
@@ -335,7 +336,7 @@ class CategoryResource(resources.ModelResource):
 
 
 @admin.register(Category)
-class CategoryAdmin(ImportMixin, ExportMixin, admin.ModelAdmin):
+class CategoryAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     list_display = ['id', 'name']
     list_filter = ['name']
     search_fields = ['name']

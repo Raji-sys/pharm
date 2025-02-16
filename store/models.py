@@ -174,7 +174,7 @@ class Drug(models.Model):
     @classmethod
     def total_store_quantity(cls):
         return sum(drug.total_purchased_quantity - drug.total_issued for drug in cls.objects.all())    
-    
+
     @property
     def total_value(self):
         return self.current_balance * self.cost_price if self.current_balance is not None and self.cost_price is not None else 0
@@ -182,7 +182,7 @@ class Drug(models.Model):
     @classmethod
     def total_store_value(cls):
         return sum(drug.total_value for drug in cls.objects.all() if drug.total_value is not None)
-
+    
     @property
     def total_issued(self):
         return self.drug_records.aggregate(models.Sum('quantity'))['quantity__sum'] or 0
