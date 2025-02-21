@@ -479,101 +479,101 @@ class ReturnedDrugs(models.Model):
         verbose_name_plural = 'returned drugs record'
 
 
-class LoginActivity(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    login_time = models.DateTimeField(auto_now_add=True)
-    logout_time = models.DateTimeField(null=True, blank=True)
-    session_key = models.CharField(max_length=40, null=True, blank=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user_agent = models.TextField(null=True, blank=True)
-    browser = models.CharField(max_length=255, null=True, blank=True)
-    os = models.CharField(max_length=255, null=True, blank=True)
-    device_type = models.CharField(max_length=50, default='Unknown')
-    updated = models.DateTimeField(auto_now=True)
+# class LoginActivity(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     login_time = models.DateTimeField(auto_now_add=True)
+#     logout_time = models.DateTimeField(null=True, blank=True)
+#     session_key = models.CharField(max_length=40, null=True, blank=True)
+#     ip_address = models.GenericIPAddressField(null=True, blank=True)
+#     user_agent = models.TextField(null=True, blank=True)
+#     browser = models.CharField(max_length=255, null=True, blank=True)
+#     os = models.CharField(max_length=255, null=True, blank=True)
+#     device_type = models.CharField(max_length=50, default='Unknown')
+#     updated = models.DateTimeField(auto_now=True)
 
-    def get_browser_name(self):
-        if not self.user_agent:
-            return 'Unknown'
-        user_agent = parse(self.user_agent)
-        return user_agent.browser.family
+#     def get_browser_name(self):
+#         if not self.user_agent:
+#             return 'Unknown'
+#         user_agent = parse(self.user_agent)
+#         return user_agent.browser.family
 
-    def get_os_name(self):
-        if not self.user_agent:
-            return 'Unknown'
-        user_agent = parse(self.user_agent)
-        return user_agent.os.family
+#     def get_os_name(self):
+#         if not self.user_agent:
+#             return 'Unknown'
+#         user_agent = parse(self.user_agent)
+#         return user_agent.os.family
 
-    def get_device_type(self):
-        if not self.user_agent:
-            return 'Unknown'
-        user_agent = parse(self.user_agent)
-        if user_agent.is_mobile:
-            return 'mobile'
-        elif user_agent.is_tablet:
-            return 'tablet'
-        return 'pc'
+#     def get_device_type(self):
+#         if not self.user_agent:
+#             return 'Unknown'
+#         user_agent = parse(self.user_agent)
+#         if user_agent.is_mobile:
+#             return 'mobile'
+#         elif user_agent.is_tablet:
+#             return 'tablet'
+#         return 'pc'
     
-    def get_device_icon(self):
-        device_type = self.get_device_type()
-        if device_type == 'mobile':
-            return 'fas fa-mobile-alt'
-        elif device_type == 'tablet':
-            return 'fas fa-tablet-alt'
-        return 'fas fa-desktop'
+#     def get_device_icon(self):
+#         device_type = self.get_device_type()
+#         if device_type == 'mobile':
+#             return 'fas fa-mobile-alt'
+#         elif device_type == 'tablet':
+#             return 'fas fa-tablet-alt'
+#         return 'fas fa-desktop'
 
-    def get_os_icon(self):
-        os_name = self.get_os_name()
-        if os_name == 'Windows':
-            return 'fab fa-windows'
-        elif os_name == 'MacOS':
-            return 'fab fa-apple'
-        elif os_name == 'Linux':
-            return 'fab fa-linux'
-        elif os_name == 'Android':
-            return 'fab fa-android'
-        elif os_name == 'iOS':
-            return 'fab fa-apple'
-        return 'fas fa-desktop'
+#     def get_os_icon(self):
+#         os_name = self.get_os_name()
+#         if os_name == 'Windows':
+#             return 'fab fa-windows'
+#         elif os_name == 'MacOS':
+#             return 'fab fa-apple'
+#         elif os_name == 'Linux':
+#             return 'fab fa-linux'
+#         elif os_name == 'Android':
+#             return 'fab fa-android'
+#         elif os_name == 'iOS':
+#             return 'fab fa-apple'
+#         return 'fas fa-desktop'
 
-    def get_browser_icon(self):
-        browser_name = self.get_browser_name()
-        if browser_name == 'Chrome':
-            return 'fab fa-chrome'
-        elif browser_name == 'Firefox':
-            return 'fab fa-firefox'
-        elif browser_name == 'Safari':
-            return 'fab fa-safari'
-        elif browser_name == 'Edge':
-            return 'fab fa-edge'
-        elif browser_name == 'Opera':
-            return 'fab fa-opera'
-        return 'fas fa-globe'
+#     def get_browser_icon(self):
+#         browser_name = self.get_browser_name()
+#         if browser_name == 'Chrome':
+#             return 'fab fa-chrome'
+#         elif browser_name == 'Firefox':
+#             return 'fab fa-firefox'
+#         elif browser_name == 'Safari':
+#             return 'fab fa-safari'
+#         elif browser_name == 'Edge':
+#             return 'fab fa-edge'
+#         elif browser_name == 'Opera':
+#             return 'fab fa-opera'
+#         return 'fas fa-globe'
     
-@receiver(user_logged_in)
-def log_user_login(sender, request, user, **kwargs):
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
-    ip_address = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
+# @receiver(user_logged_in)
+# def log_user_login(sender, request, user, **kwargs):
+#     user_agent = request.META.get('HTTP_USER_AGENT', '')
+#     ip_address = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR'))
     
-    activity = LoginActivity(
-        user=user,
-        session_key=request.session.session_key,
-        ip_address=ip_address,
-        user_agent=user_agent,
-    )
+#     activity = LoginActivity(
+#         user=user,
+#         session_key=request.session.session_key,
+#         ip_address=ip_address,
+#         user_agent=user_agent,
+#     )
     
-    activity.browser = activity.get_browser_name()
-    activity.os = activity.get_os_name()
-    activity.device_type = activity.get_device_type()
+#     activity.browser = activity.get_browser_name()
+#     activity.os = activity.get_os_name()
+#     activity.device_type = activity.get_device_type()
     
-    activity.save()
+#     activity.save()
 
-@receiver(user_logged_out)
-def log_user_logout(sender, request, user, **kwargs):
-    LoginActivity.objects.filter(
-        user=user,
-        logout_time__isnull=True,
-        session_key=request.session.session_key
-    ).update(logout_time=timezone.now())
+# @receiver(user_logged_out)
+# def log_user_logout(sender, request, user, **kwargs):
+#     LoginActivity.objects.filter(
+#         user=user,
+#         logout_time__isnull=True,
+#         session_key=request.session.session_key
+#     ).update(logout_time=timezone.now())
 
 
 class DrugRequest(models.Model):

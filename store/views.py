@@ -33,11 +33,11 @@ from django.utils.timezone import now, timedelta
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.core.cache import cache
-from .models import LoginActivity
+# from .models import LoginActivity
 from datetime import datetime
 from django.urls import reverse
 from decimal import Decimal
-import humanize
+# import humanize
 
 def group_required(group_name):
     def decorator(view_func):
@@ -1117,7 +1117,7 @@ def unit_issue_record_pdf(request, unit_id):
 @login_required
 def dispenserecord(request, dispensary_id):
     dispensary = get_object_or_404(DispensaryLocker, id=dispensary_id)
-    DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=5)
+    DispensaryFormSet = modelformset_factory(DispenseRecord, form=DispenseRecordForm, extra=15)
 
     if request.method == 'POST':
         patient_form = PatientForm(request.POST)
@@ -1144,12 +1144,9 @@ def dispenserecord(request, dispensary_id):
     else:
         patient_form = PatientForm()
         formset = DispensaryFormSet(queryset=DispenseRecord.objects.none(), form_kwargs={'dispensary': dispensary})
-
-    return render(request, 'store/dispense_form.html', {
-        'patient_form': patient_form,
-        'formset': formset,
-        'dispensary': dispensary
-    })
+ 
+    context={'patient_form': patient_form,'formset': formset,'dispensary': dispensary}
+    return render(request, 'store/dispense_form.html', context )
 
 class DispenseRecordView(LoginRequiredMixin, UnitGroupRequiredMixin, ListView):
    model = DispenseRecord 
@@ -1606,51 +1603,51 @@ class ReturnedDrugsListView(ListView):
         return context
 
 
-class LoginActivityListView(LoginRequiredMixin, ListView):
-    model = LoginActivity
-    template_name = 'store/login_activity_list.html'
-    context_object_name = 'logs'
-    paginate_by = 10
+# class LoginActivityListView(LoginRequiredMixin, ListView):
+#     model = LoginActivity
+#     template_name = 'store/login_activity_list.html'
+#     context_object_name = 'logs'
+#     paginate_by = 10
 
-    def get_queryset(self):
-        queryset = super().get_queryset().order_by('-login_time')
-        query = self.request.GET.get('q')
-        if query:
-            queryset = queryset.filter(
-                Q(user__username__icontains=query) |
-                Q(user__first_name__icontains=query) |
-                Q(user__last_name__icontains=query) |
-                Q(ip_address__icontains=query)
-            )
-        return queryset
+#     def get_queryset(self):
+#         queryset = super().get_queryset().order_by('-login_time')
+#         query = self.request.GET.get('q')
+#         if query:
+#             queryset = queryset.filter(
+#                 Q(user__username__icontains=query) |
+#                 Q(user__first_name__icontains=query) |
+#                 Q(user__last_name__icontains=query) |
+#                 Q(ip_address__icontains=query)
+#             )
+#         return queryset
 
-    def format_duration(self, seconds):
-        """Formats a duration in seconds into a human-readable string using humanize."""
-        return humanize.precisedelta(seconds, format="%0.0f")
+#     def format_duration(self, seconds):
+#         """Formats a duration in seconds into a human-readable string using humanize."""
+#         return humanize.precisedelta(seconds, format="%0.0f")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['query'] = self.request.GET.get('q', '')
 
-        # Calculate duration for each log
-        for log in context['logs']:
-            if log.logout_time:
-                duration = log.logout_time - log.login_time
-            else:
-                duration = timezone.now() - log.login_time
+#         # Calculate duration for each log
+#         for log in context['logs']:
+#             if log.logout_time:
+#                 duration = log.logout_time - log.login_time
+#             else:
+#                 duration = timezone.now() - log.login_time
 
-            seconds = int(duration.total_seconds())
-            log.duration = self.format_duration(seconds)
-        # Define a timeout duration (e.g., 24 hours)
-        timeout_duration = timedelta(hours=24)
+#             seconds = int(duration.total_seconds())
+#             log.duration = self.format_duration(seconds)
+#         # Define a timeout duration (e.g., 24 hours)
+#         timeout_duration = timedelta(hours=24)
 
-        # Filter out stale sessions
-        context['logged_in_users_count'] = LoginActivity.objects.filter(
-            logout_time__isnull=True,
-            login_time__gte=timezone.now() - timeout_duration
-        ).values('user_id').distinct().count()
+#         # Filter out stale sessions
+#         context['logged_in_users_count'] = LoginActivity.objects.filter(
+#             logout_time__isnull=True,
+#             login_time__gte=timezone.now() - timeout_duration
+#         ).values('user_id').distinct().count()
 
-        return context
+#         return context
 
 
 class DrugRequestCreateView(LoginRequiredMixin, CreateView):

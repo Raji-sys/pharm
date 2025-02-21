@@ -71,7 +71,7 @@ class DrugAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     exclude = ('added_by', 'balance', 'total_value')
     list_display = ['generic_name', 'trade_name', 'strength', 'category', 'supplier', 'dosage_form', 'pack_size', 'cost_price', 'selling_price', 'total_purchased_quantity', 'current_balance', 'total_value', 'expiration_date', 'added_by', 'supply_date', 'updated_at']
     list_filter = ['supply_date', 'category', 'supplier', 'added_by']
-    search_fields = ['generic_name']
+    search_fields = ['generic_name','trade_name','category__name']
     list_per_page = 10
     change_list_template = 'admin/change_list.html' 
     autocomplete_fields = ['trade_name','generic_name','category','supplier']

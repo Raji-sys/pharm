@@ -77,10 +77,21 @@ TAILWIND_APP_NAME='theme'
 INTERNAL_IPS=['127.0.0.1']
 NPM_BIN_PATH = "/usr/bin/npm"
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'pharmdb',
+        #'NAME': 'pharm_db',
+        'USER': 'padmin',
+        'PASSWORD': 'pharm2024',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
