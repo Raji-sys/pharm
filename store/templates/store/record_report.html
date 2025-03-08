@@ -4,8 +4,24 @@
 
 {% block content %}
 <div class="flex justify-center p-4 gap-4 text-xl">
-    <div>
+    <!-- <div>
         <a href="{% url 'record' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
+    </div> -->
+    <div>
+        <!-- Debug info (remove in production) -->
+        <!-- Referer: {{ request.META.HTTP_REFERER }} -->
+        
+        {% if request.META.HTTP_REFERER %}
+            {% if '/record/' in request.META.HTTP_REFERER and '/stores/bulk-locker/' not in request.META.HTTP_REFERER %}
+                <a href="{% url 'record' %}"><i class="fa-solid fa-arrow-left"></i></a>
+            {% elif '/stores/bulk-locker/' in request.META.HTTP_REFERER %}
+                <a href="javascript:history.back()"><i class="fa-solid fa-arrow-left"></i></a>
+            {% else %}
+                <a href="javascript:history.back()"><i class="fa-solid fa-arrow-left"></i></a>
+            {% endif %}
+        {% else %}
+            <a href="javascript:history.back()"><i class="fa-solid fa-arrow-left"></i></a>
+        {% endif %}
     </div>
     <div>
         <h1 class="text-lg  text-amber-600 text-center uppercase">Issuance Record Report Filters</h1>

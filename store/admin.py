@@ -74,7 +74,7 @@ class DrugAdmin(ImportExportModelAdmin, admin.ModelAdmin):
     search_fields = ['generic_name','trade_name','category__name']
     list_per_page = 10
     change_list_template = 'admin/change_list.html' 
-    autocomplete_fields = ['trade_name','generic_name','category','supplier']
+    # autocomplete_fields = ['trade_name','generic_name','category','supplier']
     
     def total_value(self, obj):
         return obj.total_value
@@ -212,7 +212,7 @@ class RecordAdmin(ImportExportModelAdmin,  admin.ModelAdmin):
 class PatientAdmin(admin.ModelAdmin):
     list_display = ('name', 'file_no', 'age','phone')
     search_fields = ('name','file_no')
-    autocomplete_fields = ['name',]
+    # autocomplete_fields = ['name',]
 
 
 @admin.register(Unit)
