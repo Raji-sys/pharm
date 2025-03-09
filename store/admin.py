@@ -229,8 +229,28 @@ class DispenseRecordAdmin(admin.ModelAdmin):
     list_filter=('dispensary','dispensed_by','dispense_date',)
 
 
+class UnitStoreResource(resources.ModelResource):
+    unit_name = Field(attribute='unit__name', column_name='Unit')
+    drug_generic_name = Field(attribute='drug__generic_name', column_name='Generic Name')
+    drug_trade_name = Field(attribute='drug__trade_name', column_name='Trade Name')
+    dosage_form = Field(attribute='drug__dosage_form', column_name='Dosage Form')
+    strength = Field(attribute='drug__strength', column_name='Strength')
+    category = Field(attribute='drug__category__name', column_name='Category')
+    total_value = Field(column_name='Total Value')
+    
+    def dehydrate_total_value(self, obj):
+        return obj.total_value
+    
+    class Meta:
+        model = UnitStore
+        fields = ('unit_name', 'drug_generic_name', 'drug_trade_name', 'dosage_form', 
+                  'strength', 'category', 'quantity', 'total_value')
+        export_order = fields
+
 @admin.register(UnitStore)
-class UnitStoreAdmin(admin.ModelAdmin):
+class UnitStoreAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_class = UnitStoreResource
+    
     def get_dosage_form(self, obj):
         return obj.drug.dosage_form if obj.drug else '-'
     get_dosage_form.short_description = 'Dosage Form'
@@ -277,11 +297,27 @@ class UnitStoreAdmin(admin.ModelAdmin):
         'updated_at'
     )
 
+class LockerInventoryResource(resources.ModelResource):
+    locker_name = Field(attribute='locker__unit', column_name='Unit')
+    drug_generic_name = Field(attribute='drug__generic_name', column_name='Generic Name')
+    drug_trade_name = Field(attribute='drug__trade_name', column_name='Trade Name')
+    dosage_form = Field(attribute='drug__dosage_form', column_name='Dosage Form')
+    strength = Field(attribute='drug__strength', column_name='Strength')
+    category = Field(attribute='drug__category__name', column_name='Category')
+    
+    class Meta:
+        model = LockerInventory
+        fields = ('locker_name', 'drug_generic_name', 'drug_trade_name', 'dosage_form', 'strength', 'category', 'quantity')
+        export_order = fields
+
 @admin.register(LockerInventory)
 class LockerAdmin(ImportExportModelAdmin, admin.ModelAdmin):
+    resource_class = LockerInventoryResource
+    
     def get_dosage_form(self, obj):
         return obj.drug.dosage_form if obj.drug else '-'
     get_dosage_form.short_description = 'Dosage Form'
+
 
     def get_trade_name(self, obj):
         return obj.drug.trade_name if obj.drug else '-'

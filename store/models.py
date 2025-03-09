@@ -298,6 +298,7 @@ class UnitStore(models.Model):
 
     def __str__(self):
         return f"{self.quantity} of {self.drug.generic_name} in {self.unit.name}"
+    
 
 class DispensaryLocker(models.Model):
     unit = models.OneToOneField(Unit, on_delete=models.CASCADE, related_name='dispensary_locker')
@@ -316,7 +317,7 @@ class LockerInventory(models.Model):
         unique_together = ['locker', 'drug']
 
     def __str__(self):
-        return f"{self.drug} in {self.locker}"
+        return f"{self.drug.generic_name} {self.drug.trade_name} in {self.locker}"
 
 
 class UnitIssueRecord(models.Model):
