@@ -4,13 +4,7 @@
 
 {% block content %}
 <div class="flex justify-center p-4 gap-4 text-xl">
-    <!-- <div>
-        <a href="{% url 'record' %}" ><i class="fa-solid fa-arrow-left"></i></a>    
-    </div> -->
     <div>
-        <!-- Debug info (remove in production) -->
-        <!-- Referer: {{ request.META.HTTP_REFERER }} -->
-        
         {% if request.META.HTTP_REFERER %}
             {% if '/record/' in request.META.HTTP_REFERER and '/stores/bulk-locker/' not in request.META.HTTP_REFERER %}
                 <a href="{% url 'record' %}"><i class="fa-solid fa-arrow-left"></i></a>
