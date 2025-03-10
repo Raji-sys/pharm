@@ -29,7 +29,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    "django.middleware.cache.UpdateCacheMiddleware",
+    # "django.middleware.cache.UpdateCacheMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     "django.middleware.common.CommonMiddleware",
     "django.middleware.cache.FetchFromCacheMiddleware",
@@ -39,18 +39,18 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379",
-    }
-}
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.redis.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379",
+#     }
+# }
 
 
-# # Cache settings
-CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes default cache
-CACHE_MIDDLEWARE_KEY_PREFIX = "pharm"
-CACHE_MIDDLEWARE_ALIAS = "default"
+# # # Cache settings
+# CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes default cache
+# CACHE_MIDDLEWARE_KEY_PREFIX = "pharm"
+# CACHE_MIDDLEWARE_ALIAS = "default"
 
 ROOT_URLCONF = 'pharm.urls'
 
@@ -134,8 +134,8 @@ LOGIN_URL="/login/"
 STATIC_URL = 'static/'
 STATIC_ROOT=os.path.join(BASE_DIR,'static/')
 
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# SESSION_CACHE_ALIAS = "default"
 
 SESSION_COOKIE_AGE = 3600  
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Log out when browser closes

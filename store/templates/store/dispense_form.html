@@ -11,7 +11,7 @@
         </div>
         {% endif %}
         <form method="post" class="bg-white px-8 py-2 rounded-lg shadow-md">
-            <h2 class="text-lg text-center text-teal-700 uppercase mt-10"><a href="{% url 'unit_dispensary' dispensary.unit.id %}"><i class="fa-solid fa-arrow-left mr-2"></i></a> {{ dispensary.unit.name }} dispense form</h2>
+            <h2 class="text-lg text-center text-teal-700 uppercase mt-4"><a href="{% url 'unit_dispensary' dispensary.unit.id %}"><i class="fa-solid fa-arrow-left mr-2"></i></a> {{ dispensary.unit.name }} dispense form</h2>
                     
             {% csrf_token %}
             <h2 class="text-sm text-center font-bold mb-4 text-teal-700 uppercase border-t border-gray-400 p-4">Patient Information</h2>
@@ -59,6 +59,9 @@
 </div>
 <script>
 function initializePage() {
+  // Keep track of all drugs for each category
+  const categoryDrugs = {};
+  
   function load_drugs(index) {
     const categoryId = document.getElementsByName(`form-${index}-category`)[0].value;
     const url = `/get_drugs_by_category/${categoryId}/`;
@@ -66,20 +69,69 @@ function initializePage() {
     fetch(url)
       .then(response => response.json())
       .then(data => {
-        const drugSelect = document.getElementsByName(`form-${index}-drug`)[0];
-        drugSelect.innerHTML = '';  // Clear existing options
-
-        data.drugs.forEach(drug => {
-          const option = document.createElement('option');
-          option.value = drug.id;
-          
-          const strength = drug.strength === 'N/A' ? '' : ` - ${drug.strength}`;
-          const dosageForm = drug.dosage_form ? ` ${drug.dosage_form} - ` : '';
-          option.text = `${dosageForm}${drug.name}${strength}`.trim();          
-          drugSelect.add(option);
-        });
+        // Store all drugs for this category
+        categoryDrugs[index] = data.drugs;
+        
+        // Fill the dropdown
+        updateDrugDropdown(index, categoryDrugs[index]);
+        
+        // Create/setup search box
+        setupSearchBox(index);
       })
       .catch(error => console.error('Error:', error));
+  }
+  
+  function updateDrugDropdown(index, drugs) {
+    const drugSelect = document.getElementsByName(`form-${index}-drug`)[0];
+    drugSelect.innerHTML = '';  // Clear existing options
+    
+    drugs.forEach(drug => {
+      const option = document.createElement('option');
+      option.value = drug.id;
+      
+      const genericName = drug.generic_name !== 'N/A' ? `(${drug.generic_name})` : '';
+      const strength = drug.strength === 'N/A' ? '' : ` - ${drug.strength}`;
+      const dosageForm = drug.dosage_form === 'N/A' ? '' : ` ${drug.dosage_form} - `;
+      option.text = `${dosageForm}${drug.name} ${genericName}${strength}`.trim();
+      drugSelect.add(option);
+    });
+  }
+  
+  function setupSearchBox(index) {
+    const drugSelect = document.getElementsByName(`form-${index}-drug`)[0];
+    const drugContainer = drugSelect.parentElement;
+    
+    // Check if search box already exists
+    let searchBox = drugContainer.querySelector('.drug-search');
+    if (!searchBox) {
+      // Create search box
+      searchBox = document.createElement('input');
+      searchBox.type = 'text';
+      searchBox.className = 'drug-search text-center text-xs md:text-xs focus:outline-none border border-blue-300 p-2 rounded shadow-lg hover:shadow-xl p-2 mb-2 w-full';
+      searchBox.placeholder = 'Search Drug...';
+      
+      // Insert before the select
+      drugContainer.insertBefore(searchBox, drugSelect);
+      
+      // Add event listener for search
+      searchBox.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (searchTerm === '') {
+          // If empty, show all drugs for this category
+          updateDrugDropdown(index, categoryDrugs[index]);
+        } else {
+          // Filter drugs based on search term
+          const filteredDrugs = categoryDrugs[index].filter(drug => 
+            drug.name.toLowerCase().includes(searchTerm) || 
+            (drug.generic_name && drug.generic_name.toLowerCase().includes(searchTerm)) ||
+            (drug.strength && drug.strength.toLowerCase().includes(searchTerm)) ||
+            (drug.dosage_form && drug.dosage_form.toLowerCase().includes(searchTerm))
+          );
+          updateDrugDropdown(index, filteredDrugs);
+        }
+      });
+    }
   }
 
   {% for form in formset %}

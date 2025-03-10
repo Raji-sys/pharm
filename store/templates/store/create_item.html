@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
-{% block title %}Add New Drug{% endblock %}
+{% block title %}Drug Form{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-            <div class=" bg-gradient-to-r from-cyan-700 to-cyan-900 flex justify-center gap-4 text-xl py-2">
-            <div>
-                <a href="{% url 'list' %}" ><i class="text-white fa-solid fa-arrow-left"></i></a>    
+            <div class=" bg-gradient-to-r from-cyan-700 to-cyan-900 flex justify-center py-2">
+            <div class="flex item-center">
+                <a href="{% url 'list' %}" class="mr-2"
+                ><i class="text-white fa-solid fa-arrow-left"></i></a>    
             </div>
             <div>
-                <h1 class="text-lg text-center text-white uppercase">Drug Form</h1>
+                <h1 class="text-sm text-center text-white uppercase m-0">Drug Form</h1>
             </div>
         </div>        
         {% if form.non_field_errors %}

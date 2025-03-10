@@ -22,7 +22,7 @@ admin.site.site_title="NOHD PHARMACY INVENTORY"
 class DrugAdminForm(forms.ModelForm):
     class Meta:
         model = Drug
-        fields = ['total_purchased_quantity','pack_size','cost_price','selling_price','expiration_date',]  
+        fields = ['generic_name', 'trade_name', 'strength', 'category', 'supplier', 'dosage_form','total_purchased_quantity','pack_size','cost_price','selling_price','expiration_date',]  
         # readonly_fields = ['total_purchased_quantity']
 
 

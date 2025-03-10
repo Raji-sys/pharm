@@ -148,7 +148,7 @@ def create_drug(request):
 
 @group_required('STORE')
 def drugs_list(request):
-    drugs = Drug.objects.all().order_by('category')
+    drugs = Drug.objects.all().order_by('-dosage_form')
     query = request.GET.get('q')
     
     if query:
@@ -259,7 +259,7 @@ class ExpiryNotificationView(LoginRequiredMixin, ListView):
 @group_required('STORE')
 def drug_report(request):
     # Initialize filter and get filtered queryset
-    drugfilter = DrugFilter(request.GET, queryset=Drug.objects.all().order_by('generic_name'))    
+    drugfilter = DrugFilter(request.GET, queryset=Drug.objects.all().order_by('-dosage_form'))    
     filtered_queryset = drugfilter.qs
 
     # Count the number of records in the filtered queryset
@@ -363,11 +363,24 @@ class RecordUpdateView(LoginRequiredMixin, UpdateView):
     
 
 def get_drugs_by_category(request, category_id):
+    search_query = request.GET.get('search', '').lower()
     drugs = Drug.objects.filter(category_id=category_id)
+    
+    # Filter by search query if provided
+    if search_query:
+        from django.db.models import Q
+        drugs = drugs.filter(
+            Q(trade_name__icontains=search_query) |
+            Q(generic_name__icontains=search_query) |
+            Q(strength__icontains=search_query) |
+            Q(dosage_form__icontains=search_query)
+        )
+    
     drug_list = [
         {
             'id': drug.id, 
             'name': drug.trade_name,
+            'generic_name': drug.generic_name if drug.generic_name else 'N/A',
             'strength': drug.strength if drug.strength else 'N/A',
             'dosage_form': drug.dosage_form if drug.dosage_form else 'N/A', 
         } 
@@ -523,7 +536,7 @@ def pdf_generator(buffer):
 def drug_pdf(request):
     ndate = datetime.now()
     filename = ndate.strftime('on_%d_%m_%Y_at_%I_%M%p.pdf')
-    drugfilter = DrugFilter(request.GET, queryset=Drug.objects.all().order_by('-updated_at'))
+    drugfilter = DrugFilter(request.GET, queryset=Drug.objects.all().order_by('-dosage_form'))
     f = drugfilter.qs
     keys = [key for key, value in request.GET.items() if value]
     result = f"GENERATED ON: {ndate.strftime('%d-%B-%Y at %I:%M %p')}\nBY: {request.user}"

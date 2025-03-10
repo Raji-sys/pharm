@@ -20,11 +20,11 @@ class DrugForm(forms.ModelForm):
 
 
 class DrugUpdateForm(forms.ModelForm):
-    expiration_date=forms.DateField(widget=forms.DateInput(attrs={'type':'date'}))
+    expiration_date=forms.DateField(widget=forms.DateInput(attrs={'type':'date'}),help_text="Select a date using the calendar picker")
     
     class Meta:
         model = Drug
-        fields = ['generic_name','trade_name','strength','category','supplier','dosage_form','pack_size','total_purchased_quantity','supply_date','expiration_date']  
+        fields = ['generic_name','trade_name','strength','category','supplier','dosage_form','cost_price','selling_price','pack_size','total_purchased_quantity','supply_date','expiration_date']  
         widgets = {
             'supply_date': DateInput(attrs={'type': 'date'})
         }
@@ -50,7 +50,7 @@ class RecordForm(forms.ModelForm):
         self.fields['category'].widget.attrs.update({'onchange': 'load_drugs()'})
         for field in self.fields.values():
             field.required = False
-            field.widget.attrs.update({'class': 'text-center text-xs focus:outline-none border border-blue-300 p-3 rounded shadow-lg hover:shadow-xl'})
+            field.widget.attrs.update({'class': 'text-center text-xs focus:outline-none border border-blue-300 p-2 rounded shadow-lg hover:shadow-xl'})
 
     def clean(self):
         cleaned_data = super().clean()
